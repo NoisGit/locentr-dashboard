@@ -1,6 +1,7 @@
 import classNames from 'classnames'
-import porteria from '@/assets/porteria-icon.png'
-import porteriaWhite from '@/assets/porteria-white.png'
+import porteriaBlack from '@/assets/porteria-black.svg'
+import porteriaWhite from '@/assets/porteria-white.svg'
+import porteriaIcon from '@/assets/porteria-icon.png'
 import { useThemeStore } from '@/store/themeStore'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'
@@ -11,8 +12,11 @@ interface LogoProps extends CommonProps {
     mode?: 'light' | 'dark'
     imgClass?: string
     logoWidth?: number | string
-    disableLink?: boolean // Nuevo prop opcional
+    disableLink?: boolean
+    onlyIcon?: boolean
 }
+
+const LOGO_HEIGHT = 44; // Cambia aquí el alto si quieres
 
 const Logo = (props: LogoProps) => {
     const {
@@ -22,33 +26,44 @@ const Logo = (props: LogoProps) => {
         logoWidth = 'auto',
         mode,
         disableLink = false,
+        onlyIcon = false,
     } = props
     const themeMode = useThemeStore((state) => state.mode)
     const isDark = (mode ? mode : themeMode) === 'dark'
 
+    let logoSrc = porteriaBlack
+    if (onlyIcon) {
+        logoSrc = porteriaIcon
+    } else {
+        logoSrc = isDark ? porteriaWhite : porteriaBlack
+    }
+
+    const alignment = onlyIcon
+        ? 'flex justify-center items-center w-full'
+        : 'flex items-center'
+
     const logoImg = (
         <img
             className={imgClass}
-            src={isDark ? porteriaWhite : porteria}
+            src={logoSrc}
             alt={`${APP_NAME} logo`}
-            style={{ transition: 'filter 0.3s' }}
+            style={{
+                height: LOGO_HEIGHT,
+                width: 'auto',
+                maxWidth: 220,
+                objectFit: 'contain',
+                ...style,
+            }}
+            draggable={false}
         />
     )
 
     const logoContent = (
-        <div
-            className={classNames('logo', className)}
-            style={{
-                ...style,
-                width: logoWidth,
-            }}
-        >
+        <div className={classNames('logo', alignment, className)}>
             {logoImg}
         </div>
     )
 
-    // Si disableLink está true, solo renderiza el logo sin link
-    // Si está false (default), lo envuelve en un <Link>
     return disableLink ? logoContent : (
         <Link to="/dashboards">
             {logoContent}

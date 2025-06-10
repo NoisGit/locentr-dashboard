@@ -7,7 +7,7 @@ import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
-import { Link } from 'react-router-dom' // <--- OJO, asegúrate que sea react-router-dom
+import { Link } from 'react-router-dom'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
@@ -41,9 +41,7 @@ const SideNav = ({
     contentClass,
 }: SideNavProps) => {
     const direction = useThemeStore((state) => state.direction)
-    const sideNavCollapse = useThemeStore(
-        (state) => state.layout.sideNavCollapse,
-    )
+    const sideNavCollapse = useThemeStore((state) => state.layout.sideNavCollapse)
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
     const userAuthority = useSessionUser((state) => state.user.authority)
@@ -60,19 +58,22 @@ const SideNav = ({
         >
             <Link
                 to={appConfig.authenticatedEntryPath}
-                className="side-nav-header flex flex-col justify-center"
+                className={
+                    sideNavCollapse
+                        ? 'side-nav-header flex items-center justify-center' // Icono centrado
+                        : 'side-nav-header flex items-center pl-6'           // Logo alineado a la izquierda
+                }
                 style={{ height: '90px' }}
             >
                 <Logo
                     onlyIcon={sideNavCollapse}
-                    disableLink // <-- Así evitamos doble <a>
-                    className={classNames(
-                        sideNavCollapse && 'ltr:ml-[11.5px] ltr:mr-[11.5px]',
+                    disableLink
+                    className=""
+                    imgClass={
                         sideNavCollapse
-                            ? SIDE_NAV_CONTENT_GUTTER
-                            : LOGO_X_GUTTER,
-                    )}
-                    imgClass="max-h-[48px]"
+                            ? 'max-h-[38px]'
+                            : 'max-h-[40px]'
+                    }
                 />
             </Link>
             <div className={classNames('side-nav-content', contentClass)}>
