@@ -16,14 +16,13 @@ interface LogoProps extends CommonProps {
     onlyIcon?: boolean
 }
 
-const LOGO_HEIGHT = 44; // Cambia aquí el alto si quieres
+const LOGO_HEIGHT = 44;
 
 const Logo = (props: LogoProps) => {
     const {
         className,
         imgClass,
         style,
-        logoWidth = 'auto',
         mode,
         disableLink = false,
         onlyIcon = false,
@@ -38,9 +37,10 @@ const Logo = (props: LogoProps) => {
         logoSrc = isDark ? porteriaWhite : porteriaBlack
     }
 
+    // Centrado con leve desplazamiento a la izquierda: pl-4 y justify-start
     const alignment = onlyIcon
-        ? 'flex justify-center items-center w-full'
-        : 'flex items-center'
+        ? 'flex items-center w-full pl-8'
+        : 'flex items-center w-full pl-8'
 
     const logoImg = (
         <img
@@ -59,7 +59,13 @@ const Logo = (props: LogoProps) => {
     )
 
     const logoContent = (
-        <div className={classNames('logo', alignment, className)}>
+        <div
+            className={classNames(
+                'logo',
+                alignment,
+                className
+            )}
+        >
             {logoImg}
         </div>
     )

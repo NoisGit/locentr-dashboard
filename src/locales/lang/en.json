@@ -13,7 +13,7 @@
             "image": "Image"
         },
         "conceptsCustomers": {
-            "customers": "Customer",
+            "customers": "Users",
             "customerList": "List",
             "customerEdit": "Edit",
             "customerCreate": "Create",
@@ -21,13 +21,13 @@
         },
         "conceptsProducts": {
             "scrumBoard": "Scrum Board",
-            "products": "Products",
+            "products": "Amenities",
             "productList": "List",
             "productEdit": "Edit",
             "productCreate": "Create"
         },
         "conceptsProjects": {
-            "projects": "Issue Report",
+            "projects": "Problem report",
             "projectList": "List",
             "projectDetails": "Details",
             "scrumBoard": "Board",

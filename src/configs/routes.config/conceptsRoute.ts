@@ -15,7 +15,7 @@ const conceptsRoute: Routes = [
     },
     {
         key: 'concepts.customers.customerList',
-        path: `${CONCEPTS_PREFIX_PATH}/customers/customer-list`,
+        path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
         component: lazy(
             () => import('@/views/concepts/customers/CustomerList'),
         ),
@@ -23,7 +23,7 @@ const conceptsRoute: Routes = [
     },
     {
         key: 'concepts.customers.customerEdit',
-        path: `${CONCEPTS_PREFIX_PATH}/customers/customer-edit/:id`,
+        path: `${CONCEPTS_PREFIX_PATH}/users/users-edit/:id`,
         component: lazy(
             () => import('@/views/concepts/customers/CustomerEdit'),
         ),
@@ -40,7 +40,7 @@ const conceptsRoute: Routes = [
     },
     {
         key: 'concepts.customers.customerCreate',
-        path: `${CONCEPTS_PREFIX_PATH}/customers/customer-create`,
+        path: `${CONCEPTS_PREFIX_PATH}/users/users-create`,
         component: lazy(
             () => import('@/views/concepts/customers/CustomerCreate'),
         ),
@@ -57,7 +57,7 @@ const conceptsRoute: Routes = [
     },
     {
         key: 'concepts.customers.customerDetails',
-        path: `${CONCEPTS_PREFIX_PATH}/customers/customer-details/:id`,
+        path: `${CONCEPTS_PREFIX_PATH}/users/users-details/:id`,
         component: lazy(
             () => import('@/views/concepts/customers/CustomerDetails'),
         ),

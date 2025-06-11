@@ -14,21 +14,21 @@
             "image": "Imagem"
         },
         "conceptsCustomers": {
-            "customers": "Clientes",
+            "customers": "Usuários",
             "customerList": "Lista",
             "customerEdit": "Editar",
             "customerCreate": "Criar",
             "customerDetails": "Detalhes"
         },
         "conceptsProducts": {
-            "products": "Produtos",
+            "products": "Comodidades",
             "productList": "Lista",
             "productEdit": "Editar",
             "productCreate": "Criar"
         },
         "conceptsProjects": {
             "scrumBoard": "Quadro",
-            "projects": "Projetos",
+            "projects": "Relatório de problemas",
             "projectList": "Lista",
             "projectDetails": "Detalhes",
             "projectTasks": "Tarefas",

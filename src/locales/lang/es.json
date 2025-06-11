@@ -13,21 +13,22 @@
             "image": "Imagen"
         },
         "conceptsCustomers": {
-            "customers": "Clientes",
+            "customers": "Usuarios",
+            "customer": "Usuario",
             "customerList": "Lista",
             "customerEdit": "Editar",
             "customerCreate": "Crear",
             "customerDetails": "Detalles"
         },
         "conceptsProducts": {
-            "products": "Productos",
+            "products": "Amenidades",
             "productList": "Lista",
             "productEdit": "Editar",
             "productCreate": "Crear"
         },
         "conceptsProjects": {
             "scrumBoard": "Tablero",
-            "projects": "Proyectos",
+            "projects": "Reporte de Problemas",
             "projectList": "Lista",
             "projectDetails": "Detalles",
             "projectTasks": "Tareas",
