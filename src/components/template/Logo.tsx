@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import porteriaBlack from '@/assets/porteria-black.svg'
 import porteriaWhite from '@/assets/porteria-white.svg'
-import porteriaIcon from '@/assets/iso-porteria.svg'
+import porteriaIcon from '@/assets/porteria-icon.svg' // <--- CAMBIA AQUÍ!!
 import { useThemeStore } from '@/store/themeStore'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'

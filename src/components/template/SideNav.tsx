@@ -1,28 +1,20 @@
-import classNames from '@/utils/classNames'
-import ScrollBar from '@/components/ui/ScrollBar'
-import Logo from '@/components/template/Logo'
-import VerticalMenuContent from '@/components/template/VerticalMenuContent'
+import classNames from 'classnames'
+import porteriaBlack from '@/assets/porteria-black.svg'
+import porteriaWhite from '@/assets/porteria-white.svg'
+import porteriaIcon from '@/assets/porteria-icon.svg'
 import { useThemeStore } from '@/store/themeStore'
-import { useSessionUser } from '@/store/authStore'
-import { useRouteKeyStore } from '@/store/routeKeyStore'
+import { APP_NAME } from '@/constants/app.constant'
+import { Link } from 'react-router-dom'
+import VerticalMenuContent from '@/components/template/VerticalMenuContent'
+import ScrollBar from '@/components/ui/ScrollBar'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
-import { Link } from 'react-router-dom'
+import { useSessionUser } from '@/store/authStore'
+import { useRouteKeyStore } from '@/store/routeKeyStore'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
-    SIDE_NAV_CONTENT_GUTTER,
-    LOGO_X_GUTTER,
 } from '@/constants/theme.constant'
-import type { Mode } from '@/@types/theme'
-
-type SideNavProps = {
-    translationSetup?: boolean
-    background?: boolean
-    className?: string
-    contentClass?: string
-    mode?: Mode
-}
 
 const sideNavStyle = {
     width: SIDE_NAV_WIDTH,
@@ -39,12 +31,17 @@ const SideNav = ({
     background = true,
     className,
     contentClass,
-}: SideNavProps) => {
+}) => {
     const direction = useThemeStore((state) => state.direction)
     const sideNavCollapse = useThemeStore((state) => state.layout.sideNavCollapse)
-
+    const themeMode = useThemeStore((state) => state.mode)
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
     const userAuthority = useSessionUser((state) => state.user.authority)
+
+    let logoSrc = themeMode === 'dark' ? porteriaWhite : porteriaBlack
+    if (sideNavCollapse) {
+        logoSrc = porteriaIcon
+    }
 
     return (
         <div
@@ -60,20 +57,20 @@ const SideNav = ({
                 to={appConfig.authenticatedEntryPath}
                 className={
                     sideNavCollapse
-                        ? 'side-nav-header flex items-center justify-center' // Icono centrado
-                        : 'side-nav-header flex items-center pl-6'           // Logo alineado a la izquierda
+                        ? 'side-nav-header flex items-center justify-center w-full h-[90px]' // Centrado colapsado
+                        : 'side-nav-header flex items-center justify-center w-full h-[90px]' // Centrado expandido
                 }
-                style={{ height: '90px' }}
             >
-                <Logo
-                    onlyIcon={sideNavCollapse}
-                    disableLink
-                    className=""
-                    imgClass={
-                        sideNavCollapse
-                            ? 'max-h-[38px]'
-                            : 'max-h-[40px]'
-                    }
+                <img
+                    src={logoSrc}
+                    alt={`${APP_NAME} logo`}
+                    className={sideNavCollapse ? 'max-h-[38px]' : 'max-h-[40px]'}
+                    style={{
+                        margin: '0 auto',
+                        display: 'block',
+                        objectFit: 'contain',
+                    }}
+                    draggable={false}
                 />
             </Link>
             <div className={classNames('side-nav-content', contentClass)}>

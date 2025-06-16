@@ -19,14 +19,19 @@ function useDarkMode(): [
     }
 
     useEffect(() => {
-        if (window === undefined) {
-            return
-        }
+        // Evita cualquier ejecución del código en SSR (Next, etc)
+        if (typeof window === 'undefined') return
+
         const root = window.document.documentElement
-        root.classList.remove(isEnabled ? MODE_LIGHT : MODE_DARK)
-        root.classList.add(isEnabled ? MODE_DARK : MODE_LIGHT)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isEnabled])
+        // Evita agregar la misma clase repetida
+        if (isEnabled) {
+            root.classList.add(MODE_DARK)
+            root.classList.remove(MODE_LIGHT)
+        } else {
+            root.classList.add(MODE_LIGHT)
+            root.classList.remove(MODE_DARK)
+        }
+    }, [isEnabled, MODE_DARK, MODE_LIGHT])
 
     return [isEnabled, onModeChange]
 }
