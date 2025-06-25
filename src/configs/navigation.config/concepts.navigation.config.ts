@@ -32,8 +32,7 @@ const conceptsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsAccount.settingsDesc',
+                        translateKey: 'nav.conceptsAccount.settingsDesc',
                         label: 'Configure your settings',
                     },
                 },
@@ -49,8 +48,7 @@ const conceptsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsAccount.activityLogDesc',
+                        translateKey: 'nav.conceptsAccount.activityLogDesc',
                         label: 'View recent activities',
                     },
                 },
@@ -66,8 +64,7 @@ const conceptsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsAccount.rolesPermissionsDesc',
+                        translateKey: 'nav.conceptsAccount.rolesPermissionsDesc',
                         label: 'Manage roles & permissions',
                     },
                 },
@@ -90,6 +87,38 @@ const conceptsNavigationConfig: NavigationTree[] = [
                 subMenu: [],
             },
         ],
+    },
+    {
+        key: 'concepts.marketplace',
+        path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
+        title: 'Marketplace',
+        translateKey: 'nav.marketplace',
+        icon: 'orders',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.marketplaceDesc',
+                label: 'View and manage marketplace items',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.logbook',
+        path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
+        title: 'Libro de Novedades',
+        translateKey: 'nav.logbook',
+        icon: 'documentation',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.logbookDesc',
+                label: 'Registro de novedades y eventos',
+            },
+        },
+        subMenu: [],
     },
     {
         key: 'concepts.calendar',

@@ -32,11 +32,11 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'concepts.products',
-        path: '',
+        path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
         title: 'Products',
         translateKey: 'nav.conceptsProducts.products',
         icon: 'products',
-        type: NAV_ITEM_TYPE_COLLAPSE,
+        type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
             description: {
@@ -44,59 +44,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 label: 'Product inventory management',
             },
         },
-        subMenu: [
-            {
-                key: 'concepts.products.productList',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
-                title: 'Product List',
-                translateKey: 'nav.conceptsProducts.productList',
-                icon: 'productList',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productListDesc',
-                        label: 'All products listed',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.products.productEdit',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-edit/12`,
-                title: 'Product Edit',
-                translateKey: 'nav.conceptsProducts.productEdit',
-                icon: 'productEdit',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productEditDesc',
-                        label: 'Edit product details',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.products.productCreate',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-create`,
-                title: 'Product Create',
-                translateKey: 'nav.conceptsProducts.productCreate',
-                icon: 'productCreate',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productCreateDesc',
-                        label: 'Add new product',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
+        subMenu: [],
     },
     {
         key: 'concepts.news',
@@ -123,8 +71,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.supportHubDesc',
+                        translateKey: 'nav.conceptsHelpCenter.supportHubDesc',
                         label: 'Central support hub',
                     },
                 },
@@ -140,8 +87,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.articleDesc',
+                        translateKey: 'nav.conceptsHelpCenter.articleDesc',
                         label: 'Read support articles',
                     },
                 },
@@ -157,8 +103,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.editArticleDesc',
+                        translateKey: 'nav.conceptsHelpCenter.editArticleDesc',
                         label: 'Modify article content',
                     },
                 },
@@ -174,8 +119,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.manageArticleDesc',
+                        translateKey: 'nav.conceptsHelpCenter.manageArticleDesc',
                         label: 'Article management',
                     },
                 },
@@ -185,11 +129,11 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'concepts.ai',
-        path: '',
+        path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
         title: 'AI',
         translateKey: 'nav.conceptsAi.ai',
         icon: 'ai',
-        type: NAV_ITEM_TYPE_COLLAPSE,
+        type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
             description: {
@@ -197,25 +141,9 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 label: 'AI tools and resources',
             },
         },
-        subMenu: [
-            {
-                key: 'concepts.ai.chat',
-                path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
-                title: 'Chat',
-                translateKey: 'nav.conceptsAi.chat',
-                icon: 'aiChat',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsAi.chatDesc',
-                        label: 'AI-powered chat systems',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
+        subMenu: [],
     },
+    // ---------------------------------
     {
         key: 'concepts.projects',
         path: '',
@@ -241,8 +169,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.scrumBoardDesc',
+                        translateKey: 'nav.conceptsProjects.scrumBoardDesc',
                         label: 'Manage your scrum workflow',
                     },
                 },
@@ -258,8 +185,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectListDesc',
+                        translateKey: 'nav.conceptsProjects.projectListDesc',
                         label: 'Organize all projects',
                     },
                 },
@@ -275,8 +201,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectDetailsDesc',
+                        translateKey: 'nav.conceptsProjects.projectDetailsDesc',
                         label: 'Project detailed information',
                     },
                 },
@@ -292,8 +217,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectTasksDesc',
+                        translateKey: 'nav.conceptsProjects.projectTasksDesc',
                         label: 'Manage project tasks',
                     },
                 },
@@ -309,24 +233,13 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 authority: [ADMIN, USER],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectIssueDesc',
+                        translateKey: 'nav.conceptsProjects.projectIssueDesc',
                         label: 'Resolve project issues',
                     },
                 },
                 subMenu: [],
             },
         ],
-    },
-    {
-        key: 'dashboard.project',
-        path: `${DASHBOARDS_PREFIX_PATH}/project`,
-        title: 'Project',
-        translateKey: 'nav.dashboard.project',
-        icon: 'dashboardProject',
-        type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, USER],
-        subMenu: [],
     }
 ]
 
