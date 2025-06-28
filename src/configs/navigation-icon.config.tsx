@@ -143,7 +143,7 @@ const navigationIcon: NavigationIcons = {
     customers: <PiUsersDuotone />,
     customerList: <PiUserListDuotone />,
     customerEdit: <PiPencilSimpleLineDuotone />,
-    // customerCreate: <PiUserPlusDuotone />, // ELIMINADA
+    // customerCreate: <PiUserPlusDuotone />, //
     customerDetails: <PiUserCircleDuotone />,
     products: <PiPackageDuotone />,
     productList: <PiListStarDuotone />,

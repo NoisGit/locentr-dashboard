@@ -4,58 +4,102 @@ import { ADMIN, USER } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const conceptsRoute: Routes = [
+    // ==== AI CHAT ====
     {
         key: 'concepts.ai.chat',
         path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
         component: lazy(() => import('@/views/concepts/ai/Chat')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
+
+    // ==== USERS (antes customers) ====
     {
-        key: 'concepts.customers.customerList',
+        key: 'concepts.users.userList',
         path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
         component: lazy(() => import('@/views/concepts/customers/CustomerList')),
         authority: [ADMIN, USER],
     },
     {
-        key: 'concepts.customers.customerEdit',
+        key: 'concepts.users.userEdit',
         path: `${CONCEPTS_PREFIX_PATH}/users/users-edit/:id`,
         component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Edit customer',
-                description: 'Manage customer details, purchase history, and preferences.',
+                title: 'Edit user',
+                description: 'Manage user details, purchase history, and preferences.',
                 contained: true,
             },
             footer: false,
         },
     },
     {
-        key: 'concepts.customers.customerCreate',
+        key: 'concepts.users.userCreate',
         path: `${CONCEPTS_PREFIX_PATH}/users/users-create`,
         component: lazy(() => import('@/views/concepts/customers/CustomerCreate')),
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Create customer',
-                description: 'Manage customer details, track purchases, and update preferences easily.',
+                title: 'Create user',
+                description: 'Manage user details, track purchases, and update preferences easily.',
                 contained: true,
             },
             footer: false,
         },
     },
     {
-        key: 'concepts.customers.customerDetails',
+        key: 'concepts.users.userDetails',
         path: `${CONCEPTS_PREFIX_PATH}/users/users-details/:id`,
         component: lazy(() => import('@/views/concepts/customers/CustomerDetails')),
         authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
+
+    // ==== ACCESOS ====
+    {
+        key: 'concepts.access.accessList',
+        path: `${CONCEPTS_PREFIX_PATH}/access/access-list`,
+        component: lazy(() => import('@/views/concepts/accesses/AccessList')),
+        authority: [ADMIN, USER],
+    },
+    {
+        key: 'concepts.access.accessEdit',
+        path: `${CONCEPTS_PREFIX_PATH}/access/access-edit/:id`,
+        component: lazy(() => import('@/views/concepts/accesses/AccessEdit')),
+        authority: [ADMIN, USER],
         meta: {
-            pageContainerType: 'contained',
+            header: {
+                title: 'Edit access',
+                description: 'Manage access details and permissions.',
+                contained: true,
+            },
+            footer: false,
         },
     },
+    {
+        key: 'concepts.access.accessCreate',
+        path: `${CONCEPTS_PREFIX_PATH}/access/access-create`,
+        component: lazy(() => import('@/views/concepts/accesses/AccessCreate')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Create access',
+                description: 'Create new access entries easily.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.access.accessDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/access/access-details/:id`,
+        component: lazy(() => import('@/views/concepts/accesses/AccessDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
+
+    // ==== PRODUCTS ====
     {
         key: 'concepts.products.productList',
         path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
@@ -90,121 +134,31 @@ const conceptsRoute: Routes = [
             footer: false,
         },
     },
-    {
-        key: 'concepts.projects.scrumBoard',
-        path: `${CONCEPTS_PREFIX_PATH}/projects/scrum-board`,
-        component: lazy(() => import('@/views/concepts/projects/ScrumBoard')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
-    },
-    {
-        key: 'concepts.projects.projectList',
-        path: `${CONCEPTS_PREFIX_PATH}/projects/project-list`,
-        component: lazy(() => import('@/views/concepts/projects/ProjectList')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-            pageBackgroundType: 'plain',
-        },
-    },
-    {
-        key: 'concepts.projects.projectDetails',
-        path: `${CONCEPTS_PREFIX_PATH}/projects/project-details/:id`,
-        component: lazy(() => import('@/views/concepts/projects/ProjectDetails')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-            pageBackgroundType: 'plain',
-        },
-    },
+
+    // ==== SOLO TASKS (PROJECTS) ====
     {
         key: 'concepts.projects.projectTasks',
         path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
         component: lazy(() => import('@/views/concepts/projects/Tasks')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
     {
         key: 'concepts.projects.projectIssue',
         path: `${CONCEPTS_PREFIX_PATH}/projects/tasks/:id`,
         component: lazy(() => import('@/views/concepts/projects/Issue')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
-    {
-        key: 'concepts.orders.orderList',
-        path: `${CONCEPTS_PREFIX_PATH}/orders/order-list`,
-        component: lazy(() => import('@/views/concepts/orders/OrderList')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
-    },
-    {
-        key: 'concepts.orders.orderEdit',
-        path: `${CONCEPTS_PREFIX_PATH}/orders/order-edit/:id`,
-        component: lazy(() => import('@/views/concepts/orders/OrderEdit')),
-        authority: [ADMIN, USER],
-        meta: {
-            header: {
-                title: 'Edit order',
-                contained: true,
-                description: 'Manage and track orders efficiently',
-            },
-            footer: false,
-        },
-    },
-    {
-        key: 'concepts.orders.orderCreate',
-        path: `${CONCEPTS_PREFIX_PATH}/orders/order-create`,
-        component: lazy(() => import('@/views/concepts/orders/OrderCreate')),
-        authority: [ADMIN, USER],
-        meta: {
-            header: {
-                title: 'Create order',
-                contained: true,
-                description: 'Create new customer orders quickly and accurately',
-            },
-            footer: false,
-        },
-    },
-    {
-        key: 'concepts.orders.orderDetails',
-        path: `${CONCEPTS_PREFIX_PATH}/orders/order-details/:id`,
-        component: lazy(() => import('@/views/concepts/orders/OrderDetails')),
-        authority: [ADMIN, USER],
-        meta: {
-            header: {
-                contained: true,
-                title: lazy(() =>
-                    import(
-                        '@/views/concepts/orders/OrderDetails/components/OrderDetailHeader'
-                    ),
-                ),
-                extraHeader: lazy(() =>
-                    import(
-                        '@/views/concepts/orders/OrderDetails/components/OrderDetailHeaderExtra'
-                    ),
-                ),
-            },
-            pageContainerType: 'contained',
-        },
-    },
+
+    // ==== ACCOUNT ====
     {
         key: 'concepts.account.settings',
         path: `${CONCEPTS_PREFIX_PATH}/account/settings`,
         component: lazy(() => import('@/views/concepts/accounts/Settings')),
         authority: [ADMIN, USER],
         meta: {
-            header: {
-                title: 'Settings',
-            },
+            header: { title: 'Settings' },
             pageContainerType: 'contained',
         },
     },
@@ -213,9 +167,7 @@ const conceptsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/account/activity-log`,
         component: lazy(() => import('@/views/concepts/accounts/ActivityLog')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
     {
         key: 'concepts.account.rolesPermissions',
@@ -232,10 +184,10 @@ const conceptsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
         component: lazy(() => import('@/views/concepts/accounts/Pricing')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
+
+    // ==== HELP CENTER (NEWS) ====
     {
         key: 'concepts.helpCenter.supportHub',
         path: `${CONCEPTS_PREFIX_PATH}/news/support-hub`,
@@ -261,21 +213,17 @@ const conceptsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/:id`,
         component: lazy(() => import('@/views/concepts/help-center/EditArticle')),
         authority: [ADMIN, USER],
-        meta: {
-            pageBackgroundType: 'plain',
-            footer: false,
-        },
+        meta: { pageBackgroundType: 'plain', footer: false },
     },
     {
         key: 'concepts.helpCenter.manageArticle',
         path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
         component: lazy(() => import('@/views/concepts/help-center/ManageArticle')),
         authority: [ADMIN, USER],
-        meta: {
-            pageBackgroundType: 'plain',
-            footer: false,
-        },
+        meta: { pageBackgroundType: 'plain', footer: false },
     },
+
+    // ==== CALENDAR ====
     {
         key: 'concepts.calendar',
         path: `${CONCEPTS_PREFIX_PATH}/calendar`,
@@ -286,36 +234,17 @@ const conceptsRoute: Routes = [
             pageBackgroundType: 'plain',
         },
     },
-    {
-        key: 'concepts.fileManager',
-        path: `${CONCEPTS_PREFIX_PATH}/file-manager`,
-        component: lazy(() => import('@/views/concepts/files/FileManager')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-            pageBackgroundType: 'plain',
-        },
-    },
-    {
-        key: 'concepts.mail',
-        path: `${CONCEPTS_PREFIX_PATH}/mail`,
-        component: lazy(() => import('@/views/concepts/mail/Mail')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
-    },
+
+    // ==== CHAT ====
     {
         key: 'concepts.chat',
         path: `${CONCEPTS_PREFIX_PATH}/chat`,
         component: lazy(() => import('@/views/concepts/chat/Chat')),
         authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'contained',
-        },
+        meta: { pageContainerType: 'contained' },
     },
 
-    // ==== Marketplace ====
+    // ==== MARKETPLACE ====
     {
         key: 'concepts.marketplace.marketplaceList',
         path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
