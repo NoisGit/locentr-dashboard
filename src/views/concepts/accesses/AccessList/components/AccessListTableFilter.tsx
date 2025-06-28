@@ -4,35 +4,31 @@ import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 import Input from '@/components/ui/Input'
 import { Form, FormItem } from '@/components/ui/Form'
-import useCustomerList from '../hooks/useCustomerList'
+import useAccessList from '../hooks/useAccessList'
 import { TbFilter } from 'react-icons/tb'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { ZodType } from 'zod'
 
-type FormSchema = {
-    purchasedProducts: string
-    purchaseChannel: Array<string>
-}
-
-const channelList = [
-    'Retail Stores',
-    'Online Retailers',
-    'Resellers',
-    'Mobile Apps',
-    'Direct Sales',
+const departamentosList = [
+    'Edificio A',
+    'Edificio B',
+    'Casa 1',
+    'Casa 2',
+    'Oficina Administración',
 ]
 
-const validationSchema: ZodType<FormSchema> = z.object({
-    purchasedProducts: z.string(),
-    purchaseChannel: z.array(z.string()),
+const validationSchema = z.object({
+    motivo: z.string().optional(),
+    departamentoVisitado: z.array(z.string()).optional(),
 })
 
-const CustomerListTableFilter = () => {
+type FormSchema = z.infer<typeof validationSchema>
+
+const AccessListTableFilter = () => {
     const [dialogIsOpen, setIsOpen] = useState(false)
 
-    const { filterData, setFilterData } = useCustomerList()
+    const { filterData, setFilterData } = useAccessList()
 
     const openDialog = () => {
         setIsOpen(true)
@@ -43,44 +39,52 @@ const CustomerListTableFilter = () => {
     }
 
     const { handleSubmit, reset, control } = useForm<FormSchema>({
-        defaultValues: filterData,
+        defaultValues: {
+            motivo: filterData.motivo ?? '',
+            departamentoVisitado: Array.isArray(filterData.departamentoVisitado)
+                ? filterData.departamentoVisitado
+                : [],
+        },
         resolver: zodResolver(validationSchema),
     })
 
     const onSubmit = (values: FormSchema) => {
-        setFilterData(values)
+        setFilterData({
+            motivo: values.motivo || '',
+            departamentoVisitado: values.departamentoVisitado || [],
+        })
         setIsOpen(false)
     }
 
     return (
         <>
-            <Button icon={<TbFilter />} onClick={() => openDialog()}>
-                Filter
+            <Button icon={<TbFilter />} onClick={openDialog}>
+                Filtrar
             </Button>
             <Dialog
                 isOpen={dialogIsOpen}
                 onClose={onDialogClose}
                 onRequestClose={onDialogClose}
             >
-                <h4 className="mb-4">Filter</h4>
+                <h4 className="mb-4">Filtrar accesos</h4>
                 <Form onSubmit={handleSubmit(onSubmit)}>
-                    <FormItem label="Products">
+                    <FormItem label="Motivo de acceso">
                         <Controller
-                            name="purchasedProducts"
+                            name="motivo"
                             control={control}
                             render={({ field }) => (
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="Search by purchased product"
+                                    placeholder="Buscar por motivo"
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Purchase Channel">
+                    <FormItem label="Departamento o unidad">
                         <Controller
-                            name="purchaseChannel"
+                            name="departamentoVisitado"
                             control={control}
                             render={({ field }) => (
                                 <Checkbox.Group
@@ -88,14 +92,14 @@ const CustomerListTableFilter = () => {
                                     className="flex mt-4"
                                     {...field}
                                 >
-                                    {channelList.map((source, index) => (
+                                    {departamentosList.map((d, index) => (
                                         <Checkbox
-                                            key={source + index}
+                                            key={d + index}
                                             name={field.name}
-                                            value={source}
+                                            value={d}
                                             className="justify-between flex-row-reverse heading-text"
                                         >
-                                            {source}
+                                            {d}
                                         </Checkbox>
                                     ))}
                                 </Checkbox.Group>
@@ -104,10 +108,10 @@ const CustomerListTableFilter = () => {
                     </FormItem>
                     <div className="flex justify-end items-center gap-2 mt-4">
                         <Button type="button" onClick={() => reset()}>
-                            Reset
+                            Limpiar
                         </Button>
                         <Button type="submit" variant="solid">
-                            Apply
+                            Aplicar
                         </Button>
                     </div>
                 </Form>
@@ -116,4 +120,4 @@ const CustomerListTableFilter = () => {
     )
 }
 
-export default CustomerListTableFilter
+export default AccessListTableFilter

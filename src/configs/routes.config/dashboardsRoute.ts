@@ -80,13 +80,13 @@ const dashboardsRoute: Routes = [
         },
     },
     {
-        key: 'dashboard.analytic',
-        path: `${DASHBOARDS_PREFIX_PATH}/analytic`,
-        component: lazy(() => import('@/views/dashboards/AnalyticDashboard')),
+        key: 'concepts.accesses.accessList',
+        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
+        component: lazy(() => import('@/views/concepts/accesses/AccessList/AccessList')),
         authority: [ADMIN, USER],
         meta: {
-            pageContainerType: 'contained',
-            pageBackgroundType: 'plain',
+            layout: 'default',
+            pageContainerType: 'default',
         },
     },
 ]

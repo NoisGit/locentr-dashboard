@@ -2,30 +2,40 @@
 import { mock } from '../MockAdapter'
 import { accessLogData } from '../data/accessLogData'
 
-mock.onGet(`/api/access/logs`).reply((config) => {
-    const { filter, activityIndex } = config.params
+mock.onGet('/api/access/logs').reply((config) => {
+    const { filter, activityIndex } = config.params as {
+        filter?: string[]
+        activityIndex: number
+    }
 
-    let loadable = true
     const maxGetItem = 3
     const count = (activityIndex - 1) * maxGetItem
-    let logs = accessLogData
+
+    let logs = [...accessLogData]
+    let loadable = true
+
     if (count >= logs.length) {
         loadable = false
     }
+
     logs = logs.slice(count, activityIndex * maxGetItem)
 
-    if (filter) {
-        logs = structuredClone(logs).map((log) => {
-            log.events = log.events.filter((event: any) =>
-                filter.includes(event.type),
-            ) as any
-            return log
-        }) as any
+    if (filter && Array.isArray(filter)) {
+        logs = logs.map((log) => {
+            const filteredEvents = log.events.filter((event: any) =>
+                filter.includes(event.type)
+            )
+            return {
+                ...log,
+                events: filteredEvents
+            }
+        })
     }
 
     const response = {
         data: logs,
-        loadable,
+        loadable
     }
+
     return [200, response]
 })

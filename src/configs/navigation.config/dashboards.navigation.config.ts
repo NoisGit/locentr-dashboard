@@ -32,7 +32,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'concepts.accesses',
-        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
+        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`, // <- ASEGÚRATE que esta ruta exista en tu router
         title: 'Accesos',
         translateKey: 'nav.conceptsAccesses.accesses',
         icon: 'signIn',

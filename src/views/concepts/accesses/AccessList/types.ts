@@ -1,4 +1,6 @@
-type PersonalInfo = {
+import type { Control, FieldErrors } from 'react-hook-form'
+
+export type PersonalInfo = {
     location: string
     title: string
     birthday: string
@@ -14,7 +16,7 @@ type PersonalInfo = {
     linkedIn: string
 }
 
-type OrderHistory = {
+export type OrderHistory = {
     id: string
     item: string
     status: string
@@ -22,7 +24,7 @@ type OrderHistory = {
     date: number
 }
 
-type PaymentMethod = {
+export type PaymentMethod = {
     cardHolderName: string
     cardType: string
     expMonth: string
@@ -31,22 +33,12 @@ type PaymentMethod = {
     primary: boolean
 }
 
-type Subscription = {
+export type Subscription = {
     plan: string
     status: string
     billing: string
     nextPaymentDate: number
     amount: number
-}
-
-export type GetAccessListResponse = {
-    list: Access[]
-    total: number
-}
-
-export type Filter = {
-    purchasedProducts: string
-    purchaseChannel: Array<string>
 }
 
 export type Access = {
@@ -65,4 +57,55 @@ export type Access = {
     subscription?: Subscription[]
     totalSpending?: number
     tags?: Array<{ value: string; label: string }>
+}
+
+export type GetAccessListResponse = {
+    list: Access[]
+    total: number
+}
+
+export type Filter = {
+    purchasedProducts: string
+    purchaseChannel: Array<string>
+}
+
+// Formulario (AccessForm)
+export type OverviewFields = {
+    firstName: string
+    lastName: string
+    email: string
+    dialCode: string
+    phoneNumber: string
+    img: string
+}
+
+export type AddressFields = {
+    country: string
+    address: string
+    postcode: string
+    city: string
+}
+
+export type ProfileImageFields = {
+    img: string
+}
+
+export type TagsFields = {
+    tags: Array<{ value: string; label: string }>
+}
+
+export type AccountField = {
+    banAccount?: boolean
+    accountVerified?: boolean
+}
+
+export type AccessFormSchema = OverviewFields &
+    AddressFields &
+    ProfileImageFields &
+    TagsFields &
+    AccountField
+
+export type FormSectionBaseProps = {
+    control: Control<AccessFormSchema>
+    errors: FieldErrors<AccessFormSchema>
 }

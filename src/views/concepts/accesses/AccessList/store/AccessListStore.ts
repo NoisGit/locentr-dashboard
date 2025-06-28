@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { TableQueries } from '@/@types/common'
-import type { Customer, Filter } from '../types'
+import type { Access, Filter } from '../types'
 
 export const initialTableData: TableQueries = {
     pageIndex: 1,
@@ -12,59 +12,44 @@ export const initialTableData: TableQueries = {
     },
 }
 
-export const initialFilterData = {
-    purchasedProducts: '',
-    purchaseChannel: [
-        'Retail Stores',
-        'Online Retailers',
-        'Resellers',
-        'Mobile Apps',
-        'Direct Sales',
-    ],
+export const initialFilterData: Filter = {
+    departamento: [],
+    motivo: '',
 }
 
-export type CustomersListState = {
+export type AccessListState = {
     tableData: TableQueries
     filterData: Filter
-    selectedCustomer: Partial<Customer>[]
+    selectedAccess: Partial<Access>[]
 }
 
-type CustomersListAction = {
+type AccessListAction = {
     setFilterData: (payload: Filter) => void
     setTableData: (payload: TableQueries) => void
-    setSelectedCustomer: (checked: boolean, customer: Customer) => void
-    setSelectAllCustomer: (customer: Customer[]) => void
+    setSelectedAccess: (checked: boolean, access: Access) => void
+    setSelectAllAccess: (accesses: Access[]) => void
 }
 
-const initialState: CustomersListState = {
+const initialState: AccessListState = {
     tableData: initialTableData,
     filterData: initialFilterData,
-    selectedCustomer: [],
+    selectedAccess: [],
 }
 
-export const useCustomerListStore = create<
-    CustomersListState & CustomersListAction
->((set) => ({
+export const useAccessListStore = create<AccessListState & AccessListAction>((set) => ({
     ...initialState,
     setFilterData: (payload) => set(() => ({ filterData: payload })),
     setTableData: (payload) => set(() => ({ tableData: payload })),
-    setSelectedCustomer: (checked, row) =>
+    setSelectedAccess: (checked, row) =>
         set((state) => {
-            const prevData = state.selectedCustomer
-            if (checked) {
-                return { selectedCustomer: [...prevData, ...[row]] }
-            } else {
-                if (
-                    prevData.some((prevCustomer) => row.id === prevCustomer.id)
-                ) {
-                    return {
-                        selectedCustomer: prevData.filter(
-                            (prevCustomer) => prevCustomer.id !== row.id,
-                        ),
-                    }
-                }
-                return { selectedCustomer: prevData }
-            }
+            const prevData = state.selectedAccess
+            return checked
+                ? { selectedAccess: [...prevData, row] }
+                : {
+                      selectedAccess: prevData.filter(
+                          (prev) => prev.id !== row.id,
+                      ),
+                  }
         }),
-    setSelectAllCustomer: (row) => set(() => ({ selectedCustomer: row })),
+    setSelectAllAccess: (rows) => set(() => ({ selectedAccess: rows })),
 }))

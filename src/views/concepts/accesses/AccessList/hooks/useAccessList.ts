@@ -1,46 +1,47 @@
-import { apiGetCustomersList } from '@/services/CustomersService'
+import { apiGetAccessList } from '@/services/AccessService'
 import useSWR from 'swr'
-import { useCustomerListStore } from '../store/customerListStore'
-import type { GetCustomersListResponse } from '../types'
+import { useAccessListStore } from '../store/AccessListStore' // ✅ Ruta corregida
+import type { GetAccessListResponse } from '../types'
 import type { TableQueries } from '@/@types/common'
 
-export default function useCustomerList() {
+export default function useAccessList() {
     const {
         tableData,
         filterData,
         setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
+        selectedAccess,
+        setSelectedAccess,
+        setSelectAllAccess,
         setFilterData,
-    } = useCustomerListStore((state) => state)
+    } = useAccessListStore((state) => state)
 
     const { data, error, isLoading, mutate } = useSWR(
-        ['/api/customers', { ...tableData, ...filterData }],
+        ['/api/accesses', { ...tableData, ...filterData }],
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ([_, params]) =>
-            apiGetCustomersList<GetCustomersListResponse, TableQueries>(params),
+            apiGetAccessList<GetAccessListResponse, TableQueries>(params),
         {
             revalidateOnFocus: false,
         },
     )
 
-    const customerList = data?.list || []
+    const accessList = data?.list || []
 
-    const customerListTotal = data?.total || 0
+    const accessListTotal = data?.total || 0
 
     return {
-        customerList,
-        customerListTotal,
+        accessList,
+        accessListTotal,
         error,
         isLoading,
         tableData,
         filterData,
         mutate,
         setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
+        selectedAccess,
+        setSelectedAccess,
+        setSelectAllAccess,
         setFilterData,
     }
 }
+
