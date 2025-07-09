@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa6'
 import { useNavigate } from 'react-router'
 
-type CustomerInfoFieldProps = {
+type EntryInfoFieldProps = {
     title?: string
     value?: string
 }
@@ -41,7 +41,7 @@ type ProfileSectionProps = {
     }>
 }
 
-const CustomerInfoField = ({ title, value }: CustomerInfoFieldProps) => {
+const EntryInfoField = ({ title, value }: EntryInfoFieldProps) => {
     return (
         <div>
             <span className="font-semibold">{title}</span>
@@ -52,6 +52,7 @@ const CustomerInfoField = ({ title, value }: CustomerInfoFieldProps) => {
 
 const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
     const navigate = useNavigate()
+
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const handleSocialNavigate = (link: string = '') => {
@@ -68,12 +69,12 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
 
     const handleDelete = () => {
         setDialogOpen(false)
+        navigate('/concepts/entries/entry-list')
         toast.push(
             <Notification title={'Successfully Deleted'} type="success">
-                Customer successfully deleted
+                Entry successfully deleted
             </Notification>,
         )
-        navigate('/concepts/users/users-list') // <- RUTA CORREGIDA
     }
 
     const handleSendMessage = () => {
@@ -81,13 +82,13 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
     }
 
     const handleEdit = () => {
-        navigate(`/concepts/users/users-edit/${data.id}`) // <- RUTA CORREGIDA
+        navigate(`/concepts/entries/entry-edit/${data.id}`)
     }
 
     return (
         <Card className="w-full">
             <div className="flex justify-end">
-                <Tooltip title="Edit customer">
+                <Tooltip title="Edit entry">
                     <button
                         className="close-button button-press-feedback"
                         type="button"
@@ -103,16 +104,16 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                     <h4 className="font-bold">{data.name}</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-7 gap-x-4 mt-10">
-                    <CustomerInfoField title="Email" value={data.email} />
-                    <CustomerInfoField
+                    <EntryInfoField title="Email" value={data.email} />
+                    <EntryInfoField
                         title="Phone"
                         value={data.personalInfo?.phoneNumber}
                     />
-                    <CustomerInfoField
+                    <EntryInfoField
                         title="Date of birth"
                         value={data.personalInfo?.birthday}
                     />
-                    <CustomerInfoField
+                    <EntryInfoField
                         title="Last Online"
                         value={dayjs
                             .unix(data.lastOnline as number)
@@ -123,9 +124,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                         <div className="flex mt-4 gap-2">
                             <Button
                                 size="sm"
-                                icon={
-                                    <FaFacebookF className="text-[#2259f2]" />
-                                }
+                                icon={<FaFacebookF className="text-[#2259f2]" />}
                                 onClick={() =>
                                     handleSocialNavigate(
                                         data.personalInfo?.facebook,
@@ -134,9 +133,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                             />
                             <Button
                                 size="sm"
-                                icon={
-                                    <FaXTwitter className="text-black dark:text-white" />
-                                }
+                                icon={<FaXTwitter className="text-black dark:text-white" />}
                                 onClick={() =>
                                     handleSocialNavigate(
                                         data.personalInfo?.twitter,
@@ -145,9 +142,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                             />
                             <Button
                                 size="sm"
-                                icon={
-                                    <FaLinkedinIn className="text-[#155fb8]" />
-                                }
+                                icon={<FaLinkedinIn className="text-[#155fb8]" />}
                                 onClick={() =>
                                     handleSocialNavigate(
                                         data.personalInfo?.linkedIn,
@@ -156,9 +151,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                             />
                             <Button
                                 size="sm"
-                                icon={
-                                    <FaPinterestP className="text-[#df0018]" />
-                                }
+                                icon={<FaPinterestP className="text-[#df0018]" />}
                                 onClick={() =>
                                     handleSocialNavigate(
                                         data.personalInfo?.pinterest,
@@ -170,7 +163,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                 </div>
                 <div className="flex flex-col gap-4">
                     <Button block variant="solid" onClick={handleSendMessage}>
-                        Send Messsage
+                        Send Message
                     </Button>
                     <Button
                         block
@@ -186,16 +179,16 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
                 <ConfirmDialog
                     isOpen={dialogOpen}
                     type="danger"
-                    title="Delete customer"
+                    title="Delete entry"
                     onClose={handleDialogClose}
                     onRequestClose={handleDialogClose}
                     onCancel={handleDialogClose}
                     onConfirm={handleDelete}
                 >
                     <p>
-                        Are you sure you want to delete this customer? All
-                        record related to this customer will be deleted as well.
-                        This action cannot be undone.
+                        Are you sure you want to delete this entry? All record
+                        related to this entry will be deleted as well. This
+                        action cannot be undone.
                     </p>
                 </ConfirmDialog>
             </div>

@@ -18,12 +18,13 @@ type DropdownList = {
     icon: JSX.Element
 }
 
+// Lista original comentada la opción "Profile"
 const dropdownItemList: DropdownList[] = [
-    {
-        label: 'Profile',
-        path: '/concepts/account/settings',
-        icon: <PiUserDuotone />,
-    },
+    // {
+    //     label: 'Profile',
+    //     path: '/concepts/account/settings',
+    //     icon: <PiUserDuotone />,
+    // },
     {
         label: 'Account Setting',
         path: '/concepts/account/settings',

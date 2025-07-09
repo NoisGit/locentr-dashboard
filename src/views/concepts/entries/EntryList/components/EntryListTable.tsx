@@ -2,21 +2,21 @@ import { useMemo } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
-import useAccessList from '../hooks/useAccessList'
+import useEntryList from '../hooks/useEntryList'
 import { Link, useNavigate } from 'react-router-dom'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil, TbEye } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
-import type { Access } from '../types'
+import type { Entry } from '../types'
 import type { TableQueries } from '@/@types/common'
 
-const NameColumn = ({ row }: { row: Access }) => {
+const NameColumn = ({ row }: { row: Entry }) => {
     return (
         <div className="flex items-center">
             <Avatar size={40} shape="circle" src={row.img} />
             <Link
                 className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
-                to={`/concepts/access/access-details/${row.id}`}
+                to={`/concepts/entries/entry-details/${row.id}`}
             >
                 {row.firstName} {row.lastName}
             </Link>
@@ -33,7 +33,7 @@ const ActionColumn = ({
 }) => {
     return (
         <div className="flex items-center gap-3">
-            <Tooltip title="Editar">
+            <Tooltip title="Edit">
                 <div
                     className="text-xl cursor-pointer select-none font-semibold"
                     role="button"
@@ -42,7 +42,7 @@ const ActionColumn = ({
                     <TbPencil />
                 </div>
             </Tooltip>
-            <Tooltip title="Ver detalles">
+            <Tooltip title="View details">
                 <div
                     className="text-xl cursor-pointer select-none font-semibold"
                     role="button"
@@ -55,32 +55,32 @@ const ActionColumn = ({
     )
 }
 
-const AccessListTable = () => {
+const EntryListTable = () => {
     const navigate = useNavigate()
 
     const {
-        accessList,
-        accessListTotal,
+        entryList,
+        entryListTotal,
         tableData,
         isLoading,
         setTableData,
-        setSelectAllAccess,
-        setSelectedAccess,
-        selectedAccess,
-    } = useAccessList()
+        setSelectAllEntry,
+        setSelectedEntry,
+        selectedEntry,
+    } = useEntryList()
 
-    const handleEdit = (access: Access) => {
-        navigate(`/concepts/accesses/access-edit/${access.id}`)
+    const handleEdit = (entry: Entry) => {
+        navigate(`/concepts/entries/entry-edit/${entry.id}`)
     }
 
-    const handleViewDetails = (access: Access) => {
-        navigate(`/concepts/accesses/access-details/${access.id}`)
+    const handleViewDetails = (entry: Entry) => {
+        navigate(`/concepts/entries/entry-details/${entry.id}`)
     }
 
-    const columns: ColumnDef<Access>[] = useMemo(
+    const columns: ColumnDef<Entry>[] = useMemo(
         () => [
             {
-                header: 'Nombre',
+                header: 'Name',
                 accessorKey: 'firstName',
                 cell: (props) => <NameColumn row={props.row.original} />,
             },
@@ -89,15 +89,15 @@ const AccessListTable = () => {
                 accessorKey: 'rut',
             },
             {
-                header: 'Departamento',
+                header: 'Department',
                 accessorKey: 'departamentoVisitado',
             },
             {
-                header: 'Fecha',
+                header: 'Date',
                 accessorKey: 'fecha',
             },
             {
-                header: 'Hora',
+                header: 'Time',
                 accessorKey: 'hora',
             },
             {
@@ -116,8 +116,8 @@ const AccessListTable = () => {
 
     const handleSetTableData = (data: TableQueries) => {
         setTableData(data)
-        if (selectedAccess.length > 0) {
-            setSelectAllAccess([])
+        if (selectedEntry.length > 0) {
+            setSelectAllEntry([])
         }
     }
 
@@ -140,16 +140,16 @@ const AccessListTable = () => {
         handleSetTableData(newTableData)
     }
 
-    const handleRowSelect = (checked: boolean, row: Access) => {
-        setSelectedAccess(checked, row)
+    const handleRowSelect = (checked: boolean, row: Entry) => {
+        setSelectedEntry(checked, row)
     }
 
-    const handleAllRowSelect = (checked: boolean, rows: Row<Access>[]) => {
+    const handleAllRowSelect = (checked: boolean, rows: Row<Entry>[]) => {
         if (checked) {
             const originalRows = rows.map((row) => row.original)
-            setSelectAllAccess(originalRows)
+            setSelectAllEntry(originalRows)
         } else {
-            setSelectAllAccess([])
+            setSelectAllEntry([])
         }
     }
 
@@ -157,18 +157,18 @@ const AccessListTable = () => {
         <DataTable
             selectable
             columns={columns}
-            data={accessList}
-            noData={!isLoading && accessList.length === 0}
+            data={entryList}
+            noData={!isLoading && entryList.length === 0}
             skeletonAvatarColumns={[0]}
             skeletonAvatarProps={{ width: 28, height: 28 }}
             loading={isLoading}
             pagingData={{
-                total: accessListTotal,
+                total: entryListTotal,
                 pageIndex: tableData.pageIndex as number,
                 pageSize: tableData.pageSize as number,
             }}
             checkboxChecked={(row) =>
-                selectedAccess.some((selected) => selected.id === row.id)
+                selectedEntry.some((selected) => selected.id === row.id)
             }
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}
@@ -179,4 +179,4 @@ const AccessListTable = () => {
     )
 }
 
-export default AccessListTable
+export default EntryListTable

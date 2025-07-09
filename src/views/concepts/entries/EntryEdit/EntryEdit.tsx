@@ -4,41 +4,41 @@ import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { apiGetCustomer } from '@/services/CustomersService'
-import CustomerForm from '../CustomerForm'
+import { apiGetEntry } from '@/services/EntryService'
+import EntryForm from '../EntryForm'
 import sleep from '@/utils/sleep'
 import NoUserFound from '@/assets/svg/NoUserFound'
 import { TbTrash, TbArrowNarrowLeft } from 'react-icons/tb'
 import { useParams, useNavigate } from 'react-router'
 import useSWR from 'swr'
-import type { CustomerFormSchema } from '../CustomerForm'
-import type { Customer } from '../CustomerList/types'
+import type { EntryFormSchema } from '../EntryForm'
+import type { Entry } from '../EntryList/types'
 
-const CustomerEdit = () => {
+const EntryEdit = () => {
     const { id } = useParams()
     const navigate = useNavigate()
 
     const { data, isLoading } = useSWR(
-        [`/api/customers${id}`, { id: id as string }],
-        ([_, params]) => apiGetCustomer<Customer, { id: string }>(params),
+        [`/api/entry/${id}`, { id: id as string }],
+        ([_, params]) => apiGetEntry<Entry, { id: string }>(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
-        }
+        },
     )
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-    const [isSubmiting, setIsSubmiting] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const handleFormSubmit = async (values: CustomerFormSchema) => {
+    const handleFormSubmit = async (values: EntryFormSchema) => {
         console.log('Submitted values', values)
-        setIsSubmiting(true)
+        setIsSubmitting(true)
         await sleep(800)
-        setIsSubmiting(false)
-        toast.push(<Notification type="success">Changes Saved!</Notification>, {
+        setIsSubmitting(false)
+        toast.push(<Notification type="success">Changes saved!</Notification>, {
             placement: 'top-center',
         })
-        navigate('/concepts/users/users-list')
+        navigate('/concepts/entries/entry-list')
     }
 
     const getDefaultValues = () => {
@@ -59,17 +59,16 @@ const CustomerEdit = () => {
                 tags: [],
             }
         }
-
         return {}
     }
 
     const handleConfirmDelete = () => {
         setDeleteConfirmationOpen(true)
         toast.push(
-            <Notification type="success">Customer deleted!</Notification>,
-            { placement: 'top-center' }
+            <Notification type="success">Entry deleted!</Notification>,
+            { placement: 'top-center' },
         )
-        navigate('/concepts/users/users-list') // ← Redirección corregida
+        navigate('/concepts/entries/entry-list')
     }
 
     const handleDelete = () => {
@@ -89,14 +88,14 @@ const CustomerEdit = () => {
             {!isLoading && !data && (
                 <div className="h-full flex flex-col items-center justify-center">
                     <NoUserFound height={280} width={280} />
-                    <h3 className="mt-8">No user found!</h3>
+                    <h3 className="mt-8">No entry found!</h3>
                 </div>
             )}
             {!isLoading && data && (
                 <>
-                    <CustomerForm
-                        defaultValues={getDefaultValues() as CustomerFormSchema}
-                        newCustomer={false}
+                    <EntryForm
+                        defaultValues={getDefaultValues() as EntryFormSchema}
+                        newEntry={false}
                         onFormSubmit={handleFormSubmit}
                     >
                         <Container>
@@ -125,26 +124,25 @@ const CustomerEdit = () => {
                                     <Button
                                         variant="solid"
                                         type="submit"
-                                        loading={isSubmiting}
+                                        loading={isSubmitting}
                                     >
                                         Save
                                     </Button>
                                 </div>
                             </div>
                         </Container>
-                    </CustomerForm>
+                    </EntryForm>
                     <ConfirmDialog
                         isOpen={deleteConfirmationOpen}
                         type="danger"
-                        title="Remove customers"
+                        title="Remove entry"
                         onClose={handleCancel}
                         onRequestClose={handleCancel}
                         onCancel={handleCancel}
                         onConfirm={handleConfirmDelete}
                     >
                         <p>
-                            Are you sure you want to remove this customer? This
-                            action can&apos;t be undo.
+                            Are you sure you want to remove this entry? This action can't be undone.
                         </p>
                     </ConfirmDialog>
                 </>
@@ -153,4 +151,4 @@ const CustomerEdit = () => {
     )
 }
 
-export default CustomerEdit
+export default EntryEdit

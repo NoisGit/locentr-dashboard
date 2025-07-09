@@ -1,5 +1,5 @@
 import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
-import { NAV_ITEM_TYPE_ITEM, NAV_ITEM_TYPE_COLLAPSE } from '@/constants/navigation.constant'
+import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
 import type { NavigationTree } from '@/@types/navigation'
 
@@ -12,6 +12,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
+        subMenu: [],
+    },
+    {
+        key: 'concepts.ai',
+        path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
+        title: 'AI',
+        translateKey: 'nav.conceptsAi.ai',
+        icon: 'ai',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsAi.aiDesc',
+                label: 'AI tools and resources',
+            },
+        },
         subMenu: [],
     },
     {
@@ -32,7 +48,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'concepts.accesses',
-        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`, // <- ASEGÚRATE que esta ruta exista en tu router
+        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
         title: 'Accesos',
         translateKey: 'nav.conceptsAccesses.accesses',
         icon: 'signIn',
@@ -42,6 +58,70 @@ const dashboardsNavigationConfig: NavigationTree[] = [
             description: {
                 translateKey: 'nav.conceptsAccesses.accessesDesc',
                 label: 'Gestión de accesos',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.news',
+        path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
+        title: 'Noticias',
+        translateKey: 'nav.conceptsHelpCenter.helpCenter',
+        icon: 'helpCenter',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsHelpCenter.helpCenterDesc',
+                label: 'Support and articles',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.projects',
+        path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
+        title: 'Reporte de problemas',
+        translateKey: 'nav.conceptsProjects.projects',
+        icon: 'projects',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsProjects.projectTasksDesc',
+                label: 'Manage project tasks',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.entries',
+        path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
+        title: 'Entries',
+        translateKey: 'nav.entries',
+        icon: 'uiFormsFormControl',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.entriesDesc',
+                label: 'Entry control and management at the gate',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.logbook',
+        path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
+        title: 'Libro de Novedades',
+        translateKey: 'nav.logbook',
+        icon: 'documentation',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.logbookDesc',
+                label: 'Registro de novedades y eventos',
             },
         },
         subMenu: [],
@@ -63,114 +143,81 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'concepts.news',
-        path: '',
-        title: 'Noticias',
-        translateKey: 'nav.conceptsHelpCenter.helpCenter',
-        icon: 'helpCenter',
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, USER],
-        meta: {
-            description: {
-                translateKey: 'nav.conceptsHelpCenter.helpCenterDesc',
-                label: 'Support and articles',
-            },
-        },
-        subMenu: [
-            {
-                key: 'concepts.news.supportHub',
-                path: `${CONCEPTS_PREFIX_PATH}/news/support-hub`,
-                title: 'Support Hub',
-                translateKey: 'nav.conceptsHelpCenter.supportHub',
-                icon: 'helpCeterSupportHub',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsHelpCenter.supportHubDesc',
-                        label: 'Central support hub',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.article',
-                path: `${CONCEPTS_PREFIX_PATH}/news/article/pWBKE_0UiQ`,
-                title: 'Article',
-                translateKey: 'nav.conceptsHelpCenter.article',
-                icon: 'helpCeterArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsHelpCenter.articleDesc',
-                        label: 'Read support articles',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.editArticle',
-                path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/pWBKE_0UiQ`,
-                title: 'Edit Article',
-                translateKey: 'nav.conceptsHelpCenter.editArticle',
-                icon: 'helpCeterEditArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsHelpCenter.editArticleDesc',
-                        label: 'Modify article content',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.manageArticle',
-                path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
-                title: 'Manage Article',
-                translateKey: 'nav.conceptsHelpCenter.manageArticle',
-                icon: 'helpCeterManageArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsHelpCenter.manageArticleDesc',
-                        label: 'Article management',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
-    },
-    {
-        key: 'concepts.ai',
-        path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
-        title: 'AI',
-        translateKey: 'nav.conceptsAi.ai',
-        icon: 'ai',
+        key: 'concepts.marketplace',
+        path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
+        title: 'Marketplace',
+        translateKey: 'nav.marketplace',
+        icon: 'orders',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
             description: {
-                translateKey: 'nav.conceptsAi.aiDesc',
-                label: 'AI tools and resources',
+                translateKey: 'nav.marketplaceDesc',
+                label: 'View and manage marketplace items',
             },
         },
         subMenu: [],
     },
     {
-        key: 'concepts.projects',
-        path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
-        title: 'Reporte de problemas',
-        translateKey: 'nav.conceptsProjects.projects',
-        icon: 'projects',
+        key: 'concepts.condosAdmin',
+        path: `${CONCEPTS_PREFIX_PATH}/account/roles-permissions`,
+        title: 'Condos Admin',
+        translateKey: 'nav.condosAdmin',
+        icon: 'accountRoleAndPermission',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
             description: {
-                translateKey: 'nav.conceptsProjects.projectTasksDesc',
-                label: 'Manage project tasks',
+                translateKey: 'nav.condosAdminDesc',
+                label: 'Manage roles and condominium administration',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.plan',
+        path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
+        title: 'Plan',
+        translateKey: 'nav.plan',
+        icon: 'accountPricing',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.planDesc',
+                label: 'View and manage your subscription plan',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.chat',
+        path: `${CONCEPTS_PREFIX_PATH}/chat`,
+        title: 'Chat',
+        translateKey: 'nav.chat',
+        icon: 'chat',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.chatDesc',
+                label: 'Chat with friends',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.calendar',
+        path: `${CONCEPTS_PREFIX_PATH}/calendar`,
+        title: 'Calendar',
+        translateKey: 'nav.calendar',
+        icon: 'calendar',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.calendarDesc',
+                label: 'Schedule and events',
             },
         },
         subMenu: [],

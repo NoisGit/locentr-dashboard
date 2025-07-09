@@ -6,7 +6,6 @@ import ScrollBar from '@/components/ui/ScrollBar'
 import CreateEventDialog, { eventTypes } from './CreateEventDialog'
 import { eventGenerator, isToday } from '../utils'
 import classNames from '@/utils/classNames'
-
 import dayjs from 'dayjs'
 import type { FormSchema as CreateEventPayload } from './CreateEventDialog'
 import type { Event } from '../types'
@@ -22,19 +21,16 @@ type ScheduledEventProps = ScheduledEvent
 
 const ScheduledEvent = (props: ScheduledEventProps) => {
     const { type, label, time } = props
-
     const event = eventTypes[type]
 
     return (
         <div className="flex items-center justify-between gap-4 py-1">
             <div className="flex items-center gap-3">
-                <div>
-                    <Avatar
-                        className={classNames('text-gray-900', event?.color)}
-                        icon={event?.icon}
-                        shape="round"
-                    />
-                </div>
+                <Avatar
+                    className={classNames('text-gray-900', event?.color)}
+                    icon={event?.icon}
+                    shape="round"
+                />
                 <div>
                     <div className="font-bold heading-text">{label}</div>
                     <div className="font-normal">{event?.label}</div>
@@ -68,15 +64,9 @@ const UpcomingSchedule = () => {
         ]
 
         return eventList.sort((a, b) => {
-            if (!a.time && !b.time) {
-                return 0
-            }
-            if (!a.time) {
-                return 1
-            }
-            if (!b.time) {
-                return -1
-            }
+            if (!a.time && !b.time) return 0
+            if (!a.time) return 1
+            if (!b.time) return -1
             return a.time.getTime() - b.time.getTime()
         })
     }, [selectedDate, createdEventCache])
@@ -91,50 +81,41 @@ const UpcomingSchedule = () => {
                 .set('minute', 0)
                 .toDate(),
         }
-        setCreatedEventCache((prevRecord) => {
-            if (prevRecord[dayjs(selectedDate).toISOString()]) {
-                prevRecord[dayjs(selectedDate).toISOString()].push(payload)
-            } else {
-                prevRecord[dayjs(selectedDate).toISOString()] = [payload]
-            }
-
-            return structuredClone(prevRecord)
+        setCreatedEventCache((prev) => {
+            const key = dayjs(selectedDate).toISOString()
+            const updated = { ...prev }
+            updated[key] = [...(prev[key] || []), payload]
+            return updated
         })
     }
 
     return (
-        <Card>
-            <div className="flex flex-col md:flex-row xl:flex-col md:gap-10 xl:gap-0">
-                <div className="flex items-center mx-auto w-[280px]">
+        <Card className="h-full flex flex-col">
+            <div className="flex flex-col h-full">
+                <div className="flex justify-center">
                     <Calendar
                         value={selectedDate}
-                        onChange={(val) => {
-                            setSelectedDate(val)
-                        }}
+                        onChange={setSelectedDate}
                     />
                 </div>
-                <div className="w-full">
-                    <div className="my-6">
-                        <h5>
-                            Scehdule{' '}
-                            {isToday(selectedDate as Date)
-                                ? 'today'
-                                : dayjs(selectedDate).format('DD MMM')}
-                        </h5>
-                    </div>
-                    <div className="w-full">
-                        <ScrollBar className="overflow-y-auto h-[280px] xl:max-w-[280px]">
-                            <div className="flex flex-col gap-4">
-                                {eventList.map((event) => (
-                                    <ScheduledEvent key={event.id} {...event} />
-                                ))}
-                            </div>
-                        </ScrollBar>
-                    </div>
+                <div className="flex-1 mt-4 flex flex-col">
+                    <h5 className="mb-4">
+                        Schedule{' '}
+                        {isToday(selectedDate as Date)
+                            ? 'today'
+                            : dayjs(selectedDate).format('DD MMM')}
+                    </h5>
+                    <ScrollBar className="overflow-y-auto h-full">
+                        <div className="flex flex-col gap-4">
+                            {eventList.map((event) => (
+                                <ScheduledEvent key={event.id} {...event} />
+                            ))}
+                        </div>
+                    </ScrollBar>
                 </div>
-            </div>
-            <div className="mt-4">
-                <CreateEventDialog onCreateEvent={handleCreateEvent} />
+                <div className="mt-4">
+                    <CreateEventDialog onCreateEvent={handleCreateEvent} />
+                </div>
             </div>
         </Card>
     )

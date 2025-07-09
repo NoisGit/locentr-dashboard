@@ -69,7 +69,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
 
     const handleDelete = () => {
         setDialogOpen(false)
-        navigate('/concepts/access/access-list')
+        navigate('/concepts/accesses/access-list')
         toast.push(
             <Notification title={'Successfully Deleted'} type="success">
                 Access successfully deleted
@@ -82,7 +82,7 @@ const ProfileSection = ({ data = {} }: ProfileSectionProps) => {
     }
 
     const handleEdit = () => {
-        navigate(`/concepts/access/access-edit/${data.id}`)
+        navigate(`/concepts/accesses/access-edit/${data.id}`)
     }
 
     return (

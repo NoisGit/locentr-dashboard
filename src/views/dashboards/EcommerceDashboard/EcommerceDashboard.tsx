@@ -56,7 +56,6 @@ const EcommerceDashboard = () => {
                     {/* Sección Proyecto */}
                     {dataProject && (
                         <div className="mt-10 flex flex-col gap-4">
-                            <h2 className="text-2xl font-bold mb-2">Proyecto</h2>
                             <div className="flex flex-col xl:flex-row gap-4">
                                 <div className="flex flex-col gap-4 flex-1 xl:max-w-[calc(100%-350px)]">
                                     <ProjectOverview data={dataProject.projectOverview} />

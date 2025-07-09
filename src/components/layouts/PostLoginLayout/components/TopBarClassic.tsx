@@ -3,7 +3,7 @@ import UserProfileDropdown from '@/components/template/UserProfileDropdown'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import Notification from '@/components/template/Notification'
 import HeaderLogo from '@/components/template/HeaderLogo'
-import Search from '@/components/template/Search'
+// 🔥 Search eliminado
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components/template/LayoutBase'
@@ -33,13 +33,13 @@ const TopBarClassic = ({ children }: CommonProps) => {
                         }
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
-        <div className="flex items-center gap-6">
-            <Search />
-            <LanguageSelector />
-            <Notification />
-            <ModeSwitcher />
-            <UserProfileDropdown hoverable={false} />
-        </div>
+                            <div className="flex items-center gap-6">
+                                {/* Search eliminado */}
+                                <LanguageSelector />
+                                <Notification />
+                                <ModeSwitcher />
+                                <UserProfileDropdown hoverable={false} />
+                            </div>
                         }
                     />
                     {children}

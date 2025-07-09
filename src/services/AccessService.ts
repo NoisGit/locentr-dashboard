@@ -20,14 +20,3 @@ export async function apiGetAccess<T, U extends Record<string, unknown>>({
         params,
     })
 }
-
-export async function apiGetAccessLog<T, U extends Record<string, unknown>>({
-    ...params
-}: U) {
-    return ApiService.fetchDataWithAxios<T>({
-        url: `/access/log`,
-        method: 'get',
-        params,
-    })
-}
-

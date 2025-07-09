@@ -9,21 +9,17 @@ import useManageArticle from '../hooks/useManageArticle'
 import { categoryIcon, categoryClass } from '../utils'
 import classNames from '@/utils/classNames'
 import { Link } from 'react-router'
+import { HiOutlinePencil } from 'react-icons/hi' // 👈 lápiz importado
+
 import type { TableQueries } from '@/@types/common'
 import type { Article } from '../types'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 
 const ArticleListTable = () => {
     const tableData = useManageArticleStore((state) => state.tableData)
-    const selectedArticle = useManageArticleStore(
-        (state) => state.selectedArticle,
-    )
-    const setSelectedArticle = useManageArticleStore(
-        (state) => state.setSelectedArticle,
-    )
-    const setSelectAllArticle = useManageArticleStore(
-        (state) => state.setSelectAllArticle,
-    )
+    const selectedArticle = useManageArticleStore((state) => state.selectedArticle)
+    const setSelectedArticle = useManageArticleStore((state) => state.setSelectedArticle)
+    const setSelectAllArticle = useManageArticleStore((state) => state.setSelectAllArticle)
     const setTableData = useManageArticleStore((state) => state.setTableData)
 
     const { articleList, articleTotal, isLoading } = useManageArticle()
@@ -48,7 +44,7 @@ const ArticleListTable = () => {
                             <div>
                                 <div className="mb-2">
                                     <Link
-                                        to={`/concepts/help-center/edit-article/${row.id}`}
+                                        to={`/concepts/news/article/${row.id}`}
                                         className="font-bold heading-text hover:text-primary"
                                     >
                                         {row.title}
@@ -95,6 +91,25 @@ const ArticleListTable = () => {
                     return (
                         <div className="px-4">
                             <Switcher defaultChecked={row.published} />
+                        </div>
+                    )
+                },
+            },
+            {
+                header: '',
+                accessorKey: 'actions',
+                enableSorting: false,
+                cell: (props) => {
+                    const row = props.row.original
+                    return (
+                        <div className="text-right pr-2">
+                            <Link
+                                to={`/concepts/news/edit-article/${row.id}`}
+                                className="text-xl text-gray-500 hover:text-primary"
+                                title="Edit article"
+                            >
+                                <HiOutlinePencil />
+                            </Link>
                         </div>
                     )
                 },

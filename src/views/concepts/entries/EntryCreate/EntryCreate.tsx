@@ -3,39 +3,39 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import AccessForm from '../AccessForm'
+import EntryForm from '../EntryForm'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import sleep from '@/utils/sleep'
 import { TbTrash } from 'react-icons/tb'
 import { useNavigate } from 'react-router'
-import type { AccessFormSchema } from '../AccessForm'
+import type { EntryFormSchema } from '../EntryForm'
 
-const AccessCreate = () => {
+const EntryCreate = () => {
     const navigate = useNavigate()
 
     const [discardConfirmationOpen, setDiscardConfirmationOpen] =
         useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const handleFormSubmit = async (values: AccessFormSchema) => {
+    const handleFormSubmit = async (values: EntryFormSchema) => {
         console.log('Submitted values', values)
         setIsSubmitting(true)
         await sleep(800)
         setIsSubmitting(false)
         toast.push(
-            <Notification type="success">Access created!</Notification>,
+            <Notification type="success">Entry created!</Notification>,
             { placement: 'top-center' },
         )
-        navigate('/concepts/accesses/access-list')
+        navigate('/concepts/entries/entry-list')
     }
 
     const handleConfirmDiscard = () => {
         setDiscardConfirmationOpen(true)
         toast.push(
-            <Notification type="success">Access discarded!</Notification>,
+            <Notification type="success">Entry discarded!</Notification>,
             { placement: 'top-center' },
         )
-        navigate('/concepts/access/access-list')
+        navigate('/concepts/entries/entry-list')
     }
 
     const handleDiscard = () => {
@@ -48,8 +48,8 @@ const AccessCreate = () => {
 
     return (
         <>
-            <AccessForm
-                newAccess
+            <EntryForm
+                newEntry
                 defaultValues={{
                     firstName: '',
                     lastName: '',
@@ -90,7 +90,7 @@ const AccessCreate = () => {
                         </div>
                     </div>
                 </Container>
-            </AccessForm>
+            </EntryForm>
             <ConfirmDialog
                 isOpen={discardConfirmationOpen}
                 type="danger"
@@ -109,4 +109,4 @@ const AccessCreate = () => {
     )
 }
 
-export default AccessCreate
+export default EntryCreate

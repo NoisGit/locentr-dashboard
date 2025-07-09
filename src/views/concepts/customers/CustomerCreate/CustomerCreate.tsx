@@ -23,19 +23,19 @@ const CustomerEdit = () => {
         await sleep(800)
         setIsSubmiting(false)
         toast.push(
-            <Notification type="success">Customer created!</Notification>,
+            <Notification type="success">User created!</Notification>,
             { placement: 'top-center' },
         )
-        navigate('/concepts/customers/customer-list')
+        navigate('/concepts/users/users-list')
     }
 
     const handleConfirmDiscard = () => {
         setDiscardConfirmationOpen(true)
         toast.push(
-            <Notification type="success">Customer discardd!</Notification>,
+            <Notification type="success">User discarded!</Notification>,
             { placement: 'top-center' },
         )
-        navigate('/concepts/customers/customer-list')
+        navigate('/concepts/users/users-list') 
     }
 
     const handleDiscard = () => {
@@ -101,8 +101,8 @@ const CustomerEdit = () => {
                 onConfirm={handleConfirmDiscard}
             >
                 <p>
-                    Are you sure you want discard this? This action can&apos;t
-                    be undo.{' '}
+                    Are you sure you want to discard this? This action can&apos;t
+                    be undone.
                 </p>
             </ConfirmDialog>
         </>
