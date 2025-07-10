@@ -8,7 +8,6 @@ import { TbDeviceFloppy, TbArrowNarrowLeft } from 'react-icons/tb'
 
 const EditArticleFooter = () => {
     const [isPublishing, setIsPublishing] = useState(false)
-
     const [isSaving, setIsSaving] = useState(false)
 
     const navigate = useNavigate()
@@ -34,7 +33,7 @@ const EditArticleFooter = () => {
             { placement: 'top-center' },
         )
         setIsPublishing(false)
-        navigate('/concepts/help-center/manage-article')
+        navigate('/concepts/news/manage-article')
     }
 
     return (
