@@ -202,16 +202,6 @@ const dashboardsRoute: Routes = [
 
     // ==== NEWS / HELP CENTER ====
     {
-        key: 'concepts.helpCenter.supportHub',
-        path: `${CONCEPTS_PREFIX_PATH}/news/support-hub`,
-        component: lazy(() => import('@/views/concepts/help-center/SupportHub')),
-        authority: [ADMIN, USER],
-        meta: {
-            pageContainerType: 'gutterless',
-            pageBackgroundType: 'plain',
-        },
-    },
-    {
         key: 'concepts.helpCenter.article',
         path: `${CONCEPTS_PREFIX_PATH}/news/article/:id`,
         component: lazy(() => import('@/views/concepts/help-center/Article')),
