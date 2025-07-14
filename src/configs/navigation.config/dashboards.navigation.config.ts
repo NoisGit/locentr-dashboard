@@ -111,6 +111,23 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'concepts.perks',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
+        title: 'Perks',
+        translateKey: 'nav.perks',
+        icon: 'uiDataDisplayTag',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+            translateKey: 'nav.perksDesc',
+            label: 'Manage company perks',
+    },
+    },
+        subMenu: [],
+    },
+
+    {
         key: 'concepts.logbook',
         path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
         title: 'Libro de Novedades',

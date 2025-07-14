@@ -38,33 +38,35 @@ const CreateArticle = () => {
 
   return (
     <>
-      <Container>
-        <AdaptiveCard>
-          <ArticleForm
-            defaultValues={{
-              title: '',
-              content: '',
-              authors: '',
-              tags: '',
-            }}
-            onFormSubmit={handleFormSubmit}
-          >
-            <div className="flex justify-end gap-4 mt-8">
-              <Button
-                type="button"
-                className="border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent"
-                icon={<TbTrash />}
-                onClick={handleDiscard}
-              >
-                Discard
-              </Button>
-              <Button variant="solid" type="submit" loading={isSubmitting}>
-                Create
-              </Button>
-            </div>
-          </ArticleForm>
-        </AdaptiveCard>
-      </Container>
+      <div className="px-6 sm:px-8 lg:px-12">
+        <Container>
+          <AdaptiveCard>
+            <ArticleForm
+              defaultValues={{
+                title: '',
+                content: '',
+                authors: '',
+                tags: '',
+              }}
+              onFormSubmit={handleFormSubmit}
+            >
+              <div className="flex justify-end gap-4 mt-8">
+                <Button
+                  type="button"
+                  className="border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent"
+                  icon={<TbTrash />}
+                  onClick={handleDiscard}
+                >
+                  Discard
+                </Button>
+                <Button variant="solid" type="submit" loading={isSubmitting}>
+                  Create
+                </Button>
+              </div>
+            </ArticleForm>
+          </AdaptiveCard>
+        </Container>
+      </div>
 
       <ConfirmDialog
         isOpen={discardConfirmationOpen}

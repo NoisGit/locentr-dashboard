@@ -367,6 +367,49 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: { pageContainerType: 'contained' },
     },
+  {
+    key: 'concepts.perks.perksList',
+    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
+    component: lazy(() => import('@/views/concepts/perks/PerksList')),
+    authority: [ADMIN, USER],
+},
+{
+    key: 'concepts.perks.perksEdit',
+    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-edit/:id`,
+    component: lazy(() => import('@/views/concepts/perks/PerksEdit')),
+    authority: [ADMIN, USER],
+    meta: {
+        header: {
+            title: 'Edit perk',
+            description: 'Manage perk details and permissions.',
+            contained: true,
+        },
+        footer: false,
+    },
+},
+{
+    key: 'concepts.perks.perksCreate',
+    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-create`,
+    component: lazy(() => import('@/views/concepts/perks/PerksCreate')),
+    authority: [ADMIN, USER],
+    meta: {
+        header: {
+            title: 'Create perk',
+            description: 'Create new perk entries easily.',
+            contained: true,
+        },
+        footer: false,
+    },
+},
+{
+    key: 'concepts.perks.perksDetails',
+    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-details/:id`,
+    component: lazy(() => import('@/views/concepts/perks/PerksDetails')),
+    authority: [ADMIN, USER],
+    meta: { pageContainerType: 'contained' },
+},
+
+
 ]
 
 export default dashboardsRoute

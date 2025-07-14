@@ -16,5 +16,6 @@ import './fakeApi/dashboardFakeApi'
 import './fakeApi/accessFakeApi'
 import './fakeApi/marketplaceFakeApi'
 import './fakeApi/logbookFakeApi'
+import './fakeApi/perksFakeApi'
 
 mock.onAny().passThrough()
