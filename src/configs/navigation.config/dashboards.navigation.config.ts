@@ -143,6 +143,24 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
+
+    {
+    key: 'concepts.condos',
+    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
+    title: 'Condos',
+    translateKey: 'nav.conceptsCondos.condos',
+    icon: 'landing',
+    type: NAV_ITEM_TYPE_ITEM,
+    authority: [ADMIN, USER],
+    meta: {
+        description: {
+            translateKey: 'nav.conceptsCondos.condosDesc',
+            label: 'Gestión de condominios',
+        },
+    },
+    subMenu: [],
+},
+
     {
         key: 'concepts.products',
         path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
