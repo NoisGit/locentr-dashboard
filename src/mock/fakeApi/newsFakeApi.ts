@@ -4,7 +4,7 @@ import {
     categoriesData,
     articleListData,
     articleDetailData,
-} from '../data/helpCenterData'
+} from '../data/newsData'
 import wildCardSearch from '@/utils/wildCardSearch'
 import sortBy, { Primer } from '@/utils/sortBy'
 import paginate from '@/utils/paginate'

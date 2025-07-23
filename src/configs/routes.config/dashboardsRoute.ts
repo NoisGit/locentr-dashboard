@@ -204,7 +204,7 @@ const dashboardsRoute: Routes = [
     {
         key: 'concepts.helpCenter.article',
         path: `${CONCEPTS_PREFIX_PATH}/news/article/:id`,
-        component: lazy(() => import('@/views/concepts/help-center/Article')),
+        component: lazy(() => import('@/views/concepts/news/Article')),
         authority: [ADMIN, USER],
         meta: {
             pageContainerType: 'contained',
@@ -214,21 +214,21 @@ const dashboardsRoute: Routes = [
     {
         key: 'concepts.helpCenter.editArticle',
         path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/:id`,
-        component: lazy(() => import('@/views/concepts/help-center/EditArticle')),
+        component: lazy(() => import('@/views/concepts/news/EditArticle')),
         authority: [ADMIN, USER],
         meta: { pageBackgroundType: 'plain', footer: false },
     },
     {
         key: 'concepts.helpCenter.manageArticle',
         path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
-        component: lazy(() => import('@/views/concepts/help-center/ManageArticle')),
+        component: lazy(() => import('@/views/concepts/news/ManageArticle')),
         authority: [ADMIN, USER],
         meta: { pageBackgroundType: 'plain', footer: false },
     },
     {
         key: 'concepts.helpCenter.createArticle',
         path: `${CONCEPTS_PREFIX_PATH}/news/create-article`,
-        component: lazy(() => import('@/views/concepts/help-center/CreateArticle/CreateArticle')),
+        component: lazy(() => import('@/views/concepts/news/CreateArticle/CreateArticle')),
         authority: [ADMIN, USER],
         },
         

@@ -1,7 +1,7 @@
 import EditArticleHeader from './components/EditArticleHeader'
 import EditArticleBody from './components/EditArticleBody'
 import EditArticleFooter from './components/EditArticleFooter'
-import { apiGetSupportHubArticle } from '@/services/HelpCenterService'
+import { apiGetSupportHubArticle } from '@/services/NewsService'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
 import type { GetSupportHubArticleResponse } from './types'

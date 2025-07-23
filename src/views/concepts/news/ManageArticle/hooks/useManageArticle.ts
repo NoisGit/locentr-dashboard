@@ -1,5 +1,5 @@
 import { useManageArticleStore } from '../store/manageArticleStore'
-import { apiGetArticleList } from '@/services/HelpCenterService'
+import { apiGetArticleList } from '@/services/NewsService'
 import useSWR from 'swr'
 import type { TableQueries } from '@/@types/common'
 import type { GetArticleListResponse } from '../types'

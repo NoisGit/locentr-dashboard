@@ -8,6 +8,7 @@ import {
     PiGearDuotone,
     PiPulseDuotone,
     PiSignOutDuotone,
+    PiQuestionDuotone,
 } from 'react-icons/pi'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
@@ -18,13 +19,7 @@ type DropdownList = {
     icon: JSX.Element
 }
 
-// Lista original comentada la opción "Profile"
 const dropdownItemList: DropdownList[] = [
-    // {
-    //     label: 'Profile',
-    //     path: '/concepts/account/settings',
-    //     icon: <PiUserDuotone />,
-    // },
     {
         label: 'Account Setting',
         path: '/concepts/account/settings',
@@ -34,6 +29,11 @@ const dropdownItemList: DropdownList[] = [
         label: 'Activity Log',
         path: '/concepts/account/activity-log',
         icon: <PiPulseDuotone />,
+    },
+    {
+        label: 'Help',
+        path: '/concepts/help/help-create',
+        icon: <PiQuestionDuotone />,
     },
 ]
 
