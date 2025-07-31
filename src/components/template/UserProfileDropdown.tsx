@@ -32,7 +32,7 @@ const dropdownItemList: DropdownList[] = [
     },
     {
         label: 'Help',
-        path: '/concepts/help/help-create',
+        path: '/concepts/help/manage-help',
         icon: <PiQuestionDuotone />,
     },
 ]
@@ -100,7 +100,7 @@ const _UserDropdown = () => {
                 </span>
                 <span>Sign Out</span>
             </Dropdown.Item>
-        </Dropdown>
+        </Dropdown>                                                                                                                                  
     )
 }
 

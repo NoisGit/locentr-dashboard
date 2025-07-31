@@ -200,7 +200,7 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
 
-    // ==== NEWS / HELP CENTER ====
+    // ==== NEWS 
     {
         key: 'concepts.helpCenter.article',
         path: `${CONCEPTS_PREFIX_PATH}/news/article/:id`,
@@ -451,6 +451,28 @@ const dashboardsRoute: Routes = [
     authority: [ADMIN, USER],
     meta: { pageContainerType: 'contained' },
 },
+{
+    key: 'concepts.help.manage',
+    path: '/concepts/help/manage-help',
+    component: lazy(() => import('@/views/concepts/help/ManageHelp/ManageHelp')),
+    authority: [ADMIN, USER],
+    meta: { pageBackgroundType: 'plain' },
+},
+{
+    key: 'concepts.help.create',
+    path: '/concepts/help/create-help',
+    component: lazy(() => import('@/views/concepts/help/CreateHelp/CreateHelp')),
+    authority: [ADMIN, USER],
+    meta: { pageBackgroundType: 'plain' },
+},
+{
+    key: 'concepts.help.details',
+    path: '/concepts/help/help-details/:id',
+    component: lazy(() => import('@/views/concepts/help/Help/HelpDetails')),
+    authority: [ADMIN, USER],
+    meta: { pageBackgroundType: 'plain' },
+},
+
 
 ]
 
