@@ -3,7 +3,6 @@ import Header from '@/components/template/Header'
 import FrameLessGap from '@/components/template/FrameLessGap'
 import SideNavToggle from '@/components/template/SideNavToggle'
 import MobileNav from '@/components/template/MobileNav'
-import Search from '@/components/template/Search'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import Notification from '@/components/template/Notification'
 import UserProfileDropdown from '@/components//template/UserProfileDropdown'
@@ -18,7 +17,6 @@ import type { FooterPageContainerType } from '@/components/template/Footer'
 
 const FrameLessSide = ({ children }: CommonProps) => {
     const { isSticky } = useScrollTop()
-
     const { larger, smaller } = useResponsive()
 
     return (
@@ -62,9 +60,7 @@ const FrameLessSide = ({ children }: CommonProps) => {
                                 {...header}
                                 gutterLess={pageContainerType === 'gutterless'}
                             />
-                            <PageContainerBody
-                                pageContainerType={pageContainerType}
-                            >
+                            <PageContainerBody pageContainerType={pageContainerType}>
                                 {children}
                             </PageContainerBody>
                         </div>
@@ -98,7 +94,6 @@ const FrameLessSide = ({ children }: CommonProps) => {
                                 <>
                                     {smaller.lg && <MobileNav />}
                                     {larger.lg && <SideNavToggle />}
-                                    <Search />
                                 </>
                             }
                             headerEnd={

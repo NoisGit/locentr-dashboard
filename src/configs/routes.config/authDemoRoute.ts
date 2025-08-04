@@ -38,39 +38,6 @@ const authDemoRoute: Routes = [
         },
     },
     {
-        key: 'authentication.signUpSimple',
-        path: `${AUTH_PREFIX_PATH}/sign-up-simple`,
-        component: lazy(() => import('@/views/auth-demo/SignUpDemoSimple')),
-        authority: [ADMIN, USER],
-        meta: {
-            layout: 'blank',
-            pageContainerType: 'gutterless',
-            footer: false,
-        },
-    },
-    {
-        key: 'authentication.signUpSide',
-        path: `${AUTH_PREFIX_PATH}/sign-up-side`,
-        component: lazy(() => import('@/views/auth-demo/SignUpDemoSide')),
-        authority: [ADMIN, USER],
-        meta: {
-            layout: 'blank',
-            pageContainerType: 'gutterless',
-            footer: false,
-        },
-    },
-    {
-        key: 'authentication.signUpSplit',
-        path: `${AUTH_PREFIX_PATH}/sign-up-split`,
-        component: lazy(() => import('@/views/auth-demo/SignUpDemoSplit')),
-        authority: [ADMIN, USER],
-        meta: {
-            layout: 'blank',
-            pageContainerType: 'gutterless',
-            footer: false,
-        },
-    },
-    {
         key: 'authentication.resetPasswordSimple',
         path: `${AUTH_PREFIX_PATH}/reset-password-simple`,
         component: lazy(
