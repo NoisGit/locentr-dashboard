@@ -1,16 +1,18 @@
+// src/views/auth/SignIn/components/SignInForm.tsx
 import { useState } from 'react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { FormItem, Form } from '@/components/ui/Form'
 import PasswordInput from '@/components/shared/PasswordInput'
 import classNames from '@/utils/classNames'
-import { useAuth } from '@/auth'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ZodType } from 'zod'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
+import { apiSignIn } from '@/services/authService'
+import { useSessionUser, useToken } from '@/store/authStore'
 
 interface SignInFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -24,17 +26,12 @@ type SignInFormSchema = {
 }
 
 const validationSchema: ZodType<SignInFormSchema> = z.object({
-    email: z
-        .string({ required_error: 'Please enter your email' })
-        .min(1, { message: 'Please enter your email' }),
-    password: z
-        .string({ required_error: 'Please enter your password' })
-        .min(1, { message: 'Please enter your password' }),
+    email: z.string().min(1, { message: 'Please enter your email' }),
+    password: z.string().min(1, { message: 'Please enter your password' }),
 })
 
 const SignInForm = (props: SignInFormProps) => {
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
-
     const { disableSubmit = false, className, setMessage, passwordHint } = props
 
     const {
@@ -43,25 +40,51 @@ const SignInForm = (props: SignInFormProps) => {
         control,
     } = useForm<SignInFormSchema>({
         defaultValues: {
-            email: 'admin-01@ecme.com',
-            password: '123Qwe',
+            email: '',
+            password: '',
         },
         resolver: zodResolver(validationSchema),
     })
 
-    const { signIn } = useAuth()
+    const { setToken, setRefreshToken } = useToken()
+    const { setUser, setSessionSignedIn } = useSessionUser()
 
     const onSignIn = async (values: SignInFormSchema) => {
-        const { email, password } = values
+        if (disableSubmit) return
 
-        if (!disableSubmit) {
-            setSubmitting(true)
+        setSubmitting(true)
+        setMessage?.('')
 
-            const result = await signIn({ email, password })
+        try {
+            // Enviamos email y password al endpoint real
+            const res = await apiSignIn({
+                email: values.email,
+                password: values.password,
+            })
 
-            if (result?.status === 'failed') {
-                setMessage?.(result.message)
+            // Tu backend devuelve access_token, refresh_token y token_type
+            const accessToken = res.access_token
+            const refreshToken = res.refresh_token
+            const tokenType = res.token_type || 'bearer'
+
+            if (accessToken && refreshToken) {
+                // Guardamos tokens en Zustand
+                setToken(`${tokenType} ${accessToken}`)
+                setRefreshToken(refreshToken)
+
+                // Si tu API tiene un /me, podrías llamar aquí para traer datos del usuario
+                // const me = await apiMe()
+                // setUser(me)
+
+                setSessionSignedIn(true)
+            } else {
+                setMessage?.('Login failed. No access token received.')
             }
+        } catch (error: any) {
+            const msg =
+                error?.response?.data?.message ||
+                'Login failed. Please check your credentials.'
+            setMessage?.(msg)
         }
 
         setSubmitting(false)
@@ -100,10 +123,9 @@ const SignInForm = (props: SignInFormProps) => {
                     <Controller
                         name="password"
                         control={control}
-                        rules={{ required: true }}
                         render={({ field }) => (
                             <PasswordInput
-                                type="text"
+                                type="password"
                                 placeholder="Password"
                                 autoComplete="off"
                                 {...field}

@@ -11,6 +11,9 @@ import { useRouteKeyStore } from '@/store/routeKeyStore'
 import { useSessionUser } from '@/store/authStore'
 import Logo from '@/components/template/Logo'
 
+// Marca de agua
+import porteriaGrey from '@/assets/porteria-grey.svg'
+
 const VerticalMenuContent = lazy(
     () => import('@/components/template/VerticalMenuContent'),
 )
@@ -42,7 +45,6 @@ const MobileNav = ({
 
     const direction = useThemeStore((state) => state.direction)
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-
     const userAuthority = useSessionUser((state) => state.user.authority)
 
     return (
@@ -61,15 +63,27 @@ const MobileNav = ({
             >
                 <Suspense fallback={<></>}>
                     {isOpen && (
-                        <VerticalMenuContent
-                            collapsed={false}
-                            navigationTree={navigationConfig}
-                            routeKey={currentRouteKey}
-                            userAuthority={userAuthority as string[]}
-                            direction={direction}
-                            translationSetup={translationSetup}
-                            onMenuItemClick={handleDrawerClose}
-                        />
+                        <div className="flex flex-col justify-between h-full">
+                            <VerticalMenuContent
+                                collapsed={false}
+                                navigationTree={navigationConfig}
+                                routeKey={currentRouteKey}
+                                userAuthority={userAuthority as string[]}
+                                direction={direction}
+                                translationSetup={translationSetup}
+                                onMenuItemClick={handleDrawerClose}
+                            />
+
+                            {/* Marca de agua visible en móvil */}
+                            <div className="p-4 mt-4 shrink-0">
+                                <img
+                                    src={porteriaGrey}
+                                    alt="Porteria watermark"
+                                    className="w-36 mx-auto opacity-20"
+                                    draggable={false}
+                                />
+                            </div>
+                        </div>
                     )}
                 </Suspense>
             </Drawer>

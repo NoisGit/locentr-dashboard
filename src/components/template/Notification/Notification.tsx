@@ -15,7 +15,8 @@ import {
 } from '@/services/CommonService'
 import isLastChild from '@/utils/isLastChild'
 import useResponsive from '@/utils/hooks/useResponsive'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@/auth'
 
 import type { DropdownRef } from '@/components/ui/Dropdown'
 
@@ -35,73 +36,86 @@ type NotificationList = {
 const notificationHeight = 'h-[280px]'
 
 const _Notification = ({ className }: { className?: string }) => {
-    const [notificationList, setNotificationList] = useState<
-        NotificationList[]
-    >([])
+    const [notificationList, setNotificationList] = useState<NotificationList[]>([])
     const [unreadNotification, setUnreadNotification] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const { larger } = useResponsive()
-
     const navigate = useNavigate()
+    const { pathname } = useLocation()
+    const { authenticated } = useAuth()
 
-    const getNotificationCount = async () => {
-        const resp = await apiGetNotificationCount()
-        if (resp.count > 0) {
-            setNoResult(false)
-            setUnreadNotification(true)
-        } else {
-            setNoResult(true)
-        }
-    }
+    const notificationDropdownRef = useRef<DropdownRef>(null)
 
+    // Cargar contador solo cuando hay sesión y NO estamos en /auth/*
     useEffect(() => {
+        let abort = false
+        const onAuthRoute = pathname.startsWith('/auth')
+        if (!authenticated || onAuthRoute) return
+
+        async function getNotificationCount() {
+            try {
+                const resp = await apiGetNotificationCount()
+                if (abort) return
+                if (resp?.count > 0) {
+                    setNoResult(false)
+                    setUnreadNotification(true)
+                } else {
+                    setNoResult(true)
+                    setUnreadNotification(false)
+                }
+            } catch {
+                // Silenciar en dev (CORS/401/etc.)
+            }
+        }
+
         getNotificationCount()
-    }, [])
+        return () => {
+            abort = true
+        }
+    }, [authenticated, pathname])
 
     const onNotificationOpen = async () => {
+        // Evitar llamadas si no hay sesión o estamos en /auth/*
+        const onAuthRoute = pathname.startsWith('/auth')
+        if (!authenticated || onAuthRoute) return
+
         if (notificationList.length === 0) {
             setLoading(true)
-            const resp = await apiGetNotificationList()
-            setLoading(false)
-            setNotificationList(resp)
+            try {
+                const resp = await apiGetNotificationList()
+                setNotificationList(Array.isArray(resp) ? resp : [])
+            } catch {
+                // Silenciar errores en dev
+            } finally {
+                setLoading(false)
+            }
         }
     }
 
     const onMarkAllAsRead = () => {
-        const list = notificationList.map((item: NotificationList) => {
-            if (!item.readed) {
-                item.readed = true
-            }
-            return item
-        })
+        const list = notificationList.map((item) =>
+            item.readed ? item : { ...item, readed: true },
+        )
         setNotificationList(list)
         setUnreadNotification(false)
     }
 
     const onMarkAsRead = (id: string) => {
-        const list = notificationList.map((item) => {
-            if (item.id === id) {
-                item.readed = true
-            }
-            return item
-        })
+        const list = notificationList.map((item) =>
+            item.id === id ? { ...item, readed: true } : item,
+        )
         setNotificationList(list)
-        const hasUnread = notificationList.some((item) => !item.readed)
-
+        const hasUnread = list.some((item) => !item.readed)
         if (!hasUnread) {
             setUnreadNotification(false)
         }
     }
 
-    const notificationDropdownRef = useRef<DropdownRef>(null)
-
     const handleViewAllActivity = () => {
         navigate('/concepts/account/activity-log')
-        if (notificationDropdownRef.current) {
-            notificationDropdownRef.current.handleDropdownClose()
-        }
+        notificationDropdownRef.current?.handleDropdownClose()
     }
 
     return (
@@ -130,14 +144,13 @@ const _Notification = ({ className }: { className?: string }) => {
                     />
                 </div>
             </Dropdown.Item>
-            <ScrollBar
-                className={classNames('overflow-y-auto', notificationHeight)}
-            >
+
+            <ScrollBar className={classNames('overflow-y-auto', notificationHeight)}>
                 {notificationList.length > 0 &&
                     notificationList.map((item, index) => (
                         <div key={item.id}>
                             <div
-                                className={`relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700`}
+                                className="relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700"
                                 onClick={() => onMarkAsRead(item.id)}
                             >
                                 <div>
@@ -156,37 +169,27 @@ const _Notification = ({ className }: { className?: string }) => {
                                 </div>
                                 <Badge
                                     className="absolute top-4 ltr:right-4 rtl:left-4 mt-1.5"
-                                    innerClass={`${
+                                    innerClass={
                                         item.readed
                                             ? 'bg-gray-300 dark:bg-gray-600'
                                             : 'bg-primary'
-                                    } `}
+                                    }
                                 />
                             </div>
                             {!isLastChild(notificationList, index) ? (
                                 <div className="border-b border-gray-200 dark:border-gray-700 my-2" />
-                            ) : (
-                                ''
-                            )}
+                            ) : null}
                         </div>
                     ))}
+
                 {loading && (
-                    <div
-                        className={classNames(
-                            'flex items-center justify-center',
-                            notificationHeight,
-                        )}
-                    >
+                    <div className={classNames('flex items-center justify-center', notificationHeight)}>
                         <Spinner size={40} />
                     </div>
                 )}
+
                 {noResult && notificationList.length === 0 && (
-                    <div
-                        className={classNames(
-                            'flex items-center justify-center',
-                            notificationHeight,
-                        )}
-                    >
+                    <div className={classNames('flex items-center justify-center', notificationHeight)}>
                         <div className="text-center">
                             <img
                                 className="mx-auto mb-2 max-w-[150px]"
@@ -194,18 +197,15 @@ const _Notification = ({ className }: { className?: string }) => {
                                 alt="no-notification"
                             />
                             <h6 className="font-semibold">No notifications!</h6>
-                            <p className="mt-1">Please Try again later</p>
+                            <p className="mt-1">Please try again later</p>
                         </div>
                     </div>
                 )}
             </ScrollBar>
+
             <Dropdown.Item variant="header">
                 <div className="pt-4">
-                    <Button
-                        block
-                        variant="solid"
-                        onClick={handleViewAllActivity}
-                    >
+                    <Button block variant="solid" onClick={handleViewAllActivity}>
                         View All Activity
                     </Button>
                 </div>
@@ -215,5 +215,4 @@ const _Notification = ({ className }: { className?: string }) => {
 }
 
 const Notification = withHeaderItem(_Notification)
-
 export default Notification

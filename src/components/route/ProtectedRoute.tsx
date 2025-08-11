@@ -1,30 +1,27 @@
+// ProtectedRoute.tsx
 import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/auth'
 
-const { unAuthenticatedEntryPath } = appConfig
+const { unAuthenticatedEntryPath } = appConfig 
 
 const ProtectedRoute = () => {
-    const { authenticated } = useAuth()
-    const location = useLocation()
+  const { authenticated } = useAuth()
+  const location = useLocation()
+  const pathName = location.pathname
 
-    const pathName = location.pathname
+  const isOnSignIn =
+    pathName === unAuthenticatedEntryPath ||
+    pathName.startsWith(`${unAuthenticatedEntryPath}/`)
 
-    // Evita redirigir si ya estamos en /sign-in
-    if (!authenticated && !pathName.startsWith('/sign-in')) {
-        const getPathName =
-            pathName === '/' ? '' : `?${REDIRECT_URL_KEY}=${pathName}`
+  if (!authenticated && !isOnSignIn) {
+    const redirectQuery =
+      pathName === '/' ? '' : `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathName)}`
+    return <Navigate replace to={`${unAuthenticatedEntryPath}${redirectQuery}`} />
+  }
 
-        return (
-            <Navigate
-                replace
-                to={`${unAuthenticatedEntryPath}${getPathName}`}
-            />
-        )
-    }
-
-    return <Outlet />
+  return <Outlet />
 }
 
 export default ProtectedRoute

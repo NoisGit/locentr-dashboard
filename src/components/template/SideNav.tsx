@@ -2,6 +2,8 @@ import classNames from 'classnames'
 import porteriaBlack from '@/assets/porteria-black.svg'
 import porteriaWhite from '@/assets/porteria-white.svg'
 import porteriaIcon from '@/assets/porteria-icon.svg'
+import porteriaGrey from '@/assets/porteria-grey.svg'
+
 import { useThemeStore } from '@/store/themeStore'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'
@@ -47,7 +49,7 @@ const SideNav = ({
         <div
             style={sideNavCollapse ? sideNavCollapseStyle : sideNavStyle}
             className={classNames(
-                'side-nav',
+                'side-nav flex flex-col justify-between',
                 background && 'side-nav-bg',
                 !sideNavCollapse && 'side-nav-expand',
                 className,
@@ -57,8 +59,8 @@ const SideNav = ({
                 to={appConfig.authenticatedEntryPath}
                 className={
                     sideNavCollapse
-                        ? 'side-nav-header flex items-center justify-center w-full h-[90px]' // Centrado colapsado
-                        : 'side-nav-header flex items-center justify-center w-full h-[90px]' // Centrado expandido
+                        ? 'side-nav-header flex items-center justify-center w-full h-[90px]'
+                        : 'side-nav-header flex items-center justify-center w-full h-[90px]'
                 }
             >
                 <img
@@ -73,7 +75,8 @@ const SideNav = ({
                     draggable={false}
                 />
             </Link>
-            <div className={classNames('side-nav-content', contentClass)}>
+
+            <div className={classNames('side-nav-content flex-1', contentClass)}>
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
                     <VerticalMenuContent
                         collapsed={sideNavCollapse}
@@ -85,6 +88,18 @@ const SideNav = ({
                     />
                 </ScrollBar>
             </div>
+
+            {/* Marca de agua SIEMPRE visible en celular también */}
+            {!sideNavCollapse && (
+                <div className="p-4 mt-4 shrink-0">
+                    <img
+                        src={porteriaGrey}
+                        alt="Porteria watermark"
+                        className="w-36 mx-auto opacity-20"
+                        draggable={false}
+                    />
+                </div>
+            )}
         </div>
     )
 }

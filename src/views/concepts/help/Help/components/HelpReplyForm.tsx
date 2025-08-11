@@ -16,7 +16,7 @@ const HelpReplyForm = ({ onSubmit }: { onSubmit: (msg: string) => void }) => {
         <div>
             <h4 className="mb-2 text-base font-semibold">Respond to Ticket</h4>
             <Textarea
-                className="w-full"
+                className="w-full p-3" 
                 rows={4}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}

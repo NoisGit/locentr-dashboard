@@ -166,7 +166,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
         title: 'Products',
         translateKey: 'nav.conceptsProducts.products',
-        icon: 'products',
+        icon: 'calendar',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {

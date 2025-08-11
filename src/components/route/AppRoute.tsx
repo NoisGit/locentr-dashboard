@@ -1,6 +1,7 @@
+// AppRoute.tsx
 import { useEffect, useCallback } from 'react'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 import { useThemeStore } from '@/store/themeStore'
 import type { LayoutType } from '@/@types/theme'
 import type { ComponentType } from 'react'
@@ -18,15 +19,10 @@ const AppRoute = <T extends Record<string, unknown>>({
 }: AppRouteProps<T>) => {
     const location = useLocation()
 
-    const { layout, setPreviousLayout, setLayout } = useThemeStore(
-        (state) => state,
-    )
-
+    const { layout, setPreviousLayout, setLayout } = useThemeStore((state) => state)
     const { type: layoutType, previousType: previousLayout } = layout
 
-    const setCurrentRouteKey = useRouteKeyStore(
-        (state) => state.setCurrentRouteKey,
-    )
+    const setCurrentRouteKey = useRouteKeyStore((state) => state.setCurrentRouteKey)
 
     const handleLayoutChange = useCallback(() => {
         setCurrentRouteKey(routeKey)
