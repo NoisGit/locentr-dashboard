@@ -1,3 +1,4 @@
+// src/components/template/UserDropdown.tsx
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
@@ -38,7 +39,30 @@ const dropdownItemList: DropdownList[] = [
 ]
 
 const _UserDropdown = () => {
-    const { avatar, userName, email } = useSessionUser((state) => state.user)
+    // Tomamos el objeto completo y aplicamos fallbacks por si el backend usa otras keys
+    const u = useSessionUser((state) => state.user) as any
+
+    const displayName =
+        u?.userName ||
+        u?.name ||
+        u?.fullName ||
+        u?.full_name ||
+        [u?.firstName || u?.first_name, u?.lastName || u?.last_name]
+            .filter(Boolean)
+            .join(' ') ||
+        'Anonymous'
+
+    const displayEmail =
+        u?.email ||
+        u?.email_address ||
+        u?.mail ||
+        ''
+
+    const avatarSrc =
+        u?.avatar ||
+        u?.avatar_url ||
+        u?.photoURL ||
+        u?.photo_url
 
     const { signOut } = useAuth()
 
@@ -46,9 +70,9 @@ const _UserDropdown = () => {
         signOut()
     }
 
-    const avatarProps = {
-        ...(avatar ? { src: avatar } : { icon: <PiUserDuotone /> }),
-    }
+    const avatarProps = avatarSrc
+        ? { src: avatarSrc }
+        : { icon: <PiUserDuotone /> }
 
     return (
         <Dropdown
@@ -66,15 +90,17 @@ const _UserDropdown = () => {
                     <Avatar {...avatarProps} />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-gray-100">
-                            {userName || 'Anonymous'}
+                            {displayName}
                         </div>
                         <div className="text-xs">
-                            {email || 'No email available'}
+                            {displayEmail || 'No email available'}
                         </div>
                     </div>
                 </div>
             </Dropdown.Item>
+
             <Dropdown.Item variant="divider" />
+
             {dropdownItemList.map((item) => (
                 <Dropdown.Item
                     key={item.label}
@@ -89,7 +115,9 @@ const _UserDropdown = () => {
                     </Link>
                 </Dropdown.Item>
             ))}
+
             <Dropdown.Item variant="divider" />
+
             <Dropdown.Item
                 eventKey="Sign Out"
                 className="gap-2"
@@ -100,10 +128,9 @@ const _UserDropdown = () => {
                 </span>
                 <span>Sign Out</span>
             </Dropdown.Item>
-        </Dropdown>                                                                                                                                  
+        </Dropdown>
     )
 }
 
 const UserDropdown = withHeaderItem(_UserDropdown)
-
 export default UserDropdown
