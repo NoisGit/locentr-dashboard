@@ -1,8 +1,6 @@
 import { create } from 'zustand'
 import type { TableQueries } from '@/@types/common'
 import type { Product, Filter } from '../types'
-import { marketplaceData } from '@/mock/data/marketplaceData'
-
 
 // Estado inicial para la tabla
 export const initialTableData: TableQueries = {
@@ -22,12 +20,11 @@ export const initialFilterData: Filter = {
     productType: ['Bags', 'Cloths', 'Devices', 'Shoes', 'Watches'],
 }
 
-// --------- AGREGADO: Estado de la data local
 export type MarketplaceListState = {
     tableData: TableQueries
     filterData: Filter
     selectedMarketplaceItem: Partial<Product>[]
-    marketplaceList: Product[]                  // <--- NUEVO
+    marketplaceList: Product[]
 }
 
 type MarketplaceListAction = {
@@ -35,15 +32,14 @@ type MarketplaceListAction = {
     setTableData: (payload: TableQueries) => void
     setSelectedMarketplaceItem: (checked: boolean, item: Product) => void
     setSelectAllMarketplace: (items: Product[]) => void
-    setMarketplaceList: (items: Product[]) => void      // <--- NUEVO
+    setMarketplaceList: (items: Product[]) => void
 }
 
-// --------- INICIALIZA marketplaceList con tus datos mockeados:
 const initialState: MarketplaceListState = {
     tableData: initialTableData,
     filterData: initialFilterData,
     selectedMarketplaceItem: [],
-    marketplaceList: marketplaceData as Product[],
+    marketplaceList: [], // sin datos mock
 }
 
 export const useMarketplaceListStore = create<
@@ -56,7 +52,7 @@ export const useMarketplaceListStore = create<
         set((state) => {
             const prevData = state.selectedMarketplaceItem
             if (checked) {
-                return { selectedMarketplaceItem: [...prevData, ...[row]] }
+                return { selectedMarketplaceItem: [...prevData, row] }
             } else {
                 if (prevData.some((prevItem) => row.id === prevItem.id)) {
                     return {
@@ -70,6 +66,7 @@ export const useMarketplaceListStore = create<
         }),
     setSelectAllMarketplace: (rows) =>
         set(() => ({ selectedMarketplaceItem: rows })),
-    setMarketplaceList: (items) =>
-        set(() => ({ marketplaceList: items })),      // <--- NUEVO
+    setMarketplaceList: (items) => set(() => ({ marketplaceList: items })),
 }))
+
+export default useMarketplaceListStore

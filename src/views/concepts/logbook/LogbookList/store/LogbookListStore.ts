@@ -1,9 +1,7 @@
 import { create } from 'zustand'
 import type { TableQueries } from '@/@types/common'
 import type { LogbookEntry, Filter } from '../types'
-import { logbookData } from '@/mock/data/logbookData'
 
-// Initial state for the table
 export const initialTableData: TableQueries = {
     pageIndex: 1,
     pageSize: 10,
@@ -40,7 +38,7 @@ const initialState: LogbookListState = {
     tableData: initialTableData,
     filterData: initialFilterData,
     selectedLogbookItem: [],
-    logbookList: logbookData as LogbookEntry[],
+    logbookList: [],
 }
 
 export const useLogbookListStore = create<
@@ -53,7 +51,7 @@ export const useLogbookListStore = create<
         set((state) => {
             const prevData = state.selectedLogbookItem
             if (checked) {
-                return { selectedLogbookItem: [...prevData, ...[row]] }
+                return { selectedLogbookItem: [...prevData, row] }
             } else {
                 if (prevData.some((prevItem) => row.id === prevItem.id)) {
                     return {
