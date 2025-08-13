@@ -11,7 +11,7 @@ import { Link } from 'react-router'
 import type { Task } from '../types'
 
 type CurrentTasksProps = {
-    data: Task[]
+    data?: Task[] | null
 }
 
 export const labelClass: Record<string, string> = {
@@ -26,20 +26,17 @@ export const labelClass: Record<string, string> = {
 const CurrentTasks = ({ data }: CurrentTasksProps) => {
     const [tasks, setTasks] = useState<Task[]>([])
 
+    // Sincroniza siempre que cambie `data`
     useEffect(() => {
-        if (tasks.length === 0) {
-            setTasks(data)
-        }
-    }, [data, tasks.length])
+        setTasks(Array.isArray(data) ? data : [])
+    }, [data])
 
     const handleChange = (taskId: string) => {
-        const newTasks = structuredClone(tasks).map((task) => {
-            if (task.id === taskId) {
-                task.checked = !task.checked
-            }
-            return task
-        })
-        setTasks(newTasks)
+        setTasks((prev) =>
+            prev.map((t) =>
+                t.id === taskId ? { ...t, checked: !t.checked } : t,
+            ),
+        )
     }
 
     return (
@@ -52,7 +49,14 @@ const CurrentTasks = ({ data }: CurrentTasksProps) => {
                     </Button>
                 </Link>
             </div>
+
             <div className="mt-4">
+                {tasks.length === 0 && (
+                    <div className="py-6 text-center opacity-70">
+                        No tasks to display
+                    </div>
+                )}
+
                 {tasks.map((task, index) => (
                     <div
                         key={task.id}
@@ -63,8 +67,11 @@ const CurrentTasks = ({ data }: CurrentTasksProps) => {
                     >
                         <div className="flex items-center gap-4">
                             <button
-                                className=" text-[26px] cursor-pointer"
+                                className="text-[26px] cursor-pointer"
                                 role="button"
+                                aria-label={
+                                    task.checked ? 'Mark as incomplete' : 'Mark as complete'
+                                }
                                 onClick={() => handleChange(task.id)}
                             >
                                 {task.checked ? (
@@ -73,38 +80,40 @@ const CurrentTasks = ({ data }: CurrentTasksProps) => {
                                     <TbCircleCheck className="hover:text-primary" />
                                 )}
                             </button>
+
                             <div>
                                 <div
                                     className={classNames(
                                         'heading-text font-bold mb-1',
-                                        task.checked &&
-                                            'line-through opacity-50',
+                                        task.checked && 'line-through opacity-50',
                                     )}
                                 >
                                     {task.name}
                                 </div>
+
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1">
                                         <TbCalendar className="text-lg" />
                                         {task.dueDate
-                                            ? dayjs(task.dueDate).format(
-                                                  'MMMM DD',
-                                              )
+                                            ? dayjs(task.dueDate).isValid()
+                                                ? dayjs(task.dueDate).format('MMMM DD')
+                                                : '-'
                                             : '-'}
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <div>
-                            <Tag
-                                className={`mr-2 rtl:ml-2 mb-2 ${
-                                    task.priority
-                                        ? labelClass[task.priority]
-                                        : ''
-                                }`}
-                            >
-                                {task.priority}
-                            </Tag>
+                            {task.priority && (
+                                <Tag
+                                    className={`mr-2 rtl:ml-2 mb-2 ${
+                                        labelClass[task.priority] ?? ''
+                                    }`}
+                                >
+                                    {task.priority}
+                                </Tag>
+                            )}
                         </div>
                     </div>
                 ))}

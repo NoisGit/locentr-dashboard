@@ -8,7 +8,7 @@ import type { ExtraCell } from './TaskListTable'
 import type { ExtraHeader } from './TaskListHeader'
 import type { Task, GanttProps } from 'gantt-task-react'
 
-type ExtendedTask<T extends Record<string, unknown> = NonNullable<unknown>> =
+export type ExtendedTask<T extends Record<string, unknown> = Record<string, never>> =
     Task & {
         barVariant?: string
     } & T
@@ -18,16 +18,52 @@ type GanttChartProps<T extends Record<string, unknown>> = GanttProps & {
         header: ExtraHeader
         cell: ExtraCell
     }>
-    tasks: ExtendedTask<T>[]
+    tasks?: ExtendedTask<T>[] | null
     colorsMap?: Record<string, string>
     showArrow?: boolean
 }
 
-const GanttChart = <T extends Record<string, unknown>>(
-    props: GanttChartProps<T>,
-) => {
+function toValidDate(v: unknown): Date | null {
+    if (v instanceof Date) {
+        return isNaN(v.getTime()) ? null : v
+    }
+    if (typeof v === 'string' || typeof v === 'number') {
+        const d = new Date(v)
+        return isNaN(d.getTime()) ? null : d
+    }
+    return null
+}
+
+function sanitizeTasks<T extends Record<string, unknown>>(
+    raw: Array<ExtendedTask<T>> | null | undefined,
+): Array<ExtendedTask<T>> {
+    if (!Array.isArray(raw)) return []
+    const out: Array<ExtendedTask<T>> = []
+    for (let i = 0; i < raw.length; i++) {
+        const t = raw[i]
+        if (!t) continue
+
+        const start = toValidDate(t.start)
+        const end = toValidDate(t.end)
+        if (!start || !end) continue
+
+        const s = start.getTime() <= end.getTime() ? start : end
+        const e = start.getTime() <= end.getTime() ? end : start
+
+        out.push({
+            ...t,
+            start: s,
+            end: e,
+            type: (t.type as Task['type']) ?? 'task',
+            progress: typeof t.progress === 'number' ? t.progress : 0,
+        })
+    }
+    return out
+}
+
+const GanttChart = <T extends Record<string, unknown>>(props: GanttChartProps<T>) => {
     const {
-        tasks,
+        tasks = [],
         viewMode = ViewMode.Day,
         extraColumns,
         colorsMap = {},
@@ -35,10 +71,36 @@ const GanttChart = <T extends Record<string, unknown>>(
         ...rest
     } = props
 
+    const safeTasks = sanitizeTasks(tasks)
+
+    if (safeTasks.length === 0) {
+        return (
+            <>
+                <div className="p-6 text-center">
+                    <div className="font-semibold">Sin datos del cronograma</div>
+                    <div className="text-sm opacity-70">
+                        Proporcione tareas con <code>start</code> y <code>end</code> válidos.
+                    </div>
+                </div>
+                <svg className="h-0 w-0">
+                    <PatternLines
+                        id="horzLines"
+                        height={10}
+                        width={10}
+                        className="stroke-gray-200 dark:stroke-gray-700"
+                        strokeWidth={1.5}
+                        background="transparent"
+                        orientation={['diagonal']}
+                    />
+                </svg>
+            </>
+        )
+    }
+
     return (
         <>
             <Gantt
-                tasks={tasksPreProcess(tasks, colorsMap)}
+                tasks={tasksPreProcess(safeTasks, colorsMap)}
                 viewMode={viewMode}
                 listCellWidth={'200px'}
                 columnWidth={65}
@@ -54,15 +116,15 @@ const GanttChart = <T extends Record<string, unknown>>(
                 milestoneBackgroundSelectedColor="#3380fa"
                 todayColor="url(#horzLines)"
                 rowHeight={50}
-                TaskListHeader={(props) => (
+                TaskListHeader={(p) => (
                     <TaskListHeader
-                        {...props}
+                        {...p}
                         extraHeaders={extraColumns?.map((col) => col.header)}
                     />
                 )}
-                TaskListTable={(props) => (
+                TaskListTable={(p) => (
                     <TaskListTable
-                        {...props}
+                        {...p}
                         extraCells={extraColumns?.map((col) => col.cell)}
                     />
                 )}
@@ -86,6 +148,5 @@ const GanttChart = <T extends Record<string, unknown>>(
     )
 }
 
-export type { Task, ExtendedTask }
-
+export type { Task }
 export default GanttChart
