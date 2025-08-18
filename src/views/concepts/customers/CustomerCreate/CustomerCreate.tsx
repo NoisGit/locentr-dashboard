@@ -1,4 +1,4 @@
-// src/views/concepts/users/CustomerCreate.tsx
+// src/views/concepts/customers/CustomerCreate.tsx
 import { useState } from 'react'
 import CustomerForm, { type CustomerFormSchema } from '../CustomerForm'
 import Notification from '@/components/ui/Notification'
@@ -15,7 +15,7 @@ const CustomerCreate = () => {
       setIsSubmitting(true)
 
       await ApiService.fetchDataWithAxios({
-        url: '/api/v1/users/',         
+        url: '/api/v1/users/',
         method: 'post',
         data: {
           full_name: values.fullName?.trim(),
@@ -45,12 +45,15 @@ const CustomerCreate = () => {
   }
 
   const handleDiscard = () => {
+    toast.push(<Notification type="info">Creation discarded!</Notification>, {
+      placement: 'top-center',
+    })
     navigate('/concepts/users/users-list')
   }
 
   return (
     <CustomerForm
-      newCustomer
+      mode="create"
       submitting={isSubmitting}
       defaultValues={{ fullName: '', phone: '', email: '', password: '', roleId: '' }}
       onFormSubmit={handleFormSubmit}

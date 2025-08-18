@@ -14,7 +14,6 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
 
-import type { CommonProps } from '@/@types/common'
 import { useAuth } from '@/auth'
 import { apiGetRoles } from '@/services/RoleService'
 
@@ -22,25 +21,20 @@ export type CustomerFormSchema = {
   fullName: string
   phone: string
   email: string
-  password: string
   roleId: number | string
+  password?: string
+  oldPassword?: string
+  newPassword?: string
 }
 
 type CustomerFormProps = {
-  onFormSubmit: (values: CustomerFormSchema) => void | Promise<void>
-  onDiscard?: () => void | Promise<void>
+  mode?: 'create' | 'edit'
+  submitLabel?: string
   submitting?: boolean
+  onFormSubmit: (values: CustomerFormSchema) => void
+  onDiscard?: () => void
   defaultValues?: Partial<CustomerFormSchema>
-  newCustomer?: boolean
-} & CommonProps
-
-const schema = z.object({
-  fullName: z.string().min(1, { message: 'Full name is required' }),
-  phone: z.string().min(1, { message: 'Phone is required' }),
-  email: z.string().email({ message: 'Invalid email' }).min(1, { message: 'Email is required' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  roleId: z.union([z.number(), z.string()]).refine((v) => `${v}`.length > 0, { message: 'Role is required' }),
-})
+}
 
 type RoleOption = { label: string; value: number | string }
 type RoleLike = { id?: number | string; name?: string; role_name?: string; title?: string }
@@ -50,10 +44,13 @@ function roleName(r: RoleLike): string {
 }
 function pickRolesPayload(raw: unknown): RoleLike[] {
   if (Array.isArray(raw)) return raw as RoleLike[]
-  const anyRaw = raw as Record<string, any> | null | undefined
-  const candidates = [anyRaw?.roles, anyRaw?.data?.roles, anyRaw?.data, anyRaw?.items, anyRaw?.results]
-  for (const c of candidates) if (Array.isArray(c)) return c as RoleLike[]
-  return []
+  const anyRaw = raw as Record<string, unknown> | null | undefined
+  const candidate =
+    (anyRaw?.data as unknown) ??
+    (anyRaw?.items as unknown) ??
+    (anyRaw?.results as unknown) ??
+    (anyRaw as unknown)
+  return Array.isArray(candidate) ? (candidate as RoleLike[]) : []
 }
 function isSuperAdminUser(user: unknown): boolean {
   const u = user as any
@@ -67,9 +64,47 @@ function isSuperAdminUser(user: unknown): boolean {
   return Boolean(u?.isSuperAdmin)
 }
 
-const CustomerForm = (props: CustomerFormProps) => {
-  const { onFormSubmit, onDiscard, submitting, defaultValues } = props
+const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/
+
+const CustomerForm = ({
+  mode = 'create',
+  submitLabel,
+  submitting,
+  onFormSubmit,
+  onDiscard,
+  defaultValues,
+}: CustomerFormProps) => {
   const { user } = useAuth()
+
+  const baseSchema = z.object({
+    fullName: z.string().min(1, { message: 'Full name is required' }),
+    phone: z.string().min(1, { message: 'Phone is required' }),
+    email: z.string().email({ message: 'Invalid email' }).min(1, { message: 'Email is required' }),
+    roleId: z.union([z.number(), z.string()]).refine((v) => `${v}`.length > 0, { message: 'Role is required' }),
+  })
+
+  const createSchema = baseSchema.extend({
+    password: z
+      .string()
+      .regex(passwordRegex, { message: 'Password must be 6+ chars, include 1 uppercase and 1 number' }),
+  })
+
+  const editSchema = baseSchema
+    .extend({
+      oldPassword: z.string().optional(),
+      newPassword: z
+        .string()
+        .optional()
+        .refine((v) => !v || passwordRegex.test(v), {
+          message: 'New password must be 6+ chars, include 1 uppercase and 1 number',
+        }),
+    })
+    .refine((data) => !data.newPassword || !!data.oldPassword, {
+      path: ['oldPassword'],
+      message: 'Old password is required to set a new password',
+    })
+
+  const schema = mode === 'edit' ? editSchema : createSchema
 
   const {
     handleSubmit,
@@ -82,8 +117,10 @@ const CustomerForm = (props: CustomerFormProps) => {
       fullName: '',
       phone: '',
       email: '',
-      password: '',
       roleId: '',
+      password: '',
+      oldPassword: '',
+      newPassword: '',
       ...defaultValues,
     },
   })
@@ -97,27 +134,26 @@ const CustomerForm = (props: CustomerFormProps) => {
       setRolesLoading(true)
       try {
         const raw = await apiGetRoles()
-        if (!mounted) return
         const list = pickRolesPayload(raw)
         const isSuper = isSuperAdminUser(user)
-
         const filtered = list.filter((r) => {
           const n = roleName(r).toLowerCase()
           return isSuper ? true : !n.includes('admin')
         })
-
         const opts = filtered.map<RoleOption>((r) => ({
           value: r.id ?? roleName(r),
           label: roleName(r),
         }))
-        setRoleOptions(opts)
+        if (mounted) setRoleOptions(opts)
       } catch {
         if (mounted) setRoleOptions([])
       } finally {
         if (mounted) setRolesLoading(false)
       }
     })()
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+    }
   }, [user])
 
   useEffect(() => {
@@ -134,6 +170,8 @@ const CustomerForm = (props: CustomerFormProps) => {
     [roleOptions],
   )
 
+  const finalSubmitLabel = submitLabel ?? (mode === 'edit' ? 'Edit' : 'Create')
+
   return (
     <Form
       onSubmit={handleSubmit(submit)}
@@ -143,29 +181,54 @@ const CustomerForm = (props: CustomerFormProps) => {
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="md:col-span-2">
-            <FormItem invalid={!!errors.fullName} errorMessage={errors.fullName?.message}>
-              <Controller name="fullName" control={control}
-                render={({ field }) => <Input autoComplete="off" placeholder="Full name" {...field} />} />
+            <FormItem label="Full name" invalid={!!errors.fullName} errorMessage={errors.fullName?.message}>
+              <Controller name="fullName" control={control} render={({ field }) => <Input autoComplete="off" {...field} />} />
             </FormItem>
           </div>
 
-          <FormItem invalid={!!errors.phone} errorMessage={errors.phone?.message}>
-            <Controller name="phone" control={control}
-              render={({ field }) => <Input autoComplete="off" placeholder="Phone" {...field} />} />
+          <FormItem label="Phone" invalid={!!errors.phone} errorMessage={errors.phone?.message}>
+            <Controller name="phone" control={control} render={({ field }) => <Input autoComplete="off" {...field} />} />
           </FormItem>
 
-          <FormItem invalid={!!errors.email} errorMessage={errors.email?.message}>
-            <Controller name="email" control={control}
-              render={({ field }) => <Input type="email" autoComplete="off" placeholder="Email" {...field} />} />
+          <FormItem label="Email" invalid={!!errors.email} errorMessage={errors.email?.message}>
+            <Controller name="email" control={control} render={({ field }) => <Input type="email" autoComplete="off" {...field} />} />
           </FormItem>
 
-          <FormItem invalid={!!errors.password} errorMessage={errors.password?.message}>
-            <Controller name="password" control={control}
-              render={({ field }) => <PasswordInput autoComplete="new-password" placeholder="Password (min. 6 chars)" {...field} />} />
-          </FormItem>
+          {mode === 'create' ? (
+            <FormItem label="Password" invalid={!!errors.password} errorMessage={errors.password?.message}>
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => <PasswordInput autoComplete="new-password" {...field} />}
+              />
+            </FormItem>
+          ) : (
+            <>
+              <FormItem label="Old password" invalid={!!errors.oldPassword} errorMessage={errors.oldPassword?.message}>
+                <Controller
+                  name="oldPassword"
+                  control={control}
+                  render={({ field }) => <PasswordInput autoComplete="current-password" {...field} />}
+                />
+              </FormItem>
+              <FormItem label="New password" invalid={!!errors.newPassword} errorMessage={errors.newPassword?.message}>
+                <Controller
+                  name="newPassword"
+                  control={control}
+                  render={({ field }) => <PasswordInput autoComplete="new-password" {...field} />}
+                />
+              </FormItem>
+            </>
+          )}
 
-          <FormItem invalid={!!errors.roleId} errorMessage={errors.roleId?.message}>
-            <Controller name="roleId" control={control}
+          <FormItem
+            label={<span className="invisible">Role</span>}
+            invalid={!!errors.roleId}
+            errorMessage={errors.roleId?.message}
+          >
+            <Controller
+              name="roleId"
+              control={control}
               render={({ field }) => (
                 <Select
                   isLoading={rolesLoading}
@@ -198,7 +261,7 @@ const CustomerForm = (props: CustomerFormProps) => {
                 Discard
               </Button>
               <Button variant="solid" type="submit" loading={!!submitting}>
-                Create
+                {finalSubmitLabel}
               </Button>
             </div>
           </div>

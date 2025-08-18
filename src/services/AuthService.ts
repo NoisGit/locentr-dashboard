@@ -8,24 +8,19 @@ import type {
   SignInResponse,
 } from '@/@types/auth'
 
-// POST /api/v1/users/login
 export async function apiSignIn(data: SignInCredential) {
   return ApiService.fetchDataWithAxios<SignInResponse>({
-    url: endpointConfig.signIn, // ya apunta a .../api/v1/users/login
+    url: endpointConfig.signIn,
     method: 'post',
     data,
   })
 }
 
-// POST /api/v1/users/logout
-export async function apiSignOut() {
-  return ApiService.fetchDataWithAxios({
-    url: endpointConfig.signOut,
-    method: 'post',
-  })
+// No-Op: no hacemos request al backend
+export async function apiSignOut(): Promise<void> {
+  return
 }
 
-// GET /api/v1/users/me   (si existe en tu API)
 export async function apiMe<T = any>() {
   return ApiService.fetchDataWithAxios<T>({
     url: endpointConfig.me,
@@ -33,7 +28,6 @@ export async function apiMe<T = any>() {
   })
 }
 
-// POST /api/v1/users/forgot-password (si existe)
 export async function apiForgotPassword<T>(data: ForgotPassword) {
   return ApiService.fetchDataWithAxios<T>({
     url: endpointConfig.forgotPassword,
@@ -42,7 +36,6 @@ export async function apiForgotPassword<T>(data: ForgotPassword) {
   })
 }
 
-// POST /api/v1/users/reset-password (si existe)
 export async function apiResetPassword<T>(data: ResetPassword) {
   return ApiService.fetchDataWithAxios<T>({
     url: endpointConfig.resetPassword,

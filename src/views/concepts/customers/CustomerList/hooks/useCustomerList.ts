@@ -1,46 +1,64 @@
-import { apiGetCustomersList } from '@/services/CustomersService'
+// src/views/concepts/users/CustomerList/hooks/useCustomerList.ts
 import useSWR from 'swr'
+import {
+  apiGetCustomersList,
+  type GetCustomersListResponse,
+  type TableQueries as ServiceTableQueries,
+} from '@/services/CustomersService'
 import { useCustomerListStore } from '../store/customerListStore'
-import type { GetCustomersListResponse } from '../types'
-import type { TableQueries } from '@/@types/common'
+
+function buildParams(tableData: any, filterData: any): ServiceTableQueries {
+  const pageIndex = Number(tableData?.pageIndex ?? 1)
+  const pageSize = Number(tableData?.pageSize ?? 10)
+  const query = String(
+    filterData?.query ?? tableData?.query ?? '',
+  )
+  const sort =
+    filterData?.sort ??
+    tableData?.sort ??
+    undefined // { key?: string; order?: 'asc'|'desc' }
+
+  return { pageIndex, pageSize, query, ...(sort ? { sort } : {}) }
+}
 
 export default function useCustomerList() {
-    const {
-        tableData,
-        filterData,
-        setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
-        setFilterData,
-    } = useCustomerListStore((state) => state)
+  const {
+    tableData,
+    filterData,
+    setTableData,
+    selectedCustomer,
+    setSelectedCustomer,
+    setSelectAllCustomer,
+    setFilterData,
+  } = useCustomerListStore((state) => state)
 
-    const { data, error, isLoading, mutate } = useSWR(
-        ['/api/customers', { ...tableData, ...filterData }],
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ([_, params]) =>
-            apiGetCustomersList<GetCustomersListResponse, TableQueries>(params),
-        {
-            revalidateOnFocus: false,
-        },
-    )
+  const swrKey: [string, ServiceTableQueries] = [
+    '/api/customers',
+    buildParams(tableData, filterData),
+  ]
 
-    const customerList = data?.list || []
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    ([, params]) =>
+      apiGetCustomersList<GetCustomersListResponse, ServiceTableQueries>(params),
+    { revalidateOnFocus: false },
+  )
 
-    const customerListTotal = data?.total || 0
+  const customerList = data?.list || []
+  const customerListTotal = data?.total || 0
 
-    return {
-        customerList,
-        customerListTotal,
-        error,
-        isLoading,
-        tableData,
-        filterData,
-        mutate,
-        setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
-        setFilterData,
-    }
+  return {
+    customerList,
+    customerListTotal,
+    error,
+    isLoading,
+    tableData,
+    filterData,
+    mutate,
+    setTableData,
+    selectedCustomer,
+    setSelectedCustomer,
+    setSelectAllCustomer,
+    setFilterData,
+  }
 }

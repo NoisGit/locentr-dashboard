@@ -1,9 +1,8 @@
-// src/auth/AuthProvider.tsx
-import { useRef, useImperativeHandle, useState, useEffect } from 'react'
+import { useRef, useImperativeHandle, useEffect, useRef as useRef2, forwardRef } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
-import { apiSignIn, apiSignOut } from '@/services/AuthService'
+import { apiSignIn } from '@/services/AuthService'
 import { apiGetMe, normalizeUser } from '@/services/UserService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
@@ -14,49 +13,41 @@ import type {
   User as AppUser,
   Token,
 } from '@/@types/auth'
-import type { ReactNode, Ref } from 'react'
-import type { NavigateFunction } from 'react-router'
+import type { ReactNode } from 'react'
 
 type AuthProviderProps = { children: ReactNode }
+export type IsolatedNavigatorRef = { navigate: ReturnType<typeof useNavigate> }
 
-export type IsolatedNavigatorRef = {
-  navigate: NavigateFunction
-}
-
-const IsolatedNavigator = ({ ref }: { ref: Ref<IsolatedNavigatorRef> }) => {
+const IsolatedNavigator = forwardRef<IsolatedNavigatorRef>(function IsolatedNavigator(_, ref) {
   const navigate = useNavigate()
   useImperativeHandle(ref, () => ({ navigate }), [navigate])
   return null
-}
+})
 
 function AuthProvider({ children }: AuthProviderProps) {
-  const signedIn = useSessionUser((state) => state.session.signedIn)
-  const user = useSessionUser((state) => state.user)
-  const setUser = useSessionUser((state) => state.setUser)
-  const setSessionSignedIn = useSessionUser((state) => state.setSessionSignedIn)
+  const signedIn = useSessionUser((s) => s.session.signedIn)
+  const user = useSessionUser((s) => s.user)
+  const setUser = useSessionUser((s) => s.setUser)
+  const setSessionSignedIn = useSessionUser((s) => s.setSessionSignedIn)
 
   const { token, setToken } = useToken()
-  const [tokenState, setTokenState] = useState(token)
-
-  // ✅ Trata el token como “estoy autenticado”
-  const authenticated = Boolean(tokenState)
+  const authenticated = Boolean(token)
 
   const navigatorRef = useRef<IsolatedNavigatorRef>(null)
+  const hydratingRef = useRef2(false)
 
   const redirect = () => {
     const params = new URLSearchParams(window.location.search)
     const redirectUrl = params.get(REDIRECT_URL_KEY)
     navigatorRef.current?.navigate(
       redirectUrl ? redirectUrl : appConfig.authenticatedEntryPath,
+      { replace: true },
     )
   }
 
   const handleSignIn = (tokens: Token, u?: AppUser) => {
     setToken(tokens.accessToken)
-    setTokenState(tokens.accessToken)
     setSessionSignedIn(true)
-
-    // ⚡ Normaliza inmediatamente lo que venga del login
     if (u) setUser(normalizeUser(u as any) as unknown as AppUser)
     else setUser({ userName: '', email: '', avatar: '' } as any)
   }
@@ -68,12 +59,14 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const hydrateUserFromApi = async () => {
+    if (hydratingRef.current) return
+    hydratingRef.current = true
     try {
       const me = await apiGetMe()
       const normalized = normalizeUser(me)
       setUser(normalized as unknown as AppUser)
-    } catch {
-      // no rompas la UI si /me falla
+    } finally {
+      hydratingRef.current = false
     }
   }
 
@@ -82,8 +75,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       const resp = await apiSignIn(values)
       if (resp?.token) {
         handleSignIn({ accessToken: resp.token }, resp.user)
-        // Trae /me para asegurar nombre/email/rol actualizados
-        await hydrateUserFromApi()
+        hydrateUserFromApi()
         redirect()
         return { status: 'success', message: '' }
       }
@@ -97,44 +89,25 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signOut = async () => {
-    try {
-      await apiSignOut()
-    } finally {
-      handleSignOut()
-      navigatorRef.current?.navigate('/')
-    }
+    handleSignOut()
+    navigatorRef.current?.navigate(appConfig.unAuthenticatedEntryPath, { replace: true })
   }
 
-  const oAuthSignIn = (
-    callback: (payload: OauthSignInCallbackPayload) => void,
-  ) => {
+  const oAuthSignIn = (callback: (payload: OauthSignInCallbackPayload) => void) => {
     callback({ onSignIn: handleSignIn, redirect })
   }
 
-  // 🔸 Si hay token pero `signedIn` es falso (refresh), márcalo
   useEffect(() => {
-    if (tokenState && !signedIn) setSessionSignedIn(true)
-  }, [tokenState, signedIn, setSessionSignedIn])
+    if (token && !signedIn) setSessionSignedIn(true)
+  }, [token, signedIn, setSessionSignedIn])
 
-  // 🔸 Con token presente y sin email en el store → hidratar desde /me
   useEffect(() => {
     const hasMinimalUser = Boolean((user as any)?.email)
-    if (tokenState && !hasMinimalUser) {
-      hydrateUserFromApi()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenState])
+    if (token && !hasMinimalUser) hydrateUserFromApi()
+  }, [token]) // eslint-disable-line
 
   return (
-    <AuthContext.Provider
-      value={{
-        authenticated,
-        user,
-        signIn,
-        signOut,
-        oAuthSignIn,
-      }}
-    >
+    <AuthContext.Provider value={{ authenticated, user, signIn, signOut, oAuthSignIn }}>
       {children}
       <IsolatedNavigator ref={navigatorRef} />
     </AuthContext.Provider>
