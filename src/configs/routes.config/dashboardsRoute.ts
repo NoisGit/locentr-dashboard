@@ -457,6 +457,49 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
 
+    // ==== PROPERTIES ====
+    {
+        key: 'concepts.properties.propertiesList',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
+        component: lazy(() => import('@/views/concepts/properties/PropertiesList/PropertiesList')),
+        authority: [ADMIN, USER],
+    },
+    {
+        key: 'concepts.properties.propertiesEdit',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-edit/:id`,
+        component: lazy(() => import('@/views/concepts/properties/PropertiesEdit/PropertiesEdit')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Edit property',
+                description: 'Manage property details and assignments.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.properties.propertiesCreate',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-create`,
+        component: lazy(() => import('@/views/concepts/properties/PropertiesCreate')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Create property',
+                description: 'Create new property entries easily.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.properties.propertiesDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-details/:id`,
+        component: lazy(() => import('@/views/concepts/properties/PropertiesDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
+
     // ==== HELP ====
     {
         key: 'concepts.help.manage',

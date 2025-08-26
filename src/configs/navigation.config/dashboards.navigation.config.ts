@@ -162,7 +162,23 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
 
-    // === RESIDENTS (nuevo) ===
+    {
+        key: 'concepts.properties',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
+        title: 'Properties',
+        translateKey: 'nav.properties',
+        icon: 'landing',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.propertiesDesc',
+                label: 'Gestión de propiedades',
+            },
+        },
+        subMenu: [],
+    },
+
     {
         key: 'concepts.residents',
         path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
