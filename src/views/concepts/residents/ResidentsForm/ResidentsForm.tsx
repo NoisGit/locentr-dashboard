@@ -45,8 +45,8 @@ const isValidDate = (v?: string) => {
 
 const validationSchema = z
   .object({
-    propertyId: z.coerce.number().int().positive().optional(),
-    userId: z.coerce.number().int().positive().optional(),
+    propertyId: z.coerce.number().int().positive({ message: 'Seleccione una comunidad' }),
+    userId: z.coerce.number().int().positive({ message: 'Seleccione un usuario' }),
     isOwner: z.boolean().default(false),
     startDate: z.string().optional().refine(isValidDate, { message: 'Fecha inválida (YYYY-MM-DD)' }),
     endDate: z.string().optional().refine(isValidDate, { message: 'Fecha inválida (YYYY-MM-DD)' }),

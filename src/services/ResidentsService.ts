@@ -237,7 +237,6 @@ export async function apiGetResidentsList<
     const salvaged = trySalvageFromError(errFull)
     if (salvaged) return { list: salvaged.list, total: salvaged.total } as T
 
-    // Fallback 1: solo paginación básica (skip/limit)
     try {
       const resp = await tryRequest({ limit: pageSize, skip })
       const { items, total } = pickItemsAndTotal(resp)
@@ -247,7 +246,6 @@ export async function apiGetResidentsList<
       const salvaged2 = trySalvageFromError(errBasic)
       if (salvaged2) return { list: salvaged2.list, total: salvaged2.total } as T
 
-      // Fallback 2: sin ningún parámetro
       try {
         const resp = await tryRequest()
         const { items, total } = pickItemsAndTotal(resp)
@@ -257,8 +255,6 @@ export async function apiGetResidentsList<
         const salvaged3 = trySalvageFromError(errBare)
         if (salvaged3) return { list: salvaged3.list, total: salvaged3.total } as T
 
-        // Último recurso: no romper la UI
-        // eslint-disable-next-line no-console
         console.warn('[ResidentsService] Lista de residentes: backend 500 en todos los intentos', {
           errFull: errFull?.response?.data ?? errFull,
           errBasic: errBasic?.response?.data ?? errBasic,
@@ -270,6 +266,11 @@ export async function apiGetResidentsList<
   }
 }
 
+/**
+ * Crea residente:
+ * - Enviamos start_date y end_date como YYYY-MM-DD o null (nunca se omiten)
+ * - Forzamos la ruta con slash final para evitar redirección del preflight.
+ */
 export async function apiCreateResident(payload: {
   user_id: number | string
   property_id: number | string
@@ -280,13 +281,12 @@ export async function apiCreateResident(payload: {
   const body: Record<string, unknown> = {
     user_id: Number(payload.user_id),
     property_id: Number(payload.property_id),
+    start_date: toYMD(payload.start_date) ?? null,
+    end_date: toYMD(payload.end_date) ?? null,
   }
   if (typeof payload.is_owner === 'boolean') body.is_owner = payload.is_owner
-  const sd = toYMD(payload.start_date)
-  if (sd) body.start_date = sd
-  const ed = toYMD(payload.end_date)
-  if (ed) body.end_date = ed
 
+  // ⚠️ Importante: usar SIEMPRE la versión con slash para evitar 30x del servidor en el preflight
   return ApiService.fetchDataWithAxios({
     url: '/api/v1/residents/',
     method: 'post',
@@ -318,10 +318,8 @@ export async function apiUpdateResident(
   if (patch.user_id != null) body.user_id = Number(patch.user_id)
   if (patch.property_id != null) body.property_id = Number(patch.property_id)
   if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
-  const sd = toYMD(patch.start_date)
-  if (sd) body.start_date = sd
-  const ed = toYMD(patch.end_date)
-  if (ed) body.end_date = ed
+  body.start_date = toYMD(patch.start_date) ?? null
+  body.end_date = toYMD(patch.end_date) ?? null
 
   return ApiService.fetchDataWithAxios({
     url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,

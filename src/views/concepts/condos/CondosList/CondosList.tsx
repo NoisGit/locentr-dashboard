@@ -1,4 +1,3 @@
-// src/views/concepts/condos/CondosList/CondosList.tsx
 import { useNavigate } from 'react-router'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
@@ -14,9 +13,7 @@ const CondosList = () => {
   const navigate = useNavigate()
   const { condosList, isLoading, error, mutate } = useCondosList()
 
-  // Estado de error (evita confundir con "lista vacía")
   if (!isLoading && error) {
-    // Mejor esfuerzo por mostrar mensaje del servidor
     const serverMsg =
       (error as any)?.response?.data?.message ||
       (error as any)?.response?.data?.detail ||
@@ -40,7 +37,6 @@ const CondosList = () => {
     )
   }
 
-  // Estado vacío (sin error)
   if (!isLoading && condosList.length === 0) {
     return (
       <Container>
@@ -61,7 +57,6 @@ const CondosList = () => {
     )
   }
 
-  // Lista normal
   return (
     <>
       <Container>

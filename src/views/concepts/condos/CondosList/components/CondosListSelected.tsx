@@ -1,4 +1,3 @@
-// src/views/concepts/condos/CondosList/components/CondosListSelected.tsx
 import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'
@@ -15,12 +14,11 @@ import { apiDeleteCondo } from '@/services/CondosService'
 
 const CondosListSelected = () => {
   const {
-    selectedCondo: selectedCondos, // alias del store
+    selectedCondo: selectedCondos,
     condosList,
     condosListTotal,
-    mutate,               // SWR-bound mutate (lista)
+    mutate,
     setSelectAllCondos,
-    // 👇 para manejar underflow de paginación
     tableData,
     setTableData,
   } = useCondosList()
@@ -43,31 +41,23 @@ const CondosListSelected = () => {
 
     setDeleteLoading(true)
 
-    // 1) IDs únicos y normalizados
     const idsToDelete = Array.from(new Set(selectedCondos.map(s => String(s.id))))
-
-    // 2) Optimista: quitamos seleccionados de la lista actual
     const newList = condosList.filter(c => !idsToDelete.includes(String(c.id)))
     const newTotal = Math.max(0, (condosListTotal ?? 0) - idsToDelete.length)
 
-    // 2.1) Si la página quedará vacía y hay páginas previas, retrocede una
     if (newList.length === 0 && (tableData.pageIndex as number) > 1) {
       setTableData(prev => ({ ...prev, pageIndex: (prev.pageIndex as number) - 1 }))
     }
 
-    // 2.2) Actualización optimista del cache de esta página
     mutate({ list: newList, total: newTotal }, false)
 
-    // Cerrar modal y limpiar selección para una UI fluida
     setDeleteConfirmationOpen(false)
     setSelectAllCondos([])
 
-    // 3) Delete real contra backend
     const results = await Promise.allSettled(idsToDelete.map(id => apiDeleteCondo(id)))
     const success = results.filter(r => r.status === 'fulfilled').length
     const failed = results.length - success
 
-    // 4) Revalidar (trae la página correcta si retrocedimos)
     try {
       await mutate()
     } catch {
@@ -77,7 +67,6 @@ const CondosListSelected = () => {
       )
     }
 
-    // 5) Notificación
     if (failed === 0) {
       toast.push(
         <Notification type="success">
@@ -156,7 +145,6 @@ const CondosListSelected = () => {
         </StickyFooter>
       )}
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={deleteConfirmationOpen}
         type="danger"
@@ -174,7 +162,6 @@ const CondosListSelected = () => {
         <p>Esta acción no se puede deshacer.</p>
       </ConfirmDialog>
 
-      {/* Send Message Dialog */}
       <Dialog
         isOpen={sendMessageDialogOpen}
         onRequestClose={() => setSendMessageDialogOpen(false)}

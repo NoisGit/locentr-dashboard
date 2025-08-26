@@ -1,5 +1,6 @@
 // src/views/concepts/condos/CondosForm/CondosForm.tsx
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import useSWR from 'swr'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +14,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 
 import isEmpty from 'lodash/isEmpty'
+import { apiGetCommunityTypes } from '@/services/CondosService'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -35,10 +37,36 @@ const validationSchema = z.object({
   type: z.string().min(1, { message: 'Selecciona el tipo' }),
 })
 
-const TYPE_OPTIONS = [
+const TYPE_OPTIONS_FALLBACK = [
   { label: 'Edificio', value: 'edificio' },
   { label: 'Condominio', value: 'condominio' },
 ]
+
+const COMMUNITY_TYPES_ENDPOINT = '/api/v1/communities/types'
+
+function normalizeTypeOptions(raw: any): Array<{ label: string; value: string }> {
+  if (!raw) return []
+  const arr =
+    (Array.isArray(raw) && raw) ||
+    raw?.types ||
+    raw?.items ||
+    raw?.results ||
+    raw?.list ||
+    raw?.data ||
+    []
+  if (!Array.isArray(arr)) return []
+  const toTitle = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+  return arr
+    .map((it: any) => {
+      const valueRaw = it?.slug ?? it?.code ?? it?.key ?? it?.value ?? it?.id ?? it?.type_id ?? ''
+      const labelRaw = it?.name ?? it?.label ?? it?.title ?? valueRaw
+      const value = String(valueRaw ?? '').trim()
+      const label = String(labelRaw ?? '').trim()
+      if (!value) return null
+      return { label: label || toTitle(value), value }
+    })
+    .filter(Boolean) as Array<{ label: string; value: string }>
+}
 
 const CondosForm = (props: CondosFormProps) => {
   const { onFormSubmit, defaultValues = {}, children } = props
@@ -57,6 +85,29 @@ const CondosForm = (props: CondosFormProps) => {
       ...defaultValues,
     },
   })
+
+  const {
+    data: typesRaw,
+    error: typesError,
+    isLoading: typesLoading,
+  } = useSWR(COMMUNITY_TYPES_ENDPOINT, apiGetCommunityTypes, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    dedupingInterval: 60_000,
+    shouldRetryOnError: false,
+  })
+
+  useEffect(() => {
+    if (typesError) {
+      const serverBody = (typesError as any)?.response?.data
+      console.error('Error cargando tipos de comunidad:', serverBody || typesError)
+    }
+  }, [typesError])
+
+  const apiTypeOptions = useMemo(() => normalizeTypeOptions(typesRaw), [typesRaw])
+  const selectOptions =
+    apiTypeOptions && apiTypeOptions.length > 0 ? apiTypeOptions : TYPE_OPTIONS_FALLBACK
 
   useEffect(() => {
     if (!isEmpty(defaultValues)) {
@@ -110,19 +161,18 @@ const CondosForm = (props: CondosFormProps) => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <FormItem
-                    invalid={!!errors.type}
-                    errorMessage={errors.type?.message}
-                  >
+                  <FormItem invalid={!!errors.type} errorMessage={errors.type?.message}>
                     <Controller
                       name="type"
                       control={control}
                       render={({ field }) => (
                         <Select
-                          options={TYPE_OPTIONS}
+                          options={selectOptions}
                           isSearchable={false}
+                          isLoading={typesLoading}
+                          isDisabled={typesLoading}
                           value={
-                            TYPE_OPTIONS.find((o) => `${o.value}` === `${field.value}`) ??
+                            selectOptions.find((o) => `${o.value}` === `${field.value}`) ??
                             null
                           }
                           placeholder="Tipo de comunidad"

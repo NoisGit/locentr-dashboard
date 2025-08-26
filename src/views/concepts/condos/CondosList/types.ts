@@ -1,4 +1,3 @@
-// src/views/concepts/condos/CondosList/types.ts
 import type { Control, FieldErrors } from 'react-hook-form'
 
 export type PersonalInfo = {
@@ -48,7 +47,6 @@ export type Condo = {
   address?: string
   type?: string
   img?: string
-
   firstName?: string
   lastName?: string
   email?: string
@@ -68,15 +66,10 @@ export type GetCondosListResponse = {
   total: number
 }
 
-/**
- * Filtros del listado
- * - typeId: se envía al backend como `type_id` ('' = todos)
- * - departamento/motivo: se mantienen opcionales por compatibilidad
- */
 export type Filter = {
-  typeId?: number | ''      // ← NUEVO (para filtrar por tipo real)
-  departamento?: string[]   // opcional (legacy)
-  motivo?: string           // opcional (legacy)
+  typeId?: number | ''
+  departamento?: string[]
+  motivo?: string
 }
 
 export type OverviewFields = {
