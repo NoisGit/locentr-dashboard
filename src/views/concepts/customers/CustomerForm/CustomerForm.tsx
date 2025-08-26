@@ -14,7 +14,6 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
 
-import { useAuth } from '@/auth'
 import { apiGetRoles } from '@/services/RoleService'
 
 export type CustomerFormSchema = {
@@ -37,32 +36,6 @@ type CustomerFormProps = {
 }
 
 type RoleOption = { label: string; value: number | string }
-type RoleLike = { id?: number | string; name?: string; role_name?: string; title?: string }
-
-function roleName(r: RoleLike): string {
-  return (r.name ?? r.role_name ?? r.title ?? '').toString()
-}
-function pickRolesPayload(raw: unknown): RoleLike[] {
-  if (Array.isArray(raw)) return raw as RoleLike[]
-  const anyRaw = raw as Record<string, unknown> | null | undefined
-  const candidate =
-    (anyRaw?.data as unknown) ??
-    (anyRaw?.items as unknown) ??
-    (anyRaw?.results as unknown) ??
-    (anyRaw as unknown)
-  return Array.isArray(candidate) ? (candidate as RoleLike[]) : []
-}
-function isSuperAdminUser(user: unknown): boolean {
-  const u = user as any
-  const direct = (u?.role?.name ?? u?.role_name ?? u?.role)?.toString()?.toLowerCase?.()
-  if (direct && direct.includes('super')) return true
-  if (Array.isArray(u?.roles)) {
-    return u.roles.some((rr: any) =>
-      (rr?.name ?? rr?.role_name ?? rr)?.toString()?.toLowerCase?.().includes('super'),
-    )
-  }
-  return Boolean(u?.isSuperAdmin)
-}
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/
 
@@ -74,8 +47,6 @@ const CustomerForm = ({
   onDiscard,
   defaultValues,
 }: CustomerFormProps) => {
-  const { user } = useAuth()
-
   const baseSchema = z.object({
     fullName: z.string().min(1, { message: 'Full name is required' }),
     phone: z.string().min(1, { message: 'Phone is required' }),
@@ -133,17 +104,8 @@ const CustomerForm = ({
     ;(async () => {
       setRolesLoading(true)
       try {
-        const raw = await apiGetRoles()
-        const list = pickRolesPayload(raw)
-        const isSuper = isSuperAdminUser(user)
-        const filtered = list.filter((r) => {
-          const n = roleName(r).toLowerCase()
-          return isSuper ? true : !n.includes('admin')
-        })
-        const opts = filtered.map<RoleOption>((r) => ({
-          value: r.id ?? roleName(r),
-          label: roleName(r),
-        }))
+        const list = await apiGetRoles()
+        const opts = list.map<RoleOption>((r) => ({ value: r.id, label: r.name }))
         if (mounted) setRoleOptions(opts)
       } catch {
         if (mounted) setRoleOptions([])
@@ -154,7 +116,7 @@ const CustomerForm = ({
     return () => {
       mounted = false
     }
-  }, [user])
+  }, [])
 
   useEffect(() => {
     if (defaultValues?.roleId != null && roleOptions.length > 0) {

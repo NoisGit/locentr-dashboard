@@ -1,3 +1,4 @@
+// src/views/dashboards/dashboardsRoute.ts
 import { lazy } from 'react'
 import {
     DASHBOARDS_PREFIX_PATH,
@@ -70,7 +71,7 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
 
-   // ==== ACCESOS ====
+    // ==== ACCESOS ====
     {
         key: 'concepts.access.accessList',
         path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
@@ -112,6 +113,7 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: { pageContainerType: 'contained' },
     },
+
     // ==== PRODUCTS ====
     {
         key: 'concepts.products.productList',
@@ -141,7 +143,8 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Create product',
-                description: 'Quickly add products to your inventory. Enter key details, manage stock, and set availability.',
+                description:
+                    'Quickly add products to your inventory. Enter key details, manage stock, and set availability.',
                 contained: true,
             },
             footer: false,
@@ -200,7 +203,7 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
 
-    // ==== NEWS 
+    // ==== NEWS
     {
         key: 'concepts.helpCenter.article',
         path: `${CONCEPTS_PREFIX_PATH}/news/article/:id`,
@@ -230,8 +233,8 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/news/create-article`,
         component: lazy(() => import('@/views/concepts/news/CreateArticle/CreateArticle')),
         authority: [ADMIN, USER],
-        },
-        
+    },
+
     // ==== CALENDAR ====
     {
         key: 'concepts.calendar',
@@ -325,7 +328,7 @@ const dashboardsRoute: Routes = [
         },
     },
 
-// ==== ENTRIES ====
+    // ==== ENTRIES ====
     {
         key: 'concepts.entry.entryList',
         path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
@@ -367,113 +370,158 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: { pageContainerType: 'contained' },
     },
-  {
-    key: 'concepts.perks.perksList',
-    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
-    component: lazy(() => import('@/views/concepts/perks/PerksList')),
-    authority: [ADMIN, USER],
-},
-{
-    key: 'concepts.perks.perksEdit',
-    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-edit/:id`,
-    component: lazy(() => import('@/views/concepts/perks/PerksEdit')),
-    authority: [ADMIN, USER],
-    meta: {
-        header: {
-            title: 'Edit perk',
-            description: 'Manage perk details and permissions.',
-            contained: true,
-        },
-        footer: false,
-    },
-},
-{
-    key: 'concepts.perks.perksCreate',
-    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-create`,
-    component: lazy(() => import('@/views/concepts/perks/PerksCreate')),
-    authority: [ADMIN, USER],
-    meta: {
-        header: {
-            title: 'Create perk',
-            description: 'Create new perk entries easily.',
-            contained: true,
-        },
-        footer: false,
-    },
-},
-{
-    key: 'concepts.perks.perksDetails',
-    path: `${CONCEPTS_PREFIX_PATH}/perks/perks-details/:id`,
-    component: lazy(() => import('@/views/concepts/perks/PerksDetails')),
-    authority: [ADMIN, USER],
-    meta: { pageContainerType: 'contained' },
-},
 
-// ==== CONDOS ====
-{
-    key: 'concepts.condos.condosList',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
-    component: lazy(() => import('@/views/concepts/condos/CondosList')),
-    authority: [ADMIN, USER],
-},
-{
-    key: 'concepts.condos.condosEdit',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-edit/:id`,
-    component: lazy(() => import('@/views/concepts/condos/CondosEdit')),
-    authority: [ADMIN, USER],
-    meta: {
-        header: {
-            title: 'Edit condo',
-            description: 'Manage condo details and permissions.',
-            contained: true,
-        },
-        footer: false,
+    // ==== PERKS ====
+    {
+        key: 'concepts.perks.perksList',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
+        component: lazy(() => import('@/views/concepts/perks/PerksList')),
+        authority: [ADMIN, USER],
     },
-},
-{
-    key: 'concepts.condos.condosCreate',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-create`,
-    component: lazy(() => import('@/views/concepts/condos/CondosCreate')),
-    authority: [ADMIN, USER],
-    meta: {
-        header: {
-            title: 'Create condo',
-            description: 'Create new condo entries easily.',
-            contained: true,
+    {
+        key: 'concepts.perks.perksEdit',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-edit/:id`,
+        component: lazy(() => import('@/views/concepts/perks/PerksEdit')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Edit perk',
+                description: 'Manage perk details and permissions.',
+                contained: true,
+            },
+            footer: false,
         },
-        footer: false,
     },
-},
-{
-    key: 'concepts.condos.condosDetails',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-details/:id`,
-    component: lazy(() => import('@/views/concepts/condos/CondosDetails')),
-    authority: [ADMIN, USER],
-    meta: { pageContainerType: 'contained' },
-},
-{
-    key: 'concepts.help.manage',
-    path: '/concepts/help/manage-help',
-    component: lazy(() => import('@/views/concepts/help/ManageHelp/ManageHelp')),
-    authority: [ADMIN, USER],
-    meta: { pageBackgroundType: 'plain' },
-},
-{
-    key: 'concepts.help.create',
-    path: '/concepts/help/create-help',
-    component: lazy(() => import('@/views/concepts/help/CreateHelp/CreateHelp')),
-    authority: [ADMIN, USER],
-    meta: { pageBackgroundType: 'plain' },
-},
-{
-    key: 'concepts.help.details',
-    path: '/concepts/help/help-details/:id',
-    component: lazy(() => import('@/views/concepts/help/Help/HelpDetails')),
-    authority: [ADMIN, USER],
-    meta: { pageBackgroundType: 'plain' },
-},
+    {
+        key: 'concepts.perks.perksCreate',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-create`,
+        component: lazy(() => import('@/views/concepts/perks/PerksCreate')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Create perk',
+                description: 'Create new perk entries easily.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.perks.perksDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-details/:id`,
+        component: lazy(() => import('@/views/concepts/perks/PerksDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
 
+    // ==== CONDOS ====
+    {
+        key: 'concepts.condos.condosList',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
+        component: lazy(() => import('@/views/concepts/condos/CondosList')),
+        authority: [ADMIN, USER],
+    },
+    {
+        key: 'concepts.condos.condosEdit',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-edit/:id`,
+        component: lazy(() => import('@/views/concepts/condos/CondosEdit')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Edit condo',
+                description: 'Manage condo details and permissions.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.condos.condosCreate',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-create`,
+        component: lazy(() => import('@/views/concepts/condos/CondosCreate')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Create condo',
+                description: 'Create new condo entries easily.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.condos.condosDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-details/:id`,
+        component: lazy(() => import('@/views/concepts/condos/CondosDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
 
+    // ==== HELP ====
+    {
+        key: 'concepts.help.manage',
+        path: '/concepts/help/manage-help',
+        component: lazy(() => import('@/views/concepts/help/ManageHelp/ManageHelp')),
+        authority: [ADMIN, USER],
+        meta: { pageBackgroundType: 'plain' },
+    },
+    {
+        key: 'concepts.help.create',
+        path: '/concepts/help/create-help',
+        component: lazy(() => import('@/views/concepts/help/CreateHelp/CreateHelp')),
+        authority: [ADMIN, USER],
+        meta: { pageBackgroundType: 'plain' },
+    },
+    {
+        key: 'concepts.help.details',
+        path: '/concepts/help/help-details/:id',
+        component: lazy(() => import('@/views/concepts/help/Help/HelpDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageBackgroundType: 'plain' },
+    },
+
+    // ==== RESIDENTS ====
+    {
+        key: 'concepts.residents.residentsList',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
+        component: lazy(() => import('@/views/concepts/residents/ResidentsList')),
+        authority: [ADMIN, USER],
+    },
+    {
+        key: 'concepts.residents.residentsEdit',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-edit/:id`,
+        component: lazy(() => import('@/views/concepts/residents/ResidentsEdit')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Edit resident',
+                description: 'Manage resident details and assignments.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.residents.residentsCreate',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-create`,
+        component: lazy(() => import('@/views/concepts/residents/ResidentsCreate')),
+        authority: [ADMIN, USER],
+        meta: {
+            header: {
+                title: 'Create resident',
+                description: 'Create new resident (asignar propiedad y usuario).',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'concepts.residents.residentsDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-details/:id`,
+        component: lazy(() => import('@/views/concepts/residents/ResidentsDetails')),
+        authority: [ADMIN, USER],
+        meta: { pageContainerType: 'contained' },
+    },
 ]
 
 export default dashboardsRoute

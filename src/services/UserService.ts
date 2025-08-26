@@ -2,6 +2,7 @@
 import ApiService from '@/services/ApiService'
 
 export type RoleRef = { id?: number | string; name?: string }
+
 export type UserRow = {
   id: number | string
   full_name?: string
@@ -28,18 +29,25 @@ export type ListResult = {
 }
 
 export function userDisplayName(u: UserRow) {
+  const nameParts = [u.first_name, u.last_name].filter(Boolean).join(' ')
+  return u.full_name || u.name || nameParts || ''
+}
+
+function pickArr(raw: any) {
   return (
-    u.full_name ||
-    u.name ||
-    [u.first_name, u.last_name].filter(Boolean).join(' ') ||
-    ''
+    (Array.isArray(raw?.items) && raw.items) ||
+    (Array.isArray(raw?.data?.items) && raw.data.items) ||
+    (Array.isArray(raw?.list) && raw.list) ||
+    (Array.isArray(raw?.data) && raw.data) ||
+    (Array.isArray(raw?.results) && raw.results) ||
+    (Array.isArray(raw) && raw) ||
+    []
   )
 }
 
-/** 🔹 Devuelve los usuarios paginados desde /api/v1/users */
 export async function apiListUsers(params: ListParams = {}): Promise<ListResult> {
   const resp = await ApiService.fetchDataWithAxios<any>({
-    url: '/api/v1/users',
+    url: '/api/v1/users/', // barra final para evitar 301
     method: 'get',
     params: {
       pageIndex: params.pageIndex ?? 1,
@@ -50,37 +58,21 @@ export async function apiListUsers(params: ListParams = {}): Promise<ListResult>
     },
   })
 
-  // Soporta varios formatos de respuesta comunes
-  const arr =
-    (Array.isArray(resp?.items) && resp.items) ||
-    (Array.isArray(resp?.data?.items) && resp.data.items) ||
-    (Array.isArray(resp?.list) && resp.list) ||
-    (Array.isArray(resp?.data) && resp.data) ||
-    (Array.isArray(resp?.results) && resp.results) ||
-    (Array.isArray(resp) && resp) ||
-    []
-
-  const total =
-    Number(
-      resp?.total ??
-      resp?.count ??
-      resp?.pagination?.total ??
-      resp?.data?.total ??
-      arr.length,
-    )
-
+  const arr = pickArr(resp)
+  const total = Number(
+    resp?.total ?? resp?.count ?? resp?.pagination?.total ?? resp?.data?.total ?? arr.length
+  )
   return { items: arr as UserRow[], total }
 }
 
-/** 🔹 Detalle por id */
 export function apiGetUserById(id: number | string) {
+  const cleanId = String(id).replace(/\/+$/, '')
   return ApiService.fetchDataWithAxios<UserRow>({
-    url: `/api/v1/users/${id}`,
+    url: `/api/v1/users/${encodeURIComponent(cleanId)}`,
     method: 'get',
   })
 }
 
-/** 🔹 Crear usuario */
 export function apiCreateUser(payload: {
   full_name: string
   phone: string
@@ -89,13 +81,12 @@ export function apiCreateUser(payload: {
   role_id: number
 }) {
   return ApiService.fetchDataWithAxios({
-    url: '/api/v1/users',
+    url: '/api/v1/users/',
     method: 'post',
     data: payload,
   })
 }
 
-/** 🔹 Actualizar usuario */
 export function apiUpdateUser(
   id: number | string,
   payload: Partial<{
@@ -106,22 +97,22 @@ export function apiUpdateUser(
     role_id: number
   }>,
 ) {
+  const cleanId = String(id).replace(/\/+$/, '')
   return ApiService.fetchDataWithAxios({
-    url: `/api/v1/users/${id}`,
+    url: `/api/v1/users/${encodeURIComponent(cleanId)}`,
     method: 'put',
     data: payload,
   })
 }
 
-/** 🔹 Eliminar usuario */
 export function apiDeleteUser(id: number | string) {
+  const cleanId = String(id).replace(/\/+$/, '')
   return ApiService.fetchDataWithAxios({
-    url: `/api/v1/users/${id}`,
+    url: `/api/v1/users/${encodeURIComponent(cleanId)}`,
     method: 'delete',
   })
 }
 
-/** 🔹 /me para hidratar el dropdown y el store al loguear */
 export async function apiGetMe() {
   return ApiService.fetchDataWithAxios<UserRow>({
     url: '/api/v1/users/me',
@@ -129,11 +120,8 @@ export async function apiGetMe() {
   })
 }
 
-/** 🔹 Normaliza al formato del store (userName, email, avatar?, role?) */
 export function normalizeUser(u: UserRow) {
-  const roleName =
-    (typeof u.role === 'string' ? u.role : u.role?.name) ?? undefined
-
+  const roleName = (typeof u.role === 'string' ? u.role : u.role?.name) || undefined
   return {
     id: u.id,
     userName: userDisplayName(u),

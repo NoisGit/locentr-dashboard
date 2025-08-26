@@ -1,3 +1,4 @@
+// src/views/dashboards/dashboards.navigation.config.ts
 import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
 import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
@@ -120,10 +121,10 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         authority: [ADMIN, USER],
         meta: {
             description: {
-            translateKey: 'nav.perksDesc',
-            label: 'Manage company perks',
-    },
-    },
+                translateKey: 'nav.perksDesc',
+                label: 'Manage company perks',
+            },
+        },
         subMenu: [],
     },
 
@@ -145,21 +146,39 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
 
     {
-    key: 'concepts.condos',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
-    title: 'Condos',
-    translateKey: 'nav.conceptsCondos.condos',
-    icon: 'landing',
-    type: NAV_ITEM_TYPE_ITEM,
-    authority: [ADMIN, USER],
-    meta: {
-        description: {
-            translateKey: 'nav.conceptsCondos.condosDesc',
-            label: 'Gestión de condominios',
+        key: 'concepts.condos',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
+        title: 'Condos',
+        translateKey: 'nav.conceptsCondos.condos',
+        icon: 'landing',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsCondos.condosDesc',
+                label: 'Gestión de condominios',
+            },
         },
+        subMenu: [],
     },
-    subMenu: [],
-},
+
+    // === RESIDENTS (nuevo) ===
+    {
+        key: 'concepts.residents',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
+        title: 'Residents',
+        translateKey: 'nav.residents',
+        icon: 'customers',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.residentsDesc',
+                label: 'Gestiona residentes y sus unidades',
+            },
+        },
+        subMenu: [],
+    },
 
     {
         key: 'concepts.products',
@@ -256,7 +275,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
             },
         },
         subMenu: [],
-    }
+    },
 ]
 
 export default dashboardsNavigationConfig

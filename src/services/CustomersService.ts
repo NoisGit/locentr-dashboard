@@ -22,15 +22,31 @@ export type GetCustomersListResponse = {
   total: number
 }
 
+function pickItemsAndTotal(raw: any) {
+  const items =
+    (Array.isArray(raw?.items) && raw.items) ||
+    (Array.isArray(raw?.list) && raw.list) ||
+    (Array.isArray(raw?.users) && raw.users) ||
+    (Array.isArray(raw?.data?.items) && raw.data.items) ||
+    (Array.isArray(raw?.data?.list) && raw.data.list) ||
+    (Array.isArray(raw?.data?.users) && raw.data.users) ||
+    (Array.isArray(raw?.data) && raw.data) ||
+    (Array.isArray(raw?.results) && raw.results) ||
+    (Array.isArray(raw) && raw) ||
+    []
+
+  const total = Number(
+    raw?.total ?? raw?.count ?? raw?.data?.total ?? raw?.pagination?.total ?? items.length
+  )
+  return { items, total }
+}
+
 function adaptUserRow(u: any): CustomerRow {
-  const name =
-    u?.full_name ??
-    u?.name ??
-    [u?.first_name, u?.last_name].filter(Boolean).join(' ') ??
-    ''
-  const email = u?.email ?? u?.email_address ?? ''
+  const nameParts = [u?.first_name, u?.last_name].filter(Boolean).join(' ')
+  const name = String(u?.full_name || u?.name || nameParts || '')
+  const email = String(u?.email || u?.email_address || '')
   const role =
-    (typeof u?.role === 'string' ? u?.role : u?.role?.name) ?? undefined
+    (typeof u?.role === 'string' ? u?.role : u?.role?.name) || u?.role_name || undefined
   const rawId = u?.id ?? u?._id ?? ''
   const cleanId = String(rawId).replace(/\/+$/, '')
   return {
@@ -43,25 +59,30 @@ function adaptUserRow(u: any): CustomerRow {
   }
 }
 
-function pickItemsAndTotal(raw: any) {
-  const items =
-    (Array.isArray(raw?.items) && raw.items) ||
-    (Array.isArray(raw?.list) && raw.list) ||
-    (Array.isArray(raw?.users) && raw.users) ||
-    (Array.isArray(raw?.data?.items) && raw.data.items) ||
-    (Array.isArray(raw?.data?.users) && raw.data.users) ||
-    (Array.isArray(raw?.data) && raw.data) ||
-    (Array.isArray(raw?.results) && raw.results) ||
-    (Array.isArray(raw) && raw) ||
-    []
-  const total = Number(
-    raw?.total ??
-      raw?.count ??
-      raw?.data?.total ??
-      raw?.pagination?.total ??
-      items.length,
-  )
-  return { items, total }
+async function fetchRolesMap() {
+  try {
+    const resp = await ApiService.fetchDataWithAxios<any>({
+      url: '/api/v1/roles/', // barra final para evitar 301
+      method: 'get',
+    })
+    const roles =
+      (Array.isArray(resp?.items) && resp.items) ||
+      (Array.isArray(resp?.list) && resp.list) ||
+      (Array.isArray(resp?.data?.items) && resp.data.items) ||
+      (Array.isArray(resp?.data) && resp.data) ||
+      (Array.isArray(resp?.results) && resp.results) ||
+      (Array.isArray(resp) && resp) ||
+      []
+    const map = new Map<string, string>()
+    roles.forEach((r: any) => {
+      const id = String(r?.id ?? r?._id ?? '')
+      const name = String(r?.name ?? r?.role_name ?? '')
+      if (id) map.set(id, name)
+    })
+    return map
+  } catch {
+    return new Map<string, string>()
+  }
 }
 
 export async function apiGetCustomersList<
@@ -70,19 +91,34 @@ export async function apiGetCustomersList<
 >(params: Q): Promise<T> {
   const pageIndex = Math.max(1, Number(params.pageIndex ?? 1))
   const pageSize = Math.max(1, Number(params.pageSize ?? 10))
-  const resp = await ApiService.fetchDataWithAxios<any>({
-    url: '/api/v1/users/',
-    method: 'get',
-    params: {
-      pageIndex,
-      pageSize,
-      query: params.query ?? '',
-      ...(params.sort?.key ? { 'sort[key]': params.sort.key } : {}),
-      ...(params.sort?.order ? { 'sort[order]': params.sort.order } : {}),
-    },
+
+  const [usersResp, rolesMap] = await Promise.all([
+    ApiService.fetchDataWithAxios<any>({
+      url: '/api/v1/users/', // barra final
+      method: 'get',
+      params: {
+        pageIndex,
+        pageSize,
+        query: params.query ?? '',
+        ...(params.sort?.key ? { 'sort[key]': params.sort.key } : {}),
+        ...(params.sort?.order ? { 'sort[order]': params.sort.order } : {}),
+      },
+    }),
+    fetchRolesMap(),
+  ])
+
+  const { items, total } = pickItemsAndTotal(usersResp)
+
+  const list: CustomerRow[] = (items as any[]).map((u) => {
+    const row = adaptUserRow(u)
+    if (!row.role) {
+      const rid = String(u?.role_id ?? u?.roleId ?? u?.role?.id ?? '')
+      const roleName = rid ? rolesMap.get(rid) : undefined
+      if (roleName) row.role = roleName
+    }
+    return row
   })
-  const { items, total } = pickItemsAndTotal(resp)
-  const list: CustomerRow[] = items.map(adaptUserRow)
+
   return { list, total } as T
 }
 
@@ -94,7 +130,7 @@ export async function apiCreateCustomer(payload: {
   role_id: number | string
 }) {
   return ApiService.fetchDataWithAxios({
-    url: '/api/v1/users',
+    url: '/api/v1/users/',
     method: 'post',
     data: payload,
   })
