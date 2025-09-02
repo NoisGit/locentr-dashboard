@@ -1,19 +1,19 @@
-// src/views/concepts/entries/EntryList/components/EntryListSearch.tsx
+// src/views/concepts/mailbox/MailboxList/components/MailboxListSearch.tsx
 import DebouceInput from '@/components/shared/DebouceInput'
 import { TbSearch } from 'react-icons/tb'
 import React, { Ref, KeyboardEvent } from 'react'
 
-type EntryListSearchProps = {
+type MailboxListSearchProps = {
   onInputChange: (value: string) => void
   inputRef?: Ref<HTMLInputElement>
   defaultValue?: string
 }
 
-const EntryListSearch = ({
+const MailboxListSearch = ({
   onInputChange,
   inputRef,
   defaultValue = '',
-}: EntryListSearchProps) => {
+}: MailboxListSearchProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/^\s+/, '').replace(/\s{2,}/g, ' ')
     onInputChange(value)
@@ -32,7 +32,7 @@ const EntryListSearch = ({
       placeholder="Quick search..."
       suffix={<TbSearch className="text-lg" />}
       defaultValue={defaultValue}
-      aria-label="Search entries"
+      aria-label="Search mailbox"
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       autoComplete="off"
@@ -41,4 +41,4 @@ const EntryListSearch = ({
   )
 }
 
-export default EntryListSearch
+export default MailboxListSearch

@@ -112,6 +112,39 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'concepts.mailbox',
+        path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-list`,
+        title: 'Mailbox',
+        translateKey: 'nav.mailbox',
+        icon: 'orders',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.mailboxDesc',
+                label: 'Incoming parcels and mail',
+            },
+        },
+        subMenu: [
+            {
+                key: 'concepts.mailbox.details',
+                path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-details/:id`,
+                title: 'Mailbox Details',
+                translateKey: 'nav.mailboxDetails',
+                icon: 'orders',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [ADMIN, USER],
+                meta: {
+                    description: {
+                        translateKey: 'nav.mailboxDetailsDesc',
+                        label: 'Mailbox entry details',
+                    },
+                },
+                subMenu: [],
+            },
+        ],
+    },
+    {
         key: 'concepts.perks',
         path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
         title: 'Perks',
@@ -127,7 +160,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
-
     {
         key: 'concepts.logbook',
         path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
@@ -144,7 +176,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
-
     {
         key: 'concepts.condos',
         path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
@@ -161,7 +192,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
-
     {
         key: 'concepts.properties',
         path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
@@ -178,7 +208,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
-
     {
         key: 'concepts.residents',
         path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
@@ -195,7 +224,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
-
     {
         key: 'concepts.products',
         path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,

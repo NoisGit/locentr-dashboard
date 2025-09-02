@@ -10,16 +10,12 @@ import { useCustomerListStore } from '../store/customerListStore'
 function buildParams(tableData: any, filterData: any): ServiceTableQueries {
   const pageIndex = Number(tableData?.pageIndex ?? 1)
   const pageSize = Number(tableData?.pageSize ?? 10)
-  const query = String(
-    filterData?.query ?? tableData?.query ?? '',
-  )
-  const sort =
-    filterData?.sort ??
-    tableData?.sort ??
-    undefined // { key?: string; order?: 'asc'|'desc' }
-
+  const query = String(filterData?.query ?? tableData?.query ?? '')
+  const sort = filterData?.sort ?? tableData?.sort ?? undefined
   return { pageIndex, pageSize, query, ...(sort ? { sort } : {}) }
 }
+
+const SWR_KEY = 'users:list'
 
 export default function useCustomerList() {
   const {
@@ -32,10 +28,7 @@ export default function useCustomerList() {
     setFilterData,
   } = useCustomerListStore((state) => state)
 
-  const swrKey: [string, ServiceTableQueries] = [
-    '/api/customers',
-    buildParams(tableData, filterData),
-  ]
+  const swrKey: [string, ServiceTableQueries] = [SWR_KEY, buildParams(tableData, filterData)]
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,

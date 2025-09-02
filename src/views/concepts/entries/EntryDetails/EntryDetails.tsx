@@ -1,51 +1,86 @@
+// src/views/concepts/entries/EntryDetails/EntryDetails.tsx
 import Card from '@/components/ui/Card'
-import Tabs from '@/components/ui/Tabs'
 import Loading from '@/components/shared/Loading'
-import ProfileSection from './ProfileSection'
-import BillingSection from './BillingSection'
-import { apiGetEntry } from '@/services/EntryService'
+import { apiGetEntry, ENTRY_BASE } from '@/services/EntryService'
 import useSWR from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
-import type { Entry } from '../EntryList/types'
 
-const { TabNav, TabList, TabContent } = Tabs
+type EntryDetailsData = Record<string, any>
 
 const EntryDetails = () => {
-    const { id } = useParams()
+  const { id } = useParams()
 
-    const { data, isLoading } = useSWR(
-        ['/api/entries', { id: id as string }],
-        ([_, params]) => apiGetEntry<Entry, { id: string }>(params),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-        }
-    )
+  const { data, isLoading } = useSWR(
+    [ENTRY_BASE, { id: id as string }],
+    ([, params]) => apiGetEntry<EntryDetailsData, { id: string }>(params),
+    { revalidateOnFocus: false, revalidateIfStale: false }
+  )
 
-    return (
-        <Loading loading={isLoading}>
-            {!isEmpty(data) && (
-                <div className="flex flex-col xl:flex-row gap-4">
-                    <div className="min-w-[330px] 2xl:min-w-[400px]">
-                        <ProfileSection data={data} />
-                    </div>
-                    <Card className="w-full">
-                        <Tabs defaultValue="billing">
-                            <TabList>
-                                <TabNav value="billing">Billing</TabNav>
-                            </TabList>
-                            <div className="p-4">
-                                <TabContent value="billing">
-                                    <BillingSection data={data} />
-                                </TabContent>
-                            </div>
-                        </Tabs>
-                    </Card>
+  const e = data || {}
+
+  return (
+    <Loading loading={isLoading}>
+      {!isEmpty(e) && (
+        <div className="flex flex-col xl:flex-row gap-4">
+          <Card className="w-full">
+            <div className="p-6 flex flex-col gap-6">
+              <div className="flex items-center gap-4">
+                {e?.img ? (
+                  <img
+                    src={e.img}
+                    alt={e?.fullName || e?.name || 'Visitante'}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                ) : null}
+                <div>
+                  <h3 className="text-xl font-semibold">
+                    {e?.fullName || `${e?.firstName ?? ''} ${e?.lastName ?? ''}`.trim() || 'Visitante'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {e?.rut || e?.document || '—'}
+                  </p>
                 </div>
-            )}
-        </Loading>
-    )
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Motivo</div>
+                  <div className="text-base">{e?.motivo ?? e?.reason ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Fecha</div>
+                  <div className="text-base">{e?.fecha ?? e?.date ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Hora</div>
+                  <div className="text-base">{e?.hora ?? e?.time ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Unidad / Depto</div>
+                  <div className="text-base">
+                    {e?.departamentoVisitado ??
+                      e?.unit ??
+                      e?.property ??
+                      e?.property_number ??
+                      '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Estado</div>
+                  <div className="text-base">{e?.status ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">ID</div>
+                  <div className="text-base">{String(e?.id ?? '—')}</div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </Loading>
+  )
 }
 
 export default EntryDetails

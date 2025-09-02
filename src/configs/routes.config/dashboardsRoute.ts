@@ -1,14 +1,10 @@
 // src/views/dashboards/dashboardsRoute.ts
 import { lazy } from 'react'
-import {
-    DASHBOARDS_PREFIX_PATH,
-    CONCEPTS_PREFIX_PATH,
-} from '@/constants/route.constant'
+import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const dashboardsRoute: Routes = [
-    // ==== DASHBOARD PRINCIPAL ====
     {
         key: 'dashboard.dashboard',
         path: `${DASHBOARDS_PREFIX_PATH}`,
@@ -19,16 +15,16 @@ const dashboardsRoute: Routes = [
         },
     },
 
-    // ==== AI CHAT ====
     {
         key: 'concepts.ai.chat',
         path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
         component: lazy(() => import('@/views/concepts/ai/Chat')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== USERS ====
     {
         key: 'concepts.users.userList',
         path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
@@ -68,10 +64,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/users/users-details/:id`,
         component: lazy(() => import('@/views/concepts/customers/CustomerDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== ACCESOS ====
     {
         key: 'concepts.access.accessList',
         path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
@@ -111,10 +108,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/accesses/access-details/:id`,
         component: lazy(() => import('@/views/concepts/accesses/AccessDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== PRODUCTS ====
     {
         key: 'concepts.products.productList',
         path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
@@ -143,38 +141,41 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Create product',
-                description:
-                    'Quickly add products to your inventory. Enter key details, manage stock, and set availability.',
+                description: 'Quickly add products to your inventory. Enter key details, manage stock, and set availability.',
                 contained: true,
             },
             footer: false,
         },
     },
 
-    // ==== PROJECT TASKS ====
     {
         key: 'concepts.projects.projectTasks',
         path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
         component: lazy(() => import('@/views/concepts/projects/Tasks')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
     {
         key: 'concepts.projects.projectIssue',
         path: `${CONCEPTS_PREFIX_PATH}/projects/tasks/:id`,
         component: lazy(() => import('@/views/concepts/projects/Issue')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== ACCOUNT ====
     {
         key: 'concepts.account.settings',
         path: `${CONCEPTS_PREFIX_PATH}/account/settings`,
         component: lazy(() => import('@/views/concepts/accounts/Settings')),
         authority: [ADMIN, USER],
         meta: {
-            header: { title: 'Settings' },
+            header: {
+                title: 'Settings',
+            },
             pageContainerType: 'contained',
         },
     },
@@ -183,7 +184,9 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/account/activity-log`,
         component: lazy(() => import('@/views/concepts/accounts/ActivityLog')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
     {
         key: 'concepts.account.rolesPermissions',
@@ -200,10 +203,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
         component: lazy(() => import('@/views/concepts/accounts/Pricing')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== NEWS
     {
         key: 'concepts.helpCenter.article',
         path: `${CONCEPTS_PREFIX_PATH}/news/article/:id`,
@@ -219,14 +223,20 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/:id`,
         component: lazy(() => import('@/views/concepts/news/EditArticle')),
         authority: [ADMIN, USER],
-        meta: { pageBackgroundType: 'plain', footer: false },
+        meta: {
+            pageBackgroundType: 'plain',
+            footer: false,
+        },
     },
     {
         key: 'concepts.helpCenter.manageArticle',
         path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
         component: lazy(() => import('@/views/concepts/news/ManageArticle')),
         authority: [ADMIN, USER],
-        meta: { pageBackgroundType: 'plain', footer: false },
+        meta: {
+            pageBackgroundType: 'plain',
+            footer: false,
+        },
     },
     {
         key: 'concepts.helpCenter.createArticle',
@@ -235,7 +245,6 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
     },
 
-    // ==== CALENDAR ====
     {
         key: 'concepts.calendar',
         path: `${CONCEPTS_PREFIX_PATH}/calendar`,
@@ -247,16 +256,16 @@ const dashboardsRoute: Routes = [
         },
     },
 
-    // ==== CHAT ====
     {
         key: 'concepts.chat',
         path: `${CONCEPTS_PREFIX_PATH}/chat`,
         component: lazy(() => import('@/views/concepts/chat/Chat')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== MARKETPLACE ====
     {
         key: 'concepts.marketplace.marketplaceList',
         path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
@@ -292,7 +301,6 @@ const dashboardsRoute: Routes = [
         },
     },
 
-    // ==== LOGBOOK ====
     {
         key: 'concepts.logbook.logbookList',
         path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
@@ -328,39 +336,13 @@ const dashboardsRoute: Routes = [
         },
     },
 
-    // ==== ENTRIES ====
     {
         key: 'concepts.entry.entryList',
         path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
         component: lazy(() => import('@/views/concepts/entries/EntryList')),
         authority: [ADMIN, USER],
-    },
-    {
-        key: 'concepts.entry.entryEdit',
-        path: `${CONCEPTS_PREFIX_PATH}/entries/entry-edit/:id`,
-        component: lazy(() => import('@/views/concepts/entries/EntryEdit')),
-        authority: [ADMIN, USER],
         meta: {
-            header: {
-                title: 'Edit entry',
-                description: 'Manage entry details and information.',
-                contained: true,
-            },
-            footer: false,
-        },
-    },
-    {
-        key: 'concepts.entry.entryCreate',
-        path: `${CONCEPTS_PREFIX_PATH}/entries/entry-create`,
-        component: lazy(() => import('@/views/concepts/entries/EntryCreate')),
-        authority: [ADMIN, USER],
-        meta: {
-            header: {
-                title: 'Create entry',
-                description: 'Add new entry to the system.',
-                contained: true,
-            },
-            footer: false,
+            pageContainerType: 'contained',
         },
     },
     {
@@ -368,10 +350,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/entries/entry-details/:id`,
         component: lazy(() => import('@/views/concepts/entries/EntryDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== PERKS ====
     {
         key: 'concepts.perks.perksList',
         path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
@@ -411,10 +394,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/perks/perks-details/:id`,
         component: lazy(() => import('@/views/concepts/perks/PerksDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== CONDOS ====
     {
         key: 'concepts.condos.condosList',
         path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
@@ -454,10 +438,11 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/condos/condos-details/:id`,
         component: lazy(() => import('@/views/concepts/condos/CondosDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== PROPERTIES ====
     {
         key: 'concepts.properties.propertiesList',
         path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
@@ -497,33 +482,39 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/properties/properties-details/:id`,
         component: lazy(() => import('@/views/concepts/properties/PropertiesDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 
-    // ==== HELP ====
     {
         key: 'concepts.help.manage',
         path: '/concepts/help/manage-help',
         component: lazy(() => import('@/views/concepts/help/ManageHelp/ManageHelp')),
         authority: [ADMIN, USER],
-        meta: { pageBackgroundType: 'plain' },
+        meta: {
+            pageBackgroundType: 'plain',
+        },
     },
     {
         key: 'concepts.help.create',
         path: '/concepts/help/create-help',
         component: lazy(() => import('@/views/concepts/help/CreateHelp/CreateHelp')),
         authority: [ADMIN, USER],
-        meta: { pageBackgroundType: 'plain' },
+        meta: {
+            pageBackgroundType: 'plain',
+        },
     },
     {
         key: 'concepts.help.details',
         path: '/concepts/help/help-details/:id',
         component: lazy(() => import('@/views/concepts/help/Help/HelpDetails')),
         authority: [ADMIN, USER],
-        meta: { pageBackgroundType: 'plain' },
+        meta: {
+            pageBackgroundType: 'plain',
+        },
     },
 
-    // ==== RESIDENTS ====
     {
         key: 'concepts.residents.residentsList',
         path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
@@ -563,7 +554,28 @@ const dashboardsRoute: Routes = [
         path: `${CONCEPTS_PREFIX_PATH}/residents/residents-details/:id`,
         component: lazy(() => import('@/views/concepts/residents/ResidentsDetails')),
         authority: [ADMIN, USER],
-        meta: { pageContainerType: 'contained' },
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+
+    {
+        key: 'concepts.mailbox.mailboxList',
+        path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-list`,
+        component: lazy(() => import('@/views/concepts/mailbox/MailboxList')),
+        authority: [ADMIN, USER],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
+        key: 'concepts.mailbox.mailboxDetails',
+        path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-details/:id`,
+        component: lazy(() => import('@/views/concepts/mailbox/MailboxDetails')),
+        authority: [ADMIN, USER],
+        meta: {
+            pageContainerType: 'contained',
+        },
     },
 ]
 

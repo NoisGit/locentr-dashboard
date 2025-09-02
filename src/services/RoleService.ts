@@ -26,23 +26,11 @@ function asArray(v: unknown): unknown[] {
 
 function pickList(raw: unknown): unknown[] {
   const data = getProp(raw, 'data')
-  const results = getProp(raw, 'results')
 
   return (
-    asArray(getProp(raw, 'roles')) ||
-    asArray(getProp(raw, 'items')) ||
-    asArray(getProp(raw, 'list')) ||
-    asArray(getProp(data, 'roles')) ||
-    asArray(getProp(data, 'items')) ||
-    asArray(getProp(data, 'list')) ||
-    asArray(data) ||
-    asArray(getProp(results, 'roles')) ||
-    asArray(results) ||
-    asArray(raw)
+    asArray(data)
   )
 }
-
-/* normalizadores */
 
 type RoleLike = {
   id?: number | string
@@ -67,11 +55,12 @@ function toRole(v: unknown): Role | null {
   return { id, name, slug: r.slug ?? r.key ?? undefined }
 }
 
-/* API */
-
 async function fetchRolesFrom(url: string): Promise<Role[]> {
   const resp = await ApiService.fetchDataWithAxios<unknown>({ url, method: 'get' })
-  return pickList(resp).map(toRole).filter((x): x is Role => x !== null)
+  const list = pickList(resp)
+  const rolelist = list.map(toRole)
+  return rolelist.filter((x): x is Role => x !== null)
+
 }
 
 export async function apiGetRoles(): Promise<Role[]> {

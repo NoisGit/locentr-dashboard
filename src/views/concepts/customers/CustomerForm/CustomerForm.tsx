@@ -22,7 +22,6 @@ export type CustomerFormSchema = {
   email: string
   roleId: number | string
   password?: string
-  oldPassword?: string
   newPassword?: string
 }
 
@@ -55,25 +54,17 @@ const CustomerForm = ({
   })
 
   const createSchema = baseSchema.extend({
-    password: z
-      .string()
-      .regex(passwordRegex, { message: 'Password must be 6+ chars, include 1 uppercase and 1 number' }),
+    password: z.string().regex(passwordRegex, { message: 'Password must be 6+ chars, include 1 uppercase and 1 number' }),
   })
 
-  const editSchema = baseSchema
-    .extend({
-      oldPassword: z.string().optional(),
-      newPassword: z
-        .string()
-        .optional()
-        .refine((v) => !v || passwordRegex.test(v), {
-          message: 'New password must be 6+ chars, include 1 uppercase and 1 number',
-        }),
-    })
-    .refine((data) => !data.newPassword || !!data.oldPassword, {
-      path: ['oldPassword'],
-      message: 'Old password is required to set a new password',
-    })
+  const editSchema = baseSchema.extend({
+    newPassword: z
+      .string()
+      .optional()
+      .refine((v) => !v || passwordRegex.test(v), {
+        message: 'New password must be 6+ chars, include 1 uppercase and 1 number',
+      }),
+  })
 
   const schema = mode === 'edit' ? editSchema : createSchema
 
@@ -90,7 +81,6 @@ const CustomerForm = ({
       email: '',
       roleId: '',
       password: '',
-      oldPassword: '',
       newPassword: '',
       ...defaultValues,
     },
@@ -136,9 +126,9 @@ const CustomerForm = ({
 
   return (
     <Form
-      onSubmit={handleSubmit(submit)}
       className="flex w-full h-full"
       containerClassName="flex flex-col w-full justify-between"
+      onSubmit={handleSubmit(submit)}
     >
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -153,7 +143,11 @@ const CustomerForm = ({
           </FormItem>
 
           <FormItem label="Email" invalid={!!errors.email} errorMessage={errors.email?.message}>
-            <Controller name="email" control={control} render={({ field }) => <Input type="email" autoComplete="off" {...field} />} />
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => <Input type="email" autoComplete="off" disabled={mode === 'edit'} {...field} />}
+            />
           </FormItem>
 
           {mode === 'create' ? (
@@ -165,29 +159,16 @@ const CustomerForm = ({
               />
             </FormItem>
           ) : (
-            <>
-              <FormItem label="Old password" invalid={!!errors.oldPassword} errorMessage={errors.oldPassword?.message}>
-                <Controller
-                  name="oldPassword"
-                  control={control}
-                  render={({ field }) => <PasswordInput autoComplete="current-password" {...field} />}
-                />
-              </FormItem>
-              <FormItem label="New password" invalid={!!errors.newPassword} errorMessage={errors.newPassword?.message}>
-                <Controller
-                  name="newPassword"
-                  control={control}
-                  render={({ field }) => <PasswordInput autoComplete="new-password" {...field} />}
-                />
-              </FormItem>
-            </>
+            <FormItem label="New password" invalid={!!errors.newPassword} errorMessage={errors.newPassword?.message}>
+              <Controller
+                name="newPassword"
+                control={control}
+                render={({ field }) => <PasswordInput autoComplete="new-password" {...field} />}
+              />
+            </FormItem>
           )}
 
-          <FormItem
-            label={<span className="invisible">Role</span>}
-            invalid={!!errors.roleId}
-            errorMessage={errors.roleId?.message}
-          >
+          <FormItem label="Role" invalid={!!errors.roleId} errorMessage={errors.roleId?.message}>
             <Controller
               name="roleId"
               control={control}

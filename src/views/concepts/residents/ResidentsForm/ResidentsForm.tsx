@@ -1,4 +1,3 @@
-// src/views/concepts/residents/ResidentsForm/ResidentsForm.tsx
 import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { useForm, Controller } from 'react-hook-form'
@@ -14,13 +13,12 @@ import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 import Select from '@/components/ui/Select'
 
-import isEmpty from 'lodash/isEmpty'
 import ApiService from '@/services/ApiService'
 import { apiGetResidentsList } from '@/services/ResidentsService'
 import { apiGetCustomersList } from '@/services/CustomersService'
-
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
+import type { GetCustomersListResponse, CustomerRow } from '@/services/CustomersService'
 
 export type ResidentsFormSchema = {
   propertyId?: number
@@ -45,7 +43,7 @@ const isValidDate = (v?: string) => {
 
 const validationSchema = z
   .object({
-    propertyId: z.coerce.number().int().positive({ message: 'Seleccione una comunidad' }),
+    propertyId: z.coerce.number().int().positive({ message: 'Seleccione una propiedad' }),
     userId: z.coerce.number().int().positive({ message: 'Seleccione un usuario' }),
     isOwner: z.boolean().default(false),
     startDate: z.string().optional().refine(isValidDate, { message: 'Fecha inválida (YYYY-MM-DD)' }),
@@ -56,30 +54,62 @@ const validationSchema = z
       if (!d.startDate || !d.endDate) return true
       return new Date(d.endDate).getTime() >= new Date(d.startDate).getTime()
     },
-    { path: ['endDate'], message: 'La fecha de fin debe ser mayor o igual a la de inicio' }
+    { path: ['endDate'], message: 'La fecha de fin debe ser mayor o igual a la de inicio' },
   )
 
 type Option = { value: number; label: string }
 
-async function fetchCondos() {
-  const resp = await ApiService.fetchDataWithAxios<any>({
-    url: '/api/v1/communities/',
-    method: 'get',
-    params: { pageIndex: 1, pageSize: 1000 },
-  })
-  const arr =
-    (Array.isArray(resp?.items) && resp.items) ||
-    (Array.isArray(resp?.list) && resp.list) ||
-    (Array.isArray(resp?.data?.items) && resp.data.items) ||
-    (Array.isArray(resp?.data) && resp.data) ||
-    (Array.isArray(resp?.results) && resp.results) ||
-    (Array.isArray(resp) && resp) ||
+type PropertyLike = {
+  id?: number | string
+  property_id?: number | string
+  property_number?: string | number
+  number?: string | number
+  unit?: string | number
+  code?: string | number
+}
+
+type ResidentsList = {
+  list: Array<{ propertyId?: number | string }>
+  total: number
+}
+
+function pickArray(raw: unknown): unknown[] {
+  const r = raw as Record<string, unknown>
+  return (
+    (Array.isArray(r?.items) && (r.items as unknown[])) ||
+    (Array.isArray((r?.data as Record<string, unknown>)?.items) &&
+      (((r.data as Record<string, unknown>).items as unknown[]) ?? [])) ||
+    (Array.isArray(r?.list) && (r.list as unknown[])) ||
+    (Array.isArray(r?.data) && (r.data as unknown[])) ||
+    (Array.isArray(r?.results) && (r.results as unknown[])) ||
+    (Array.isArray(raw) && (raw as unknown[])) ||
     []
-  return arr
+  )
+}
+
+async function fetchProperties(): Promise<PropertyLike[]> {
+  const limit = 100
+  let skip = 0
+  const all: unknown[] = []
+  while (true) {
+    const resp = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
+      url: '/api/v1/communities/properties',
+      method: 'get',
+      params: { skip, limit },
+    })
+    const batch = pickArray(resp)
+    all.push(...batch)
+    if (batch.length < limit) break
+    skip += limit
+  }
+  return all as PropertyLike[]
 }
 
 const ResidentsForm = (props: ResidentsFormProps) => {
-  const { onFormSubmit, defaultValues = {}, children } = props
+  const { onFormSubmit, defaultValues = {}, children, newResident } = props
+  const isCreate =
+    newResident ??
+    !(defaultValues.userId || defaultValues.propertyId || defaultValues.startDate || defaultValues.endDate)
 
   const {
     handleSubmit,
@@ -98,18 +128,25 @@ const ResidentsForm = (props: ResidentsFormProps) => {
     },
   })
 
-  const { data: usersData } = useSWR(['/api/users', 'all'], () =>
-    apiGetCustomersList({ pageIndex: 1, pageSize: 1000 })
+  const { data: usersData } = useSWR<GetCustomersListResponse>(['/api/users', 'all'], () =>
+    apiGetCustomersList({ pageIndex: 1, pageSize: 1000 }),
   )
-  const usersRaw = usersData?.list ?? []
+  const usersRaw = useMemo<CustomerRow[]>(() => usersData?.list ?? [], [usersData])
 
-  const { data: condosData } = useSWR('/api/communities', fetchCondos, { revalidateOnFocus: false })
-  const condosRaw = condosData ?? []
+  const { data: propertiesData } = useSWR<PropertyLike[]>(
+    '/api/v1/communities/properties',
+    fetchProperties,
+    { revalidateOnFocus: false },
+  )
+  const propertiesRaw = useMemo<PropertyLike[]>(
+    () => (Array.isArray(propertiesData) ? propertiesData : []),
+    [propertiesData],
+  )
 
-  const { data: residentsData, error: residentsErr } = useSWR(
+  const { data: residentsData, error: residentsErr } = useSWR<ResidentsList>(
     ['/api/residents/all', 1],
-    () => apiGetResidentsList({ pageIndex: 1, pageSize: 1000 } as any),
-    { revalidateOnFocus: false, shouldRetryOnError: false }
+    () => apiGetResidentsList<ResidentsList>({ pageIndex: 1, pageSize: 1000 }),
+    { revalidateOnFocus: false, shouldRetryOnError: false },
   )
 
   const usedPropertyIds = useMemo(() => {
@@ -117,54 +154,54 @@ const ResidentsForm = (props: ResidentsFormProps) => {
     return new Set(
       list
         .map((r) => Number(r.propertyId))
-        .filter((n) => Number.isFinite(n) && n > 0)
+        .filter((n) => Number.isFinite(n) && n > 0),
     )
   }, [residentsData])
 
-  const userIsResident = (u: any) => {
-    const roleName =
-      (typeof u?.role === 'string' ? u.role : u?.role?.name) || ''
+  const userIsResident = (u: CustomerRow) => {
+    const roleName = (typeof u.role === 'string' ? u.role : u.role?.name) || ''
     return roleName.trim().toLowerCase() === 'residente'
   }
 
-  const usersOptions: Option[] = useMemo(() => {
-    return usersRaw.filter(userIsResident).map((u: any) => {
-      const idNum = Number(u?.id ?? 0)
+  const usersOptions = useMemo<Option[]>(() => {
+    return usersRaw.filter(userIsResident).map((u: CustomerRow) => {
+      const idNum = Number(u.id ?? 0)
       const label =
-        (u?.email ? String(u.email) : '') ||
-        (u?.name ? String(u.name) : '') ||
+        (u.email ? String(u.email) : '') ||
+        (u.name ? String(u.name) : '') ||
         `Usuario #${idNum}`
       return { value: idNum, label }
     })
   }, [usersRaw])
 
-  const condosOptions: Option[] = useMemo(() => {
-    const arr = Array.isArray(condosRaw) ? condosRaw : []
-    const filteredBase = residentsErr
-      ? arr
-      : arr.filter((c: any) => !usedPropertyIds.has(Number(c?.id ?? 0)))
+  const propertiesOptions = useMemo<Option[]>(() => {
+    const arr = Array.isArray(propertiesRaw) ? propertiesRaw : []
+    const filteredBase = residentsErr ? arr : arr.filter((p) => !usedPropertyIds.has(Number((p as PropertyLike)?.id ?? 0)))
     const finalArr = filteredBase.length ? filteredBase : arr
-    return finalArr.map((c: any) => {
-      const idNum = Number(c?.id ?? 0)
-      const label =
-        (c?.name ? String(c.name) : '') ||
-        (c?.address ? String(c.address) : '') ||
-        `Comunidad #${idNum}`
+    return finalArr.map((p: PropertyLike) => {
+      const idNum = Number(p?.id ?? p?.property_id ?? 0)
+      const number = p?.property_number ?? p?.number ?? p?.unit ?? p?.code ?? ''
+      const label = number ? `Propiedad ${String(number)}` : `Propiedad #${idNum}`
       return { value: idNum, label }
     })
-  }, [condosRaw, usedPropertyIds, residentsErr])
+  }, [propertiesRaw, usedPropertyIds, residentsErr])
 
   useEffect(() => {
-    if (!isEmpty(defaultValues)) {
-      reset({
-        propertyId: defaultValues.propertyId as any,
-        userId: defaultValues.userId as any,
-        isOwner: defaultValues.isOwner ?? false,
-        startDate: defaultValues.startDate ?? '',
-        endDate: defaultValues.endDate ?? '',
-      })
-    }
-  }, [JSON.stringify(defaultValues), reset])
+    reset({
+      propertyId: defaultValues.propertyId,
+      userId: defaultValues.userId,
+      isOwner: defaultValues.isOwner ?? false,
+      startDate: defaultValues.startDate ?? '',
+      endDate: defaultValues.endDate ?? '',
+    })
+  }, [
+    reset,
+    defaultValues.propertyId,
+    defaultValues.userId,
+    defaultValues.isOwner,
+    defaultValues.startDate,
+    defaultValues.endDate,
+  ])
 
   const onSubmit = (values: ResidentsFormSchema) => onFormSubmit?.(values)
 
@@ -184,19 +221,17 @@ const ResidentsForm = (props: ResidentsFormProps) => {
           <div className="gap-4 flex flex-col flex-auto">
             <Card className="p-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormItem label="Comunidad" invalid={!!errors.propertyId} errorMessage={errors.propertyId?.message}>
+                <FormItem label="Propiedad" invalid={!!errors.propertyId} errorMessage={errors.propertyId?.message}>
                   <Controller
                     name="propertyId"
                     control={control}
                     render={({ field }) => (
                       <Select
                         isSearchable={false}
-                        options={condosOptions}
-                        value={selectValue(condosOptions)(field.value)}
-                        placeholder="Seleccione una comunidad"
-                        onChange={(opt) =>
-                          field.onChange(opt ? (opt as Option).value : undefined)
-                        }
+                        options={propertiesOptions}
+                        placeholder="Seleccione una propiedad"
+                        value={selectValue(propertiesOptions)(field.value)}
+                        onChange={(opt) => field.onChange(opt ? (opt as Option).value : undefined)}
                       />
                     )}
                   />
@@ -210,23 +245,20 @@ const ResidentsForm = (props: ResidentsFormProps) => {
                       <Select
                         isSearchable={false}
                         options={usersOptions}
-                        value={selectValue(usersOptions)(field.value)}
                         placeholder="Seleccione un usuario"
-                        onChange={(opt) =>
-                          field.onChange(opt ? (opt as Option).value : undefined)
-                        }
+                        value={selectValue(usersOptions)(field.value)}
+                        isDisabled={!isCreate}
+                        onChange={(opt) => field.onChange(opt ? (opt as Option).value : undefined)}
                       />
                     )}
                   />
                 </FormItem>
 
-                <FormItem label="Fecha de inicio" invalid={!!errors.startDate} errorMessage={errors.startDate?.message}>
-                  <Controller name="startDate" control={control} render={({ field }) => <Input type="date" {...field} />} />
-                </FormItem>
-
-                <FormItem label="Fecha de fin" invalid={!!errors.endDate} errorMessage={errors.endDate?.message}>
-                  <Controller name="endDate" control={control} render={({ field }) => <Input type="date" {...field} />} />
-                </FormItem>
+                {!isCreate ? (
+                  <FormItem label="Fecha de fin" invalid={!!errors.endDate} errorMessage={errors.endDate?.message}>
+                    <Controller name="endDate" control={control} render={({ field }) => <Input type="date" {...field} />} />
+                  </FormItem>
+                ) : null}
 
                 <div className="md:col-span-2">
                   <FormItem>
@@ -234,7 +266,7 @@ const ResidentsForm = (props: ResidentsFormProps) => {
                       name="isOwner"
                       control={control}
                       render={({ field }) => (
-                        <Checkbox checked={field.value} onChange={(val) => field.onChange(val)} className="justify-start">
+                        <Checkbox className="justify-start" checked={field.value} onChange={(val) => field.onChange(val)}>
                           ¿Es dueño(a) de la propiedad?
                         </Checkbox>
                       )}

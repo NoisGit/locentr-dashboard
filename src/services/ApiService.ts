@@ -2,6 +2,21 @@
 import AxiosBase from './axios/AxiosBase'
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 
+function normalizeUsersUrl(rawUrl: string) {
+    try {
+        const u = new URL(rawUrl, 'http://x')
+        const path = u.pathname
+        const q = u.search || ''
+        const h = u.hash || ''
+        if (/^\/api\/v1\/users\/me\/$/i.test(path)) return '/api/v1/users/me' + q + h
+        if (/^\/api\/v1\/users\/[^/]+\/$/i.test(path)) {
+            const trimmed = path.replace(/\/+$/, '')
+            return trimmed + q + h
+        }
+    } catch { /* noop */ }
+    return rawUrl
+}
+
 const ApiService = {
     fetchDataWithAxios<Response = unknown, Request = Record<string, unknown>>(
         param: AxiosRequestConfig<Request>,
@@ -16,7 +31,6 @@ const ApiService = {
             const isEcom = pathname.includes('/dashboard/ecommerce')
             const isProj = pathname.includes('/dashboard/project')
 
-            // ---- Mock seguro para el dashboard/ecommerce
             if (isEcom) {
                 const data = {
                     revenue: [],
@@ -36,7 +50,6 @@ const ApiService = {
                 return
             }
 
-            // ---- Mock seguro para el dashboard/project
             if (isProj) {
                 const data = {
                     overview: [],
@@ -48,7 +61,9 @@ const ApiService = {
                 return
             }
 
-            AxiosBase(param)
+            const cfg: AxiosRequestConfig<Request> = { ...param, url: normalizeUsersUrl(rawUrl) }
+
+            AxiosBase(cfg)
                 .then((response: AxiosResponse<Response>) => {
                     resolve(response.data)
                 })

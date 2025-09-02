@@ -1,3 +1,3 @@
-import CondosDetails from './CondosDetails'
+import ResidentsDetails from './ResidentsDetails'
 
-export default CondosDetails
+export default ResidentsDetails
