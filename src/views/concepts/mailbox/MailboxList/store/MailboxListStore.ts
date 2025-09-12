@@ -26,16 +26,18 @@ export const initialFilterData: MailboxFilter = {
 export type MailboxListState = {
   tableData: TableQueries
   filterData: MailboxFilter
-  selectedEntry: Partial<Selectable>[]
+  selectedEntry: Selectable[]
 }
 
 type Updater<T> = T | ((prev: T) => T)
 
-type MailboxListAction = {
+export type MailboxListAction = {
   setFilterData: (payload: Updater<MailboxFilter>) => void
   setTableData: (payload: Updater<TableQueries>) => void
   setSelectedEntry: (checked: boolean, entry: Selectable) => void
   setSelectAllEntry: (entries: Selectable[]) => void
+  /** Útil cuando cambia la comunidad desde el header */
+  resetOnCommunityChange: (communityId: string | number | undefined) => void
 }
 
 const initialState: MailboxListState = {
@@ -48,20 +50,22 @@ export const useMailboxListStore = create<MailboxListState & MailboxListAction>(
   ...initialState,
 
   setFilterData: (payload) =>
-    set((state) => ({
-      filterData:
+    set((state) => {
+      const next =
         typeof payload === 'function'
           ? (payload as (p: MailboxFilter) => MailboxFilter)(state.filterData)
-          : { ...state.filterData, ...payload },
-    })),
+          : payload
+      return { filterData: { ...state.filterData, ...next } }
+    }),
 
   setTableData: (payload) =>
-    set((state) => ({
-      tableData:
+    set((state) => {
+      const next =
         typeof payload === 'function'
           ? (payload as (p: TableQueries) => TableQueries)(state.tableData)
-          : { ...state.tableData, ...payload },
-    })),
+          : payload
+      return { tableData: { ...state.tableData, ...next } }
+    }),
 
   setSelectedEntry: (checked, row) =>
     set((state) => {
@@ -75,4 +79,11 @@ export const useMailboxListStore = create<MailboxListState & MailboxListAction>(
     }),
 
   setSelectAllEntry: (rows) => set(() => ({ selectedEntry: rows })),
+
+  resetOnCommunityChange: (communityId) =>
+    set((state) => ({
+      tableData: { ...state.tableData, pageIndex: 1 },
+      filterData: { ...state.filterData, communityId },
+      selectedEntry: [],
+    })),
 }))

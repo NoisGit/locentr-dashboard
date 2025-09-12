@@ -27,29 +27,24 @@ export type GetPropertiesListResponse = {
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
-
 function get(obj: unknown, key: string): unknown {
   return isObject(obj) && Object.prototype.hasOwnProperty.call(obj, key)
     ? (obj as Record<string, unknown>)[key]
     : undefined
 }
-
 function asArray(v: unknown): unknown[] {
   return Array.isArray(v) ? v : []
 }
-
 function toStr(v: unknown): string | undefined {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return undefined
 }
-
 function toNum(v: unknown): number | undefined {
   if (typeof v === 'number' && Number.isFinite(v)) return v
   const n = Number(v as unknown)
   return Number.isFinite(n) ? n : undefined
 }
-
 function trimSlashes(s: string): string {
   return s.replace(/\/+$/, '')
 }
@@ -67,7 +62,6 @@ function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
     get(raw, 'data'),
     raw,
   ]
-
   let items: unknown[] = []
   for (const c of candidates) {
     const arr = asArray(c)
@@ -76,28 +70,36 @@ function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
       break
     }
   }
-
   const totalRaw =
     get(raw, 'total') ??
     get(raw, 'count') ??
     get(get(raw, 'pagination'), 'total') ??
     get(get(raw, 'data'), 'total') ??
     items.length
-
   return { items, total: Number(totalRaw ?? items.length) }
 }
 
 function mapRow(p: unknown): PropertyRow {
   const o = isObject(p) ? p : {}
-  const idRaw = get(o, 'id') ?? get(o, 'property_id') ?? get(o, 'propertyId') ?? get(o, '_id') ?? ''
-  const id = trimSlashes(String(toStr(idRaw) ?? ''))
+
+  const idRaw =
+    get(o, 'id') ??
+    get(o, 'property_id') ??
+    get(o, 'propertyId') ??
+    get(o, '_id') ??
+    ''
+  const idStr = toStr(idRaw) ?? ''
+  const id = idStr !== '' ? trimSlashes(idStr) : String(idRaw ?? '')
 
   const community = isObject(get(o, 'community')) ? (get(o, 'community') as Record<string, unknown>) : undefined
   const communityId = get(o, 'community_id') ?? (community ? get(community, 'id') : undefined)
   const communityName = get(o, 'community_name') ?? (community ? get(community, 'name') : undefined)
 
   const propertyNumber =
-    get(o, 'property_number') ?? get(o, 'number') ?? get(o, 'unit') ?? get(o, 'code')
+    get(o, 'property_number') ??
+    get(o, 'number') ??
+    get(o, 'unit') ??
+    get(o, 'code')
 
   const floorNum = toNum(get(o, 'floor'))
   const tower = toStr(get(o, 'tower') ?? get(o, 'block') ?? get(o, 'building'))
@@ -148,14 +150,16 @@ export async function apiGetPropertiesList<
 }
 
 export async function apiCreateProperty(payload: {
-  community_id: number | string
+  community_id?: number | string
   property_number: string
   floor: number | string
 }) {
   const data: Record<string, unknown> = {
-    community_id: Number(payload.community_id),
     property_number: String(payload.property_number ?? '').trim(),
     floor: Number(payload.floor),
+  }
+  if (payload.community_id !== undefined && payload.community_id !== '') {
+    data.community_id = Number(payload.community_id)
   }
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: '/api/v1/communities/properties',
@@ -179,9 +183,10 @@ export async function apiUpdateProperty(
 ) {
   const cleanId = trimSlashes(String(id))
   const data: Record<string, unknown> = {}
-  if (patch.community_id !== undefined) data.community_id = Number(patch.community_id)
+  if (patch.community_id !== undefined && patch.community_id !== '') data.community_id = Number(patch.community_id)
   if (patch.property_number !== undefined) data.property_number = String(patch.property_number ?? '').trim()
   if (patch.floor !== undefined) data.floor = Number(patch.floor)
+
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: `/api/v1/communities/properties/id/${encodeURIComponent(cleanId)}`,
     method: 'put',

@@ -1,8 +1,10 @@
 import { apiGetPropertiesList } from '@/services/PropertiesService'
 import useSWR from 'swr'
 import { usePropertiesListStore } from '../store/PropertiesListStore'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import type { GetPropertiesListResponse } from '../types'
 import type { TableQueries as PropertiesTableQueries } from '@/services/PropertiesService'
+import { useEffect, useMemo } from 'react'
 
 export default function usePropertiesList() {
   const {
@@ -17,10 +19,31 @@ export default function usePropertiesList() {
     setFilterData,
   } = usePropertiesListStore((state) => state)
 
+  const selectedId = useCommunitiesStore((s) => s.selectedId)
+  const communityKey = selectedId != null ? String(selectedId) : 'all'
+
+  useEffect(() => {
+    setFilterData((prev) => ({
+      ...prev,
+      communityId: selectedId != null ? String(selectedId) : '',
+    }))
+  }, [selectedId, setFilterData])
+
+  const swrKey = useMemo(
+    () => [
+      '/api/v1/communities/properties',
+      { ...tableData, ...filterData },
+      communityKey,
+    ] as const,
+    [tableData, filterData, communityKey]
+  )
+
   const { data, error, isLoading, mutate } = useSWR(
-    ['/api/v1/communities/properties', { ...tableData, ...filterData }],
+    swrKey,
     ([, params]) =>
-      apiGetPropertiesList<GetPropertiesListResponse, PropertiesTableQueries>(params),
+      apiGetPropertiesList<GetPropertiesListResponse, PropertiesTableQueries>(
+        params as PropertiesTableQueries
+      ),
     { revalidateOnFocus: false }
   )
 

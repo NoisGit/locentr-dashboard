@@ -2,12 +2,8 @@
 import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'
-import Dialog from '@/components/ui/Dialog'
-import Avatar from '@/components/ui/Avatar'
-import Tooltip from '@/components/ui/Tooltip'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import usePropertiesList from '../hooks/usePropertiesList'
 import { TbChecks } from 'react-icons/tb'
@@ -25,8 +21,6 @@ const PropertiesListSelected = () => {
   } = usePropertiesList()
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-  const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
-  const [sendMessageLoading, setSendMessageLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const hasSelection = (selectedProperties?.length ?? 0) > 0
@@ -94,19 +88,6 @@ const PropertiesListSelected = () => {
     setDeleteLoading(false)
   }
 
-  const handleSend = () => {
-    setSendMessageLoading(true)
-    setTimeout(() => {
-      toast.push(<Notification type="success">Mensaje enviado</Notification>, { placement: 'top-center' })
-      setSendMessageLoading(false)
-      setSendMessageDialogOpen(false)
-      setSelectAllProperties([])
-    }, 500)
-  }
-
-  const displayName = (p: any) =>
-    p?.name || p?.propertyNumber || p?.number || p?.property_number || `Propiedad ${p?.id}`
-
   return (
     <>
       {hasSelection && (
@@ -135,14 +116,6 @@ const PropertiesListSelected = () => {
                 >
                   {deleteLoading ? 'Eliminando…' : 'Eliminar'}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="solid"
-                  onClick={() => setSendMessageDialogOpen(true)}
-                  disabled={deleteLoading}
-                >
-                  Mensaje
-                </Button>
               </div>
             </div>
           </div>
@@ -165,33 +138,6 @@ const PropertiesListSelected = () => {
         </p>
         <p>Esta acción no se puede deshacer.</p>
       </ConfirmDialog>
-
-      <Dialog
-        isOpen={sendMessageDialogOpen}
-        onRequestClose={() => setSendMessageDialogOpen(false)}
-        onClose={() => setSendMessageDialogOpen(false)}
-      >
-        <h5 className="mb-2">Enviar mensaje</h5>
-        <p>Enviar mensaje a las siguientes propiedades</p>
-        <Avatar.Group chained omittedAvatarTooltip className="mt-4" maxCount={4} omittedAvatarProps={{ size: 30 }}>
-          {selectedProperties.map((property) => (
-            <Tooltip key={property.id} title={displayName(property)}>
-              <Avatar size={30} src={(property as any).img} alt={displayName(property)} />
-            </Tooltip>
-          ))}
-        </Avatar.Group>
-        <div className="my-4">
-          <RichTextEditor content="" />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button size="sm" onClick={() => setSendMessageDialogOpen(false)} disabled={sendMessageLoading}>
-            Cancelar
-          </Button>
-          <Button size="sm" variant="solid" loading={sendMessageLoading} onClick={handleSend}>
-            Enviar
-          </Button>
-        </div>
-      </Dialog>
     </>
   )
 }

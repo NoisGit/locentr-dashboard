@@ -2,14 +2,17 @@
 import { create } from 'zustand'
 import type { Community } from '@/services/CommunitiesService'
 
+export type CommunitiesSource = 'none' | 'mine' | 'all'
+
 type CommunitiesState = {
   communities: Community[]
   selectedId?: string | number
   selectedName?: string
+  source: CommunitiesSource
 }
 
 type CommunitiesActions = {
-  setCommunities: (list: Community[]) => void
+  setCommunities: (list: Community[], source?: Exclude<CommunitiesSource, 'none'>) => void
   selectCommunity: (c: { id: string | number; name: string }) => void
   clearCommunity: () => void
 }
@@ -20,24 +23,25 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
   communities: [],
   selectedId: undefined,
   selectedName: undefined,
+  source: 'none',
 
-  setCommunities: (list) => set({ communities: list }),
+  setCommunities: (list, source) =>
+    set((s) => ({
+      communities: list,
+      source: source ?? s.source,
+    })),
 
   selectCommunity: ({ id, name }) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ id, name }))
-    } catch (e) {
-      void e
-    }
+    } catch {}
     set({ selectedId: id, selectedName: name })
   },
 
   clearCommunity: () => {
     try {
       localStorage.removeItem(STORAGE_KEY)
-    } catch (e) {
-      void e
-    }
+    } catch {}
     set({ selectedId: undefined, selectedName: undefined })
   },
 }))
@@ -53,7 +57,5 @@ export function hydrateCommunitiesFromStorage() {
         name: parsed.name ?? '',
       })
     }
-  } catch (e) {
-    void e
-  }
+  } catch {}
 }

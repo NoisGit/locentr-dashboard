@@ -10,6 +10,7 @@ export type TableQueries = {
   isOwner?: boolean | ''
   startDateFrom?: string
   endDateTo?: string
+  communityId?: number | string | ''
 }
 
 export type ResidentRow = {
@@ -206,6 +207,8 @@ export async function apiGetResidentsList<T = GetResidentsListResponse, Q extend
   if (startFrom) qpFull.start_date_from = startFrom
   const endTo = toYMD((params as TableQueries).endDateTo)
   if (endTo) qpFull.end_date_to = endTo
+  const commId = (params as TableQueries).communityId
+  if (commId !== '' && commId != null) qpFull.community_id = Number(commId)
   if ((params as TableQueries).sort?.key) qpFull['sort[key]'] = (params as TableQueries).sort?.key
   if ((params as TableQueries).sort?.order) qpFull['sort[order]'] = (params as TableQueries).sort?.order
   if (!(params as TableQueries).sort) {
@@ -233,7 +236,7 @@ export async function apiGetResidentsList<T = GetResidentsListResponse, Q extend
         const { items, total } = pickItemsAndTotal(resp)
         const list: ResidentRow[] = items.map(adaptResidentRow)
         return { list, total } as T
-      } catch (errBare: unknown) {
+      } catch {
         return { list: [], total: 0 } as T
       }
     }
@@ -280,18 +283,18 @@ export async function apiUpdateResident(
     end_date?: string | Date
   },
 ) {
-  const cleanId = String(id).replace(/\/+$/, '')
-  const body: Record<string, unknown> = {}
-  if (patch.user_id != null) body.user_id = Number(patch.user_id)
-  if (patch.property_id != null) body.property_id = Number(patch.property_id)
-  if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
-  body.start_date = toYMD(patch.start_date) ?? null
-  body.end_date = toYMD(patch.end_date) ?? null
-  return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
-    url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
-    method: 'put',
-    data: body,
-  })
+    const cleanId = String(id).replace(/\/+$/, '')
+    const body: Record<string, unknown> = {}
+    if (patch.user_id != null) body.user_id = Number(patch.user_id)
+    if (patch.property_id != null) body.property_id = Number(patch.property_id)
+    if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
+    body.start_date = toYMD(patch.start_date) ?? null
+    body.end_date = toYMD(patch.end_date) ?? null
+    return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
+      url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
+      method: 'put',
+      data: body,
+    })
 }
 
 export async function apiDeleteResident(id: string | number) {
@@ -317,9 +320,7 @@ export async function apiGetMyProperties(): Promise<MyProperty[]> {
   return (items as unknown[]).map((p) => {
     const r = isRecord(p) ? (p as Dict) : {}
     const idNum = Number(r.id ?? r.property_id ?? 0)
-    const name =
-      str(r.name ?? r.address) ||
-      `Propiedad #${idNum}`
+    const name = str(r.name ?? r.address) || `Propiedad #${idNum}`
     return { id: idNum, name }
   })
 }

@@ -29,7 +29,7 @@ type Updater<T> = T | ((prev: T) => T)
 type PropertiesListAction = {
   setFilterData: (payload: Updater<Filter>) => void
   setTableData: (payload: Updater<PropertiesTableQueries>) => void
-  setSelectedProperty: (checked: boolean, property: Property) => void
+  setSelectedProperty: (checked: boolean, property?: Property | null) => void
   setSelectAllProperties: (properties: Property[]) => void
   setSelectedProperties: (properties: Property[]) => void
 }
@@ -60,16 +60,33 @@ export const usePropertiesListStore = create<PropertiesListState & PropertiesLis
           : payload,
     })),
 
+  // Tolerante: si property es null/undefined, solo asegura arrays y no rompe
   setSelectedProperty: (checked, row) =>
     set((state) => {
-      const exists = state.selectedProperties.some((c) => c.id === row.id)
+      const list = Array.isArray(state.selectedProperties) ? state.selectedProperties : []
+      if (!row || (row as any).id === undefined || (row as any).id === null) {
+        return { selectedProperties: list, selectedProperty: list }
+      }
+      const rowId = String((row as any).id)
+      const exists = list.some((c: any) => String((c as any).id) === rowId)
       const next = checked
-        ? (exists ? state.selectedProperties : [...state.selectedProperties, row])
-        : state.selectedProperties.filter((c) => c.id !== row.id)
+        ? exists
+          ? list
+          : [...list, row]
+        : list.filter((c: any) => String((c as any).id) !== rowId)
+
       return { selectedProperties: next, selectedProperty: next }
     }),
 
-  setSelectAllProperties: (rows) => set(() => ({ selectedProperties: rows, selectedProperty: rows })),
+  setSelectAllProperties: (rows) =>
+    set(() => {
+      const safe = Array.isArray(rows) ? rows : []
+      return { selectedProperties: safe, selectedProperty: safe }
+    }),
 
-  setSelectedProperties: (rows) => set(() => ({ selectedProperties: rows, selectedProperty: rows })),
+  setSelectedProperties: (rows) =>
+    set(() => {
+      const safe = Array.isArray(rows) ? rows : []
+      return { selectedProperties: safe, selectedProperty: safe }
+    }),
 }))

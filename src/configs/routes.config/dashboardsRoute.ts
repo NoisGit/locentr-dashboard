@@ -52,7 +52,7 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Create user',
+                title: 'Crear Usuario',
                 description: 'Manage user details, track purchases, and update preferences easily.',
                 contained: true,
             },
@@ -426,7 +426,7 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Create condo',
+                title: 'Crear Condo',
                 description: 'Create new condo entries easily.',
                 contained: true,
             },
@@ -470,7 +470,7 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Create property',
+                title: 'Crear Propiedad',
                 description: 'Create new property entries easily.',
                 contained: true,
             },
@@ -542,7 +542,7 @@ const dashboardsRoute: Routes = [
         authority: [ADMIN, USER],
         meta: {
             header: {
-                title: 'Create resident',
+                title: 'Asignar Residente',
                 description: 'Create new resident (asignar propiedad y usuario).',
                 contained: true,
             },

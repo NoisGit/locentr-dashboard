@@ -27,10 +27,7 @@ export const initialTableData: TableQueries = {
   pageIndex: 1,
   pageSize: 10,
   query: '',
-  sort: {
-    key: 'id',
-    order: 'desc',
-  },
+  sort: { key: 'id', order: 'desc' },
 }
 
 export const initialFilterData: Filter = {
@@ -69,29 +66,32 @@ export const useResidentsListStore = create<ResidentsListState & ResidentsListAc
   ...initialState,
 
   setFilterData: (payload) =>
-    set((state) => ({
-      filterData:
+    set((state) => {
+      const next =
         typeof payload === 'function'
           ? (payload as (p: Filter) => Filter)(state.filterData)
-          : payload,
-    })),
+          : payload
+      return { filterData: { ...state.filterData, ...next } }
+    }),
 
   setTableData: (payload) =>
-    set((state) => ({
-      tableData:
+    set((state) => {
+      const next =
         typeof payload === 'function'
           ? (payload as (p: TableQueries) => TableQueries)(state.tableData)
-          : payload,
-    })),
+          : payload
+      return { tableData: { ...state.tableData, ...next } }
+    }),
 
   setSelectedResident: (checked, row) =>
     set((state) => {
-      const exists = state.selectedResidents.some((r) => r.id === row.id)
+      const current = Array.isArray(state.selectedResidents) ? state.selectedResidents : []
+      const exists = current.some((r) => r.id === row.id)
       const next = checked
         ? exists
-          ? state.selectedResidents
-          : [...state.selectedResidents, row]
-        : state.selectedResidents.filter((r) => r.id !== row.id)
+          ? current
+          : [...current, row]
+        : current.filter((r) => r.id !== row.id)
       return { selectedResidents: next, selectedResident: next }
     }),
 

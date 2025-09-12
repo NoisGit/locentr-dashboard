@@ -1,10 +1,9 @@
 // src/views/concepts/properties/PropertiesList/components/PropertiesListTable.tsx
 import { useMemo } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import usePropertiesList from '../hooks/usePropertiesList'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router-dom'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
@@ -13,16 +12,17 @@ import type { TableQueries } from '@/@types/common'
 
 const NumberColumn = ({ row }: { row: Property }) => {
   const display =
-    (row as any).propertyNumber ??
-    (row as any).number ??
-    (row as any).property_number ??
+    row.propertyNumber ??
+    ((row as Record<string, unknown>)['number'] as string | undefined) ??
+    ((row as Record<string, unknown>)['property_number'] as string | undefined) ??
     ''
-  const title = display ? `Propiedad ${display}` : 'Propiedad'
+
+  const title = display ? `# ${display}` : 'Propiedad'
+
   return (
     <div className="flex items-center">
-      <Avatar size={40} shape="circle" src={(row as any).img || ''} />
       <Link
-        className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
+        className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100"
         to={`/concepts/properties/properties-details/${row.id}`}
       >
         {title}
@@ -31,21 +31,19 @@ const NumberColumn = ({ row }: { row: Property }) => {
   )
 }
 
-const ActionColumn = ({ onEdit }: { onEdit: () => void }) => {
-  return (
-    <div className="flex items-center gap-3">
-      <Tooltip title="Editar">
-        <div
-          className="text-xl cursor-pointer select-none font-semibold"
-          role="button"
-          onClick={onEdit}
-        >
-          <TbPencil />
-        </div>
-      </Tooltip>
-    </div>
-  )
-}
+const ActionColumn = ({ onEdit }: { onEdit: () => void }) => (
+  <div className="flex items-center gap-3">
+    <Tooltip title="Editar">
+      <div
+        className="text-xl cursor-pointer select-none font-semibold"
+        role="button"
+        onClick={onEdit}
+      >
+        <TbPencil />
+      </div>
+    </Tooltip>
+  </div>
+)
 
 const PropertiesListTable = () => {
   const navigate = useNavigate()
@@ -60,6 +58,11 @@ const PropertiesListTable = () => {
     setSelectedProperties,
     selectedProperties,
   } = usePropertiesList()
+
+  const selectedIdSet = useMemo(
+    () => new Set(selectedProperties.map((p) => String(p.id))),
+    [selectedProperties],
+  )
 
   const handleEdit = (property: Property) => {
     navigate(`/concepts/properties/properties-edit/${property.id}`)
@@ -77,8 +80,8 @@ const PropertiesListTable = () => {
         accessorKey: 'floor',
         cell: (props) => {
           const f =
-            (props.row.original as any).floor ??
-            (props.row.original as any).level ??
+            props.row.original.floor ??
+            ((props.row.original as Record<string, unknown>)['level'] as number | string | undefined) ??
             ''
           return <span>{String(f ?? '')}</span>
         },
@@ -87,12 +90,12 @@ const PropertiesListTable = () => {
         header: 'Comunidad',
         accessorKey: 'communityName',
         cell: (props) => {
-          const r = props.row.original as any
+          const r = props.row.original as unknown as Record<string, unknown>
           const name =
-            r.communityName ??
-            r.community?.name ??
-            r.community_name ??
-            r.tower ??
+            props.row.original.communityName ??
+            (r.community && ((r.community as Record<string, unknown>).name as string | undefined)) ??
+            (r['community_name'] as string | undefined) ??
+            (r['tower'] as string | undefined) ??
             ''
           return <span>{String(name ?? '')}</span>
         },
@@ -105,7 +108,7 @@ const PropertiesListTable = () => {
         ),
       },
     ],
-    []
+    [],
   )
 
   const handleSetTableData = (data: TableQueries) => {
@@ -157,17 +160,13 @@ const PropertiesListTable = () => {
       columns={columns}
       data={propertiesList}
       noData={!isLoading && propertiesList.length === 0}
-      skeletonAvatarColumns={[0]}
-      skeletonAvatarProps={{ width: 28, height: 28 }}
       loading={isLoading}
       pagingData={{
         total: propertiesListTotal,
         pageIndex: tableData.pageIndex as number,
         pageSize: tableData.pageSize as number,
       }}
-      checkboxChecked={(row) =>
-        selectedProperties.some((selected) => selected.id === row.id)
-      }
+      checkboxChecked={(row) => selectedIdSet.has(String(row.id))}
       onPaginationChange={handlePaginationChange}
       onSelectChange={handleSelectChange}
       onSort={handleSort}

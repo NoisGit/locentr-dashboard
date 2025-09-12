@@ -12,7 +12,13 @@ import FormItem from '@/components/ui/Form/FormItem'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import isEmpty from 'lodash/isEmpty'
-import ApiService from '@/services/ApiService'
+import { useAuth } from '@/auth'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import {
+  apiGetMyCommunities,
+  apiListCommunities,
+  type Community,
+} from '@/services/CommunitiesService'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -34,40 +40,27 @@ const validationSchema = z.object({
   floor: z.coerce.number().int().min(0, { message: 'Piso requerido' }),
 })
 
-const fetchCommunities = (_key: string) =>
-  ApiService.fetchDataWithAxios<any>({
-    url: '/api/v1/communities/',
-    method: 'get',
-    params: { pageIndex: 1, pageSize: 1000 },
-  })
-
-function pickArray(raw: any): any[] {
-  return (
-    (Array.isArray(raw?.items) && raw.items) ||
-    (Array.isArray(raw?.list) && raw.list) ||
-    (Array.isArray(raw?.results) && raw.results) ||
-    (Array.isArray(raw?.data?.items) && raw.data.items) ||
-    (Array.isArray(raw?.data?.list) && raw.data.list) ||
-    (Array.isArray(raw?.data) && raw.data) ||
-    (Array.isArray(raw) && raw) ||
-    []
-  )
+/** Lee tokens de rol del usuario (authority/roles/etc.) y detecta SuperAdmin */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null
 }
-
-function normalizeCommunities(raw: any): Array<{ label: string; value: number }> {
-  const arr = pickArray(raw)
-  return arr
-    .map((c: any) => {
-      const id = Number(c?.id ?? c?.community_id ?? c?._id ?? NaN)
-      const name =
-        c?.name ??
-        c?.community_name ??
-        c?.title ??
-        `${c?.first_name ?? ''} ${c?.last_name ?? ''}`.trim()
-      if (!Number.isFinite(id)) return null
-      return { label: String(name || id), value: id }
-    })
-    .filter(Boolean) as Array<{ label: string; value: number }>
+function readRoleTokens(user: unknown): string[] {
+  if (!isRecord(user)) return []
+  const src =
+    (user as any).roles ??
+    (user as any).role ??
+    (user as any).authorities ??
+    (user as any).authority ??
+    []
+  if (Array.isArray(src)) return src.map((x) => String(x).toLowerCase())
+  if (src != null) return [String(src).toLowerCase()]
+  return []
+}
+function isSuperAdminUser(user: unknown): boolean {
+  const tokens = readRoleTokens(user)
+  const set = new Set(tokens)
+  const hits = ['superadmin', 'super-admin', 'super_admin', 'owner', 'root']
+  return hits.some((t) => set.has(t) || tokens.some((x) => x.includes(t)))
 }
 
 const PropertiesForm = (props: PropertiesFormProps) => {
@@ -78,6 +71,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
     reset,
     control,
     formState: { errors },
+    getValues,
   } = useForm<PropertiesFormSchema>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
@@ -88,15 +82,26 @@ const PropertiesForm = (props: PropertiesFormProps) => {
     },
   })
 
-  const { data: communitiesRaw, isLoading: loadingCommunities } = useSWR(
-    '/api/v1/communities/',
-    fetchCommunities,
+  const { user } = useAuth()
+  const superAdmin = isSuperAdminUser(user)
+  const { selectedId: headerCommunityId } = useCommunitiesStore()
+
+  const { data: communities, isLoading: loadingCommunities } = useSWR<Community[]>(
+    superAdmin ? ['communities:all'] : ['communities:mine'],
+    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 1000 }) : apiGetMyCommunities()),
     { revalidateOnFocus: false }
   )
 
   const communityOptions = useMemo(
-    () => normalizeCommunities(communitiesRaw),
-    [communitiesRaw]
+    () =>
+      (communities ?? [])
+        .map((c) => {
+          const idNum = Number((c as Community).id)
+          if (!Number.isFinite(idNum)) return null
+          return { label: (c as Community).name || String((c as Community).id), value: idNum }
+        })
+        .filter(Boolean) as Array<{ label: string; value: number }>,
+    [communities]
   )
 
   useEffect(() => {
@@ -104,14 +109,24 @@ const PropertiesForm = (props: PropertiesFormProps) => {
       reset({
         community_id: Number(defaultValues.community_id ?? 0),
         property_number: defaultValues.property_number ?? '',
-        floor: Number(
+        floor:
           defaultValues.floor === undefined || defaultValues.floor === null
             ? 0
-            : (defaultValues.floor as any)
-        ),
+            : Number(defaultValues.floor as unknown),
       })
+      return
     }
-  }, [JSON.stringify(defaultValues), reset])
+    if (communityOptions.length > 0 && headerCommunityId != null && headerCommunityId !== '') {
+      const formVal = getValues()
+      if (!formVal.community_id || Number.isNaN(Number(formVal.community_id))) {
+        const headerIdNum = Number(headerCommunityId)
+        const exists = communityOptions.some((o) => o.value === headerIdNum)
+        if (exists) {
+          reset({ ...formVal, community_id: headerIdNum })
+        }
+      }
+    }
+  }, [JSON.stringify(defaultValues), communityOptions, headerCommunityId, reset, getValues])
 
   const onSubmit = (values: PropertiesFormSchema) => onFormSubmit?.(values)
 

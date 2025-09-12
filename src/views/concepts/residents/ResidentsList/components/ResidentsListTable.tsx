@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import useResidentsList from '../hooks/useResidentsList'
@@ -8,13 +7,14 @@ import cloneDeep from 'lodash/cloneDeep'
 import useSWR from 'swr'
 import ApiService from '@/services/ApiService'
 import { TbPencil } from 'react-icons/tb'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
 import type { Resident } from '../types'
 
 type NameCellProps = {
   row: any
-  usersMap: Map<string, { name: string; avatar?: string }>
+  usersMap: Map<string, { name: string }>
 }
 
 function NameCell({ row, usersMap }: NameCellProps) {
@@ -26,15 +26,9 @@ function NameCell({ row, usersMap }: NameCellProps) {
     row?.user?.name ||
     row?.user?.email ||
     (userId ? `ID ${userId}` : 'Sin nombre')
-  const avatar =
-    user?.avatar ||
-    row?.user?.avatar ||
-    row?.user?.avatar_url ||
-    row?.avatar ||
-    ''
+
   return (
     <div className="flex items-center">
-      <Avatar size={40} shape="circle" src={avatar} />
       <Link
         className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
         to={`/concepts/residents/residents-details/${row?.id}`}
@@ -48,7 +42,8 @@ function NameCell({ row, usersMap }: NameCellProps) {
 function getBoolean(v: any): boolean {
   if (typeof v === 'boolean') return v
   if (typeof v === 'number') return v !== 0
-  if (typeof v === 'string') return ['true', '1', 'si', 'sí', 'yes'].includes(v.trim().toLowerCase())
+  if (typeof v === 'string')
+    return ['true', '1', 'si', 'sí', 'yes'].includes(v.trim().toLowerCase())
   return false
 }
 
@@ -61,7 +56,7 @@ function fmtDate(raw: any): string {
 async function fetchUsersMap() {
   const limit = 100
   let pageIndex = 1
-  const map = new Map<string, { name: string; avatar?: string }>()
+  const map = new Map<string, { name: string }>()
   while (true) {
     const resp = await ApiService.fetchDataWithAxios<any>({
       url: '/api/v1/users/',
@@ -81,12 +76,14 @@ async function fetchUsersMap() {
     list.forEach((u: any) => {
       const id = String(u?.id ?? u?._id ?? '')
       const parts = [u?.first_name, u?.last_name].filter(Boolean).join(' ')
-      const name = String(u?.full_name || u?.name || parts || u?.email || `ID ${id}`)
-      const avatar = u?.avatar ?? u?.avatar_url ?? u?.photoURL ?? u?.photo_url ?? ''
-      if (id) map.set(id, { name, avatar })
+      const name = String(
+        u?.full_name || u?.name || parts || u?.email || `ID ${id}`,
+      )
+      if (id) map.set(id, { name })
     })
     const total =
-      Number(resp?.total ?? resp?.data?.total ?? resp?.pagination?.total ?? 0) || 0
+      Number(resp?.total ?? resp?.data?.total ?? resp?.pagination?.total ?? 0) ||
+      0
     if (list.length < limit || pageIndex * limit >= total) break
     pageIndex += 1
   }
@@ -94,6 +91,8 @@ async function fetchUsersMap() {
 }
 
 async function fetchPropertiesMap() {
+  // Este fetch depende del header X-Community-Id; no pasamos communityId en query,
+  // solo lo usamos como dependencia de SWR.
   const limit = 100
   let skip = 0
   const map = new Map<string, string>()
@@ -114,7 +113,11 @@ async function fetchPropertiesMap() {
     list.forEach((p: any) => {
       const id = String(p?.id ?? p?.property_id ?? '')
       const num = p?.property_number ?? p?.number ?? p?.unit ?? p?.code ?? ''
-      const label = num ? `Propiedad ${String(num)}` : (id ? `Propiedad #${id}` : 'Propiedad')
+      const label = num
+        ? `Propiedad ${String(num)}`
+        : id
+        ? `Propiedad #${id}`
+        : 'Propiedad'
       if (id) map.set(id, label)
     })
     if (list.length < limit) break
@@ -152,25 +155,44 @@ const ResidentsListTable = () => {
     selectedResidents,
   } = useResidentsList()
 
-  const { data: usersMap = new Map() } = useSWR('users-map', fetchUsersMap, { revalidateOnFocus: false })
-  const { data: propertiesMap = new Map() } = useSWR('properties-map', fetchPropertiesMap, { revalidateOnFocus: false })
+  // Dependemos de la comunidad actual para que el listado de propiedades (map)
+  // se refresque automáticamente.
+  const { selectedId: communityId } = useCommunitiesStore()
+
+  const { data: usersMap = new Map() } = useSWR(
+    'users-map',
+    fetchUsersMap,
+    { revalidateOnFocus: false },
+  )
+
+  const { data: propertiesMap = new Map() } = useSWR(
+    ['properties-map', String(communityId ?? '')],
+    fetchPropertiesMap,
+    { revalidateOnFocus: false },
+  )
 
   const columns: ColumnDef<Resident>[] = useMemo(
     () => [
       {
         header: 'Residente',
         accessorKey: 'userId',
-        cell: (props) => <NameCell row={props.row.original} usersMap={usersMap} />,
+        cell: (props) => (
+          <NameCell row={props.row.original} usersMap={usersMap} />
+        ),
       },
       {
         header: 'Propiedad',
         accessorKey: 'propertyId',
         cell: (props) => {
           const r: any = props.row.original
-          const pid = String(r?.propertyId ?? r?.property_id ?? r?.property?.id ?? '')
-          const label = propertiesMap.get(pid) || (pid ? `Propiedad #${pid}` : '')
+          const pid = String(
+            r?.propertyId ?? r?.property_id ?? r?.property?.id ?? '',
+          )
+          const label =
+            propertiesMap.get(pid) ||
+            (pid ? `Propiedad #${pid}` : '')
           const isOwner = getBoolean(r?.isOwner ?? r?.is_owner ?? r?.owner)
-          return <span>{isOwner ? label : (label ? `Alojado en ${label}` : '')}</span>
+          return <span>{isOwner ? label : label ? `Alojado en ${label}` : ''}</span>
         },
       },
       {
@@ -187,7 +209,12 @@ const ResidentsListTable = () => {
         accessorKey: 'startDate',
         cell: (props) => {
           const r: any = props.row.original
-          const raw = r?.startDate ?? r?.start_date ?? r?.start ?? r?.created_at ?? ''
+          const raw =
+            r?.startDate ??
+            r?.start_date ??
+            r?.start ??
+            r?.created_at ??
+            ''
           return <span>{fmtDate(raw)}</span>
         },
       },
@@ -196,7 +223,8 @@ const ResidentsListTable = () => {
         accessorKey: 'endDate',
         cell: (props) => {
           const r: any = props.row.original
-          const raw = r?.endDate ?? r?.end_date ?? r?.end ?? r?.finish_date ?? ''
+          const raw =
+            r?.endDate ?? r?.end_date ?? r?.end ?? r?.finish_date ?? ''
           return <span>{fmtDate(raw)}</span>
         },
       },
@@ -204,7 +232,13 @@ const ResidentsListTable = () => {
         header: '',
         id: 'action',
         cell: (props) => (
-          <ActionColumn onEdit={() => navigate(`/concepts/residents/residents-edit/${props.row.original.id}`)} />
+          <ActionColumn
+            onEdit={() =>
+              navigate(
+                `/concepts/residents/residents-edit/${props.row.original.id}`,
+              )
+            }
+          />
         ),
       },
     ],
@@ -241,7 +275,9 @@ const ResidentsListTable = () => {
     if (checked) {
       setSelectedResidents([...selectedResidents, row])
     } else {
-      setSelectedResidents(selectedResidents.filter((c) => c.id !== row.id))
+      setSelectedResidents(
+        selectedResidents.filter((c) => c.id !== row.id),
+      )
     }
   }
 
@@ -260,8 +296,7 @@ const ResidentsListTable = () => {
       columns={columns}
       data={residentsList}
       noData={!isLoading && residentsList.length === 0}
-      skeletonAvatarColumns={[0]}
-      skeletonAvatarProps={{ width: 28, height: 28 }}
+      skeletonAvatarColumns={[]}
       loading={isLoading}
       pagingData={{
         total: residentsListTotal,

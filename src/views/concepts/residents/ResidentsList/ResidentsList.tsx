@@ -1,5 +1,4 @@
 // src/views/concepts/residents/ResidentsList/ResidentsList.tsx
-import { useNavigate } from 'react-router'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
@@ -11,7 +10,6 @@ import ResidentsListSelected from './components/ResidentsListSelected'
 import useResidentsList from './hooks/useResidentsList'
 
 const ResidentsList = () => {
-  const navigate = useNavigate()
   const { residentsList = [], isLoading, error, mutate } = useResidentsList()
 
   if (!isLoading && error) {
@@ -28,9 +26,6 @@ const ResidentsList = () => {
             <p className="text-sm text-red-600 dark:text-red-400">{serverMsg}</p>
             <div className="flex gap-3">
               <Button onClick={() => mutate()} variant="solid">Reintentar</Button>
-              <Button onClick={() => navigate('/concepts/residents/residents-create')}>
-                Crear residente
-              </Button>
             </div>
           </div>
         </AdaptiveCard>
@@ -43,18 +38,10 @@ const ResidentsList = () => {
       <Container>
         <AdaptiveCard>
           <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-            <h3 className="text-lg font-semibold">Aún no has creado ningún residente</h3>
+            <h3 className="text-lg font-semibold">Aún no hay residentes</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Crea tu primer residente para comenzar a gestionarlo.
+              Cuando se asigne un residente a una propiedad, aparecerá aquí.
             </p>
-            <div className="flex gap-3">
-              <Button
-                variant="solid"
-                onClick={() => navigate('/concepts/residents/residents-create')}
-              >
-                Crear residente
-              </Button>
-            </div>
           </div>
         </AdaptiveCard>
       </Container>

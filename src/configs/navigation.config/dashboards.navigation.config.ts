@@ -68,7 +68,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
         title: 'Noticias',
         translateKey: 'nav.conceptsHelpCenter.helpCenter',
-        icon: 'helpCenter',
+        icon: 'helpCeterArticle',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
@@ -84,7 +84,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
         title: 'Reporte de problemas',
         translateKey: 'nav.conceptsProjects.projects',
-        icon: 'projects',
+        icon: 'uiFeedbackAlert',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
@@ -98,7 +98,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'concepts.entries',
         path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
-        title: 'Entries',
+        title: 'Entradas',
         translateKey: 'nav.entries',
         icon: 'uiFormsFormControl',
         type: NAV_ITEM_TYPE_ITEM,
@@ -114,9 +114,9 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'concepts.mailbox',
         path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-list`,
-        title: 'Mailbox',
+        title: 'Casilla',
         translateKey: 'nav.mailbox',
-        icon: 'orders',
+        icon: 'products',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
@@ -181,7 +181,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
         title: 'Condos',
         translateKey: 'nav.conceptsCondos.condos',
-        icon: 'landing',
+        icon: 'building',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
@@ -195,7 +195,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'concepts.properties',
         path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
-        title: 'Properties',
+        title: 'Propiedades',
         translateKey: 'nav.properties',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
@@ -211,9 +211,9 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'concepts.residents',
         path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
-        title: 'Residents',
+        title: 'Residentes',
         translateKey: 'nav.residents',
-        icon: 'customers',
+        icon: 'residentsIcon',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {
@@ -245,7 +245,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
         title: 'Marketplace',
         translateKey: 'nav.marketplace',
-        icon: 'orders',
+        icon: 'marketplaceIcon',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {

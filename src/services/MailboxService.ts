@@ -1,7 +1,8 @@
 // src/services/MailboxService.ts
 import ApiService from '@/services/ApiService'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 
-export const MAILBOX_BASE = '/api/v1/mailboxes/community'
+export const MAILBOX_COMMUNITY_BASE = '/api/v1/mailboxes/community'
 export const MAILBOX_ENTRY_BASE = '/api/v1/mailboxes/entries'
 
 export type MailboxTableQueries = {
@@ -41,30 +42,28 @@ export type MailboxRow = {
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
-
 function get(obj: unknown, key: string): unknown {
   return isObject(obj) && Object.prototype.hasOwnProperty.call(obj, key)
     ? (obj as Record<string, unknown>)[key]
     : undefined
 }
-
 function asArray(v: unknown): unknown[] {
   return Array.isArray(v) ? v : []
 }
-
 function toString(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
 }
-
 function toBoolean(v: unknown): boolean {
   if (typeof v === 'boolean') return v
   if (typeof v === 'number') return v !== 0
-  if (typeof v === 'string') return ['true', '1', 'yes', 'si', 'sí'].includes(v.trim().toLowerCase())
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase()
+    return s === 'true' || s === '1' || s === 'yes' || s === 'si' || s === 'sí'
+  }
   return false
 }
-
 function withPagination(params: Record<string, unknown>) {
   const p: Record<string, unknown> = { ...params }
   const pageIndex = Math.max(1, Number((p.pageIndex as number | undefined) ?? 1))
@@ -78,12 +77,18 @@ function withPagination(params: Record<string, unknown>) {
   delete p.pageSize
   return p
 }
-
-function buildCommunityEntriesUrl(communityId: string | number | undefined | null) {
-  if (communityId == null || String(communityId) === '') return null
-  return `${MAILBOX_BASE}/${encodeURIComponent(String(communityId))}/entries`
+function activeCommunityId(fallback?: string | number | null): string | number | '' {
+  if (fallback !== undefined && fallback !== null && String(fallback) !== '') {
+    return fallback
+  }
+  const st = useCommunitiesStore.getState()
+  const id = st.selectedId
+  return id !== undefined && id !== null ? id : ''
 }
-
+function buildCommunityEntriesUrl(communityId: string | number | '' | null) {
+  if (communityId == null || String(communityId) === '') return null
+  return `${MAILBOX_COMMUNITY_BASE}/${encodeURIComponent(String(communityId))}/entries`
+}
 function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
   const candidates = [
     get(raw, 'entries'),
@@ -112,7 +117,6 @@ function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
     items.length
   return { items, total: Number(totalRaw ?? items.length) }
 }
-
 function pickIdFlat(o: Record<string, unknown>): string | number | '' {
   const keys = [
     'id',
@@ -137,7 +141,6 @@ function pickIdFlat(o: Record<string, unknown>): string | number | '' {
   }
   return ''
 }
-
 function pickIdDeep(o: Record<string, unknown>): string | number | '' {
   const direct = pickIdFlat(o)
   if (direct !== '') return direct
@@ -156,13 +159,11 @@ function pickIdDeep(o: Record<string, unknown>): string | number | '' {
   }
   return ''
 }
-
 function joinName(first: string, last: string, email: string) {
   const a = [first, last].map((s) => s.trim()).filter(Boolean)
   if (a.length) return a.join(' ')
   return email || ''
 }
-
 function toMailboxRow(v: unknown): MailboxRow {
   const o = isObject(v) ? v : {}
   const first = toString(get(o, 'recipientFirstName') ?? get(o, 'first_name') ?? get(o, 'recipient_first_name'))
@@ -175,36 +176,43 @@ function toMailboxRow(v: unknown): MailboxRow {
     recipientName: toString(get(o, 'recipientName') ?? get(o, 'recipient_name') ?? get(o, 'recipient') ?? composedRecipient),
     trackingNumber: toString(
       get(o, 'trackingNumber') ??
-      get(o, 'tracking_number') ??
-      get(o, 'tracking') ??
-      get(o, 'guide') ??
-      get(o, 'trackingCode') ??
-      get(o, 'tracking_code') ??
-      get(o, 'code')
+        get(o, 'tracking_number') ??
+        get(o, 'tracking') ??
+        get(o, 'guide') ??
+        get(o, 'trackingCode') ??
+        get(o, 'tracking_code') ??
+        get(o, 'code'),
     ),
     deliveryCompany: toString(
       get(o, 'deliveryCompany') ??
-      get(o, 'delivery_company') ??
-      get(o, 'company') ??
-      get(o, 'carrier') ??
-      get(o, 'courier') ??
-      get(o, 'delivery_company_name')
+        get(o, 'delivery_company') ??
+        get(o, 'company') ??
+        get(o, 'carrier') ??
+        get(o, 'courier') ??
+        get(o, 'delivery_company_name'),
     ),
     createdAt: toString(get(o, 'createdAt') ?? get(o, 'created_at') ?? get(o, 'created') ?? get(o, 'received_at') ?? get(o, 'receivedAt')),
     createdByGuard: (get(o, 'createdByGuard') ?? get(o, 'created_by_guard') ?? '') as string | number | '',
     createdBy: (get(o, 'created_by') ?? get(o, 'createdBy') ?? '') as string | number | '',
     isDelivered: toBoolean(
       get(o, 'isDelivered') ??
-      get(o, 'is_delivered') ??
-      get(o, 'delivered') ??
-      get(o, 'picked_up') ??
-      get(o, 'is_picked_up') ??
-      (toString(get(o, 'status')).toLowerCase() === 'delivered')
+        get(o, 'is_delivered') ??
+        get(o, 'delivered') ??
+        get(o, 'picked_up') ??
+        get(o, 'is_picked_up') ??
+        (toString(get(o, 'status')).toLowerCase() === 'delivered'),
     ),
     deliveredAt: toString(get(o, 'deliveredAt') ?? get(o, 'delivered_at') ?? get(o, 'picked_up_at') ?? get(o, 'pickedUpAt')),
     deliveredByGuard: (get(o, 'deliveredByGuard') ?? get(o, 'delivered_by_guard') ?? '') as string | number | '',
     imageUrl: toString(
-      get(o, 'imageUrl') ?? get(o, 'image_url') ?? get(o, 'image') ?? get(o, 'img') ?? get(o, 'photo_url') ?? get(o, 'picture') ?? get(o, 'thumbnail') ?? get(o, 'thumb_url')
+      get(o, 'imageUrl') ??
+        get(o, 'image_url') ??
+        get(o, 'image') ??
+        get(o, 'img') ??
+        get(o, 'photo_url') ??
+        get(o, 'picture') ??
+        get(o, 'thumbnail') ??
+        get(o, 'thumb_url'),
     ),
     folder: toString(get(o, 'folder')),
     subject: toString(get(o, 'subject')),
@@ -215,13 +223,13 @@ export async function apiGetMailboxList<
   T = { list: MailboxRow[]; total: number },
   U extends MailboxTableQueries = MailboxTableQueries
 >(params: U) {
-  const { communityId, ...rest } = params
-  const url = buildCommunityEntriesUrl(communityId as string | number | undefined)
+  const cid = activeCommunityId(params.communityId ?? null)
+  const url = buildCommunityEntriesUrl(cid)
   if (!url) return { list: [], total: 0 } as T
   const resp = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url,
     method: 'get',
-    params: withPagination(rest as Record<string, unknown>),
+    params: withPagination({ ...params, communityId: undefined }),
   })
   const { items, total } = pickItemsAndTotal(resp)
   const list = items.map(toMailboxRow)
@@ -239,9 +247,5 @@ export async function apiGetMailbox<
   })
 }
 
-const MailboxApi = {
-  apiGetMailboxList,
-  apiGetMailbox,
-}
-
+const MailboxApi = { apiGetMailboxList, apiGetMailbox }
 export default MailboxApi

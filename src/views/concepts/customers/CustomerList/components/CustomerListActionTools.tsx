@@ -5,26 +5,35 @@ import { useNavigate } from 'react-router'
 import useCustomerList from '../hooks/useCustomerList'
 import { CSVLink } from 'react-csv'
 
+function normalizeRole(raw: unknown): string {
+  const r = String(raw ?? '').toLowerCase()
+  if (r.includes('super') && r.includes('admin')) return 'Super Administrador'
+  if (r.includes('admin') && !r.includes('sub')) return 'Administrador'
+  return String(raw ?? '')
+}
+
 const CustomerListActionTools = () => {
   const navigate = useNavigate()
   const { customerList } = useCustomerList()
 
-  // Encabezados explícitos para el CSV
   const csvHeaders = [
     { label: 'ID', key: 'id' },
-    { label: 'Full Name', key: 'name' },
-    { label: 'Email', key: 'email' },
-    { label: 'Phone', key: 'phone' },
-    { label: 'Role', key: 'role' },
+    { label: 'Nombre', key: 'name' },
+    { label: 'Correo', key: 'email' },
+    { label: 'Teléfono', key: 'phone' },
+    { label: 'Rol', key: 'role' },
   ]
 
-  // Asegurar datos planos (por si algún campo viene undefined)
   const csvData = (customerList || []).map((u) => ({
     id: u.id,
-    name: u.name ?? '',
-    email: u.email ?? '',
-    phone: u.phone ?? '',
-    role: (u as any).role ?? '',
+    name:
+      (u as any).name ??
+      (u as any).full_name ??
+      [ (u as any).first_name, (u as any).last_name ].filter(Boolean).join(' ') ??
+      '',
+    email: (u as any).email ?? '',
+    phone: (u as any).phone ?? (u as any).phone_number ?? '',
+    role: normalizeRole((u as any).role ?? (u as any).role_name),
   }))
 
   return (
@@ -32,24 +41,17 @@ const CustomerListActionTools = () => {
       {csvData.length > 0 ? (
         <CSVLink
           className="w-full"
-          filename="customerList.csv"
+          filename="usuarios.csv"
           data={csvData}
           headers={csvHeaders}
         >
-          <Button
-            icon={<TbCloudDownload className="text-xl" />}
-            className="w-full"
-          >
-            Download
+          <Button icon={<TbCloudDownload className="text-xl" />} className="w-full">
+            Descargar
           </Button>
         </CSVLink>
       ) : (
-        <Button
-          icon={<TbCloudDownload className="text-xl" />}
-          className="w-full"
-          disabled
-        >
-          Download
+        <Button icon={<TbCloudDownload className="text-xl" />} className="w-full" disabled>
+          Descargar
         </Button>
       )}
 
@@ -58,7 +60,7 @@ const CustomerListActionTools = () => {
         icon={<TbUserPlus className="text-xl" />}
         onClick={() => navigate('/concepts/users/users-create')}
       >
-        Add new
+        Crear usuario
       </Button>
     </div>
   )

@@ -11,6 +11,8 @@ import { useNavigate } from 'react-router'
 import { useSWRConfig } from 'swr'
 import { apiCreateProperty } from '@/services/PropertiesService'
 
+const PROPERTIES_SWR_KEY = 'properties:list'
+
 const PropertiesCreate = () => {
   const navigate = useNavigate()
   const { mutate } = useSWRConfig()
@@ -26,7 +28,8 @@ const PropertiesCreate = () => {
         floor: Number(values.floor),
       }
       await apiCreateProperty(payload)
-      await mutate((key) => Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('/api/communities/properties'))
+
+      await mutate((key) => Array.isArray(key) && key[0] === PROPERTIES_SWR_KEY)
       toast.push(<Notification type="success">Propiedad creada</Notification>, { placement: 'top-center' })
       navigate('/concepts/properties/properties-list')
     } catch (err: any) {
@@ -64,10 +67,11 @@ const PropertiesCreate = () => {
                 }
                 icon={<TbTrash />}
                 onClick={handleDiscard}
+                disabled={isSubmitting}
               >
                 Descartar
               </Button>
-              <Button variant="solid" type="submit" loading={isSubmitting}>
+              <Button variant="solid" type="submit" loading={isSubmitting} disabled={isSubmitting}>
                 Crear
               </Button>
             </div>

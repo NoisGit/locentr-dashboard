@@ -47,7 +47,6 @@ type ReqConfig = {
 }
 
 type Dict = Record<string, unknown>
-
 type RoleLike = { id?: number | string; name?: string }
 type UserLike = {
   id?: number | string
@@ -105,6 +104,22 @@ function extractList(d: unknown): { items: unknown[]; total: number } {
   return { items, total }
 }
 
+function roleString(u: UserRow): string {
+  if (typeof u.role === 'string') return u.role
+  if (u.role && typeof u.role.name === 'string') return u.role.name
+  return ''
+}
+
+export function isAdminOrSuper(u: UserRow): 'ADMIN' | 'SUPERADMIN' | null {
+  const r = roleString(u).trim().toLowerCase()
+  if (!r) return null
+  if (r.includes('super') && r.includes('admin')) return 'SUPERADMIN'
+  if (r.includes('admin') && !r.includes('sub')) return 'ADMIN'
+  if (r === 'administrator' || r === 'administrador') return 'ADMIN'
+  if (r === 'super administrator' || r === 'super administrador') return 'SUPERADMIN'
+  return null
+}
+
 export async function apiListUsers(params: ListParams = {}): Promise<ListResult> {
   const queryParams: Record<string, unknown> = {}
   if (params.pageIndex != null) queryParams.pageIndex = params.pageIndex
@@ -115,6 +130,12 @@ export async function apiListUsers(params: ListParams = {}): Promise<ListResult>
   const d = await req<unknown>({ url: BASE_COLLECTION, method: 'get', params: queryParams })
   const { items, total } = extractList(d)
   return { items: items as UserRow[], total }
+}
+
+export async function apiListAdmins(params: ListParams = {}): Promise<ListResult> {
+  const res = await apiListUsers(params)
+  const items = (res.items as UserRow[]).filter((u) => isAdminOrSuper(u) !== null)
+  return { items, total: items.length }
 }
 
 export async function apiGetUserById(id: number | string) {
@@ -194,3 +215,18 @@ export function normalizeUser(u: UserRow | undefined | null) {
     role: roleName,
   }
 }
+
+const UsersApi = {
+  apiListUsers,
+  apiListAdmins,
+  apiGetUserById,
+  apiCreateUser,
+  apiUpdateUser,
+  apiDeleteUser,
+  apiGetMe,
+  isAdminOrSuper,
+  userDisplayName,
+  normalizeUser,
+}
+
+export default UsersApi

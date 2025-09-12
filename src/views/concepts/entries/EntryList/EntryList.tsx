@@ -9,7 +9,7 @@ const EntryList = () => {
       <AdaptiveCard>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row md:items-center gap-2">
-            <h3>Entries</h3>
+            <h3>Entradas</h3>
           </div>
           <EntryListTableTools />
           <EntryListTable />

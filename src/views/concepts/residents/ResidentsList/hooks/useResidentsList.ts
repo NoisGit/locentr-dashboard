@@ -1,4 +1,3 @@
-// src/views/concepts/residents/ResidentsList/hooks/useResidentsList.ts
 import useSWR from 'swr'
 import {
   apiGetResidentsList,
@@ -6,6 +5,7 @@ import {
   type TableQueries as ResidentsTableQueries,
 } from '@/services/ResidentsService'
 import { useResidentsListStore } from '../store/ResidentsListStore'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 
 export default function useResidentsList() {
   const {
@@ -20,11 +20,23 @@ export default function useResidentsList() {
     setFilterData,
   } = useResidentsListStore((state) => state)
 
-  const { data, error, isLoading, mutate } = useSWR(
-    ['/api/residents', { ...tableData, ...filterData }],
+  const { selectedId: communityId } = useCommunitiesStore()
+
+  const effectiveParams: ResidentsTableQueries = {
+    ...(tableData as ResidentsTableQueries),
+    ...(filterData as Partial<ResidentsTableQueries>),
+    communityId: communityId ?? '',
+  }
+
+  const swrKey = ['residents:list', effectiveParams, String(communityId ?? '')] as const
+
+  const { data, error, isLoading, mutate } = useSWR<GetResidentsListResponse>(
+    swrKey,
     ([, params]) =>
-      apiGetResidentsList<GetResidentsListResponse, ResidentsTableQueries>(params as ResidentsTableQueries),
-    { revalidateOnFocus: false }
+      apiGetResidentsList<GetResidentsListResponse, ResidentsTableQueries>(
+        params as ResidentsTableQueries,
+      ),
+    { revalidateOnFocus: false },
   )
 
   const residentsList = data?.list || []

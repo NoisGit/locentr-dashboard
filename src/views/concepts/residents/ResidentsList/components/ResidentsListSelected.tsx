@@ -2,12 +2,8 @@
 import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'
-import Dialog from '@/components/ui/Dialog'
-import Avatar from '@/components/ui/Avatar'
-import Tooltip from '@/components/ui/Tooltip'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { TbChecks } from 'react-icons/tb'
 import useResidentsList from '../hooks/useResidentsList'
@@ -25,14 +21,14 @@ const ResidentsListSelected = () => {
   } = useResidentsList()
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-  const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
-  const [sendMessageLoading, setSendMessageLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const hasSelection = (selectedResidents?.length ?? 0) > 0
 
   const handleDelete = () => setDeleteConfirmationOpen(true)
-  const handleCancel = () => { if (!deleteLoading) setDeleteConfirmationOpen(false) }
+  const handleCancel = () => {
+    if (!deleteLoading) setDeleteConfirmationOpen(false)
+  }
 
   const handleConfirmDelete = async () => {
     if (!hasSelection) {
@@ -42,13 +38,13 @@ const ResidentsListSelected = () => {
 
     setDeleteLoading(true)
 
-    const idsToDelete = Array.from(new Set(selectedResidents.map(s => String(s.id))))
+    const idsToDelete = Array.from(new Set(selectedResidents.map((s) => String(s.id))))
 
-    const newList = residentsList.filter(r => !idsToDelete.includes(String(r.id)))
+    const newList = residentsList.filter((r) => !idsToDelete.includes(String(r.id)))
     const newTotal = Math.max(0, (residentsListTotal ?? 0) - idsToDelete.length)
 
     if (newList.length === 0 && (tableData.pageIndex as number) > 1) {
-      setTableData(prev => ({ ...prev, pageIndex: (prev.pageIndex as number) - 1 }))
+      setTableData((prev) => ({ ...prev, pageIndex: (prev.pageIndex as number) - 1 }))
     }
 
     mutate({ list: newList, total: newTotal }, false)
@@ -56,8 +52,8 @@ const ResidentsListSelected = () => {
     setDeleteConfirmationOpen(false)
     setSelectAllResidents([])
 
-    const results = await Promise.allSettled(idsToDelete.map(id => apiDeleteResident(id)))
-    const success = results.filter(r => r.status === 'fulfilled').length
+    const results = await Promise.allSettled(idsToDelete.map((id) => apiDeleteResident(id)))
+    const success = results.filter((r) => r.status === 'fulfilled').length
     const failed = results.length - success
 
     try {
@@ -65,7 +61,7 @@ const ResidentsListSelected = () => {
     } catch {
       toast.push(
         <Notification type="danger">No se pudo sincronizar la lista con el servidor</Notification>,
-        { placement: 'top-center' }
+        { placement: 'top-center' },
       )
     }
 
@@ -74,35 +70,23 @@ const ResidentsListSelected = () => {
         <Notification type="success">
           {success === 1 ? 'Residente eliminado' : 'Residentes eliminados'}
         </Notification>,
-        { placement: 'top-center' }
+        { placement: 'top-center' },
       )
     } else if (success === 0) {
       toast.push(
         <Notification type="danger">
           {failed === 1 ? 'No se pudo eliminar el residente' : 'No se pudieron eliminar los residentes'}
         </Notification>,
-        { placement: 'top-center' }
+        { placement: 'top-center' },
       )
     } else {
       toast.push(
-        <Notification type="warning">
-          {`Se eliminaron ${success} y fallaron ${failed} residentes`}
-        </Notification>,
-        { placement: 'top-center' }
+        <Notification type="warning">{`Se eliminaron ${success} y fallaron ${failed} residentes`}</Notification>,
+        { placement: 'top-center' },
       )
     }
 
     setDeleteLoading(false)
-  }
-
-  const handleSend = () => {
-    setSendMessageLoading(true)
-    setTimeout(() => {
-      toast.push(<Notification type="success">Mensaje enviado</Notification>, { placement: 'top-center' })
-      setSendMessageLoading(false)
-      setSendMessageDialogOpen(false)
-      setSelectAllResidents([])
-    }, 500)
   }
 
   return (
@@ -133,14 +117,6 @@ const ResidentsListSelected = () => {
                 >
                   {deleteLoading ? 'Eliminando…' : 'Eliminar'}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="solid"
-                  onClick={() => setSendMessageDialogOpen(true)}
-                  disabled={deleteLoading}
-                >
-                  Mensaje
-                </Button>
               </div>
             </div>
           </div>
@@ -163,33 +139,6 @@ const ResidentsListSelected = () => {
         </p>
         <p>Esta acción no se puede deshacer.</p>
       </ConfirmDialog>
-
-      <Dialog
-        isOpen={sendMessageDialogOpen}
-        onRequestClose={() => setSendMessageDialogOpen(false)}
-        onClose={() => setSendMessageDialogOpen(false)}
-      >
-        <h5 className="mb-2">Enviar mensaje</h5>
-        <p>Enviar mensaje a los siguientes residentes</p>
-        <Avatar.Group chained omittedAvatarTooltip className="mt-4" maxCount={4} omittedAvatarProps={{ size: 30 }}>
-          {selectedResidents.map((r) => (
-            <Tooltip key={r.id} title={r.userName || r.propertyName || `ID ${r.id}`}>
-              <Avatar size={30} src={r.img} alt={r.userName || r.propertyName || `ID ${r.id}`} />
-            </Tooltip>
-          ))}
-        </Avatar.Group>
-        <div className="my-4">
-          <RichTextEditor content="" />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button size="sm" onClick={() => setSendMessageDialogOpen(false)} disabled={sendMessageLoading}>
-            Cancelar
-          </Button>
-          <Button size="sm" variant="solid" loading={sendMessageLoading} onClick={handleSend}>
-            Enviar
-          </Button>
-        </div>
-      </Dialog>
     </>
   )
 }

@@ -57,7 +57,7 @@ const CommunitySelect = () => {
     <div className="min-h-[70vh] w-full flex items-center justify-center">
       <Card className="w-full max-w-[420px]">
         <div className="p-6">
-          <h2 className="text-2xl font-semibold mb-2">Escoja su comunidad</h2>
+          <h2 className="text-2xl font-semibold mb-2">Selecciona tu comunidad</h2>
           <p className="text-sm text-gray-500 mb-6">Selecciona la comunidad con la que deseas trabajar.</p>
 
           <Loading loading={loading}>

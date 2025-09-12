@@ -1,8 +1,9 @@
+// src/views/concepts/users/CustomerList/components/CustomerListTable.tsx
 import { useMemo } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import DataTable from '@/components/shared/DataTable'
 import useCustomerList from '../hooks/useCustomerList'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
@@ -10,17 +11,31 @@ import type { Customer } from '../types'
 import type { TableQueries } from '@/@types/common'
 
 const NameColumn = ({ row }: { row: Customer }) => {
+  const avatarSrc = (row as any).avatar || (row as any).avatar_url || (row as any).img || ''
+  const displayName =
+    (row as any).name ||
+    (row as any).full_name ||
+    [ (row as any).first_name, (row as any).last_name ].filter(Boolean).join(' ') ||
+    ''
   return (
     <div className="flex items-center">
-      <Avatar size={40} shape="circle" src={row.avatar || ''} />
-      <Link
-        className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
-        to={`/concepts/users/users-edit/${row.id}`}
-      >
-        {row.name}
-      </Link>
+      <Avatar size={40} shape="circle" src={avatarSrc} />
+      <span className="ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100">
+        {displayName}
+      </span>
     </div>
   )
+}
+
+function roleDisplay(row: Customer): string {
+  const raw =
+    typeof (row as any).role === 'string'
+      ? (row as any).role
+      : (row as any).role?.name ?? (row as any).role_name ?? ''
+  const r = String(raw || '').toLowerCase()
+  if (r.includes('super') && r.includes('admin')) return 'Super Administrador'
+  if (r.includes('admin') && !r.includes('sub')) return 'Administrador'
+  return raw || ''
 }
 
 const ActionColumn = ({ onEdit }: { onEdit: () => void }) => {
@@ -30,7 +45,7 @@ const ActionColumn = ({ onEdit }: { onEdit: () => void }) => {
         className="text-xl cursor-pointer select-none font-semibold"
         role="button"
         onClick={onEdit}
-        title="Edit"
+        title="Editar"
       >
         <TbPencil />
       </div>
@@ -59,21 +74,24 @@ const CustomerListTable = () => {
   const columns: ColumnDef<Customer>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Nombre',
         accessorKey: 'name',
         cell: (props) => <NameColumn row={props.row.original} />,
       },
       {
-        header: 'Email',
+        header: 'Correo',
         accessorKey: 'email',
+        cell: (props) => <span>{String((props.row.original as any).email ?? '')}</span>,
       },
       {
-        header: 'Phone',
+        header: 'Teléfono',
         accessorKey: 'phone',
+        cell: (props) => <span>{String((props.row.original as any).phone ?? (props.row.original as any).phone_number ?? '')}</span>,
       },
       {
-        header: 'Role',
+        header: 'Rol',
         accessorKey: 'role',
+        cell: (props) => <span>{roleDisplay(props.row.original)}</span>,
       },
       {
         header: '',

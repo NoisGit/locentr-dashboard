@@ -1,10 +1,15 @@
+// src/main.tsx (o src/index.tsx)
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
-import './index.css'    
+import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>,
-)
+const root = ReactDOM.createRoot(document.getElementById('root')!)
+
+const app = <App />
+
+if (import.meta.env.DEV) {
+  root.render(app)
+} else {
+  root.render(<React.StrictMode>{app}</React.StrictMode>)
+}
