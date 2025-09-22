@@ -1,122 +1,90 @@
-import { useState, useEffect } from 'react'
+// src/views/concepts/news/ManageArticle/components/ArticleListSelected.tsx
+import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { useManageArticleStore } from '../store/manageArticleStore'
-import useManageArticle from '../hooks/useManageArticle'
 import { TbChecks } from 'react-icons/tb'
-import classNames from '@/utils/classNames'
+import useManageArticle from '../hooks/useManageArticle'
+import { useManageArticleStore } from '../store/manageArticleStore'
+import { apiDeleteNews } from '@/services/NewsService'
 
 const ArticleListSelected = () => {
-    const { articleList, mutate, articleTotal } = useManageArticle()
+  const { selectedArticle, setSelectAllArticle } = useManageArticleStore()
+  const { articleList, articleTotal, tableData, communityId, mutate } = useManageArticle()
 
-    const selectedArticle = useManageArticleStore(
-        (state) => state.selectedArticle,
-    )
-    const setSelectAllArticle = useManageArticleStore(
-        (state) => state.setSelectAllArticle,
-    )
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-    const hasSelectedArticle = selectedArticle.length > 0
+  const hasSelection = (selectedArticle?.length ?? 0) > 0
 
-    const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
+  const handleConfirm = async () => {
+    if (!communityId) return
+    setLoading(true)
 
-    const handleDelete = () => {
-        setDeleteConfirmationOpen(true)
-    }
+    const ids = Array.from(new Set(selectedArticle.map((s) => String(s.id))))
+    const newList = articleList.filter((a) => !ids.includes(String(a.id)))
+    const newTotal = Math.max(0, (articleTotal ?? 0) - ids.length)
 
-    const handleCancel = () => {
-        setDeleteConfirmationOpen(false)
-    }
+    await mutate({ list: newList, total: newTotal }, false)
+    setOpen(false)
+    setSelectAllArticle([])
 
-    const handleConfirmDelete = () => {
-        const newArticleList = articleList.filter((article) => {
-            return !selectedArticle.some(
-                (selected) => selected.id === article.id,
-            )
-        })
-        setSelectAllArticle([])
-        mutate(
-            {
-                list: newArticleList,
-                total: articleTotal - selectedArticle.length,
-            },
-            false,
-        )
-        setDeleteConfirmationOpen(false)
-    }
+    await Promise.allSettled(ids.map((id) => apiDeleteNews(String(communityId), id)))
+    await mutate()
 
-    useEffect(() => {
-        if (hasSelectedArticle) {
-            window.scrollBy({
-                top: 20,
-                left: 0,
-                behavior: 'smooth',
-            })
-        }
-    }, [hasSelectedArticle])
+    setLoading(false)
+  }
 
-    return (
-        <>
-            <StickyFooter
-                className={classNames(
-                    'flex items-center justify-between py-4 bg-white dark:bg-gray-800',
-                    !hasSelectedArticle && 'hidden',
-                )}
-                stickyClass="border-t border-gray-200 dark:border-gray-700 px-8 -mx-4 sm:-mx-8"
-                defaultClass="container mx-auto px-8 rounded-xl border border-gray-200 dark:border-gray-600 mt-4"
-            >
-                <div className="container mx-auto">
-                    <div className="flex items-center justify-between">
-                        <span>
-                            {selectedArticle.length > 0 && (
-                                <span className="flex items-center gap-2">
-                                    <span className="text-lg text-primary">
-                                        <TbChecks />
-                                    </span>
-                                    <span className="font-semibold flex items-center gap-1">
-                                        <span className="heading-text">
-                                            {selectedArticle.length} Articles
-                                        </span>
-                                        <span>selected</span>
-                                    </span>
-                                </span>
-                            )}
-                        </span>
+  return hasSelection ? (
+    <>
+      <StickyFooter
+        className="flex items-center justify-between py-4 bg-white dark:bg-gray-800"
+        stickyClass="-mx-4 sm:-mx-8 border-t border-gray-200 dark:border-gray-700 px-8"
+        defaultClass="container mx-auto px-8 rounded-xl border border-gray-200 dark:border-gray-600 mt-4"
+      >
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TbChecks className="text-lg text-primary" />
+              <span className="font-semibold heading-text">
+                {selectedArticle.length} noticias seleccionadas
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                type="button"
+                customColorClass={() =>
+                  'border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error'
+                }
+                onClick={() => setOpen(true)}
+                disabled={loading}
+              >
+                {loading ? 'Eliminando…' : 'Eliminar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </StickyFooter>
 
-                        <div className="flex items-center">
-                            <Button
-                                size="sm"
-                                className="ltr:mr-3 rtl:ml-3"
-                                type="button"
-                                customColorClass={() =>
-                                    'border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error'
-                                }
-                                onClick={handleDelete}
-                            >
-                                Delete
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </StickyFooter>
-            <ConfirmDialog
-                isOpen={deleteConfirmationOpen}
-                type="danger"
-                title="Remove articles"
-                onClose={handleCancel}
-                onRequestClose={handleCancel}
-                onCancel={handleCancel}
-                onConfirm={handleConfirmDelete}
-            >
-                <p>
-                    {' '}
-                    Are you sure you want to remove these articles? This action
-                    can&apos;t be undo.{' '}
-                </p>
-            </ConfirmDialog>
-        </>
-    )
+      <ConfirmDialog
+        isOpen={open}
+        type="danger"
+        title={selectedArticle.length === 1 ? 'Eliminar noticia' : 'Eliminar noticias'}
+        onClose={() => setOpen(false)}
+        onRequestClose={() => setOpen(false)}
+        onCancel={() => setOpen(false)}
+        onConfirm={handleConfirm}
+      >
+        <p className="mb-2">
+          {selectedArticle.length === 1
+            ? '¿Estás segura de que quieres eliminar esta noticia?'
+            : `¿Estás segura de que quieres eliminar estas ${selectedArticle.length} noticias?`}
+        </p>
+        <p>Esta acción no se puede deshacer.</p>
+      </ConfirmDialog>
+    </>
+  ) : null
 }
 
 export default ArticleListSelected

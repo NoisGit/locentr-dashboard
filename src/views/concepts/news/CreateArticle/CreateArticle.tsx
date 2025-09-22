@@ -1,3 +1,4 @@
+// src/views/concepts/news/ManageArticle/CreateArticle.tsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import toast from '@/components/ui/toast'
@@ -5,32 +6,53 @@ import Notification from '@/components/ui/Notification'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
-import sleep from '@/utils/sleep'
 import ArticleForm from './ArticleForm'
-import type { Article } from './types'
 import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { apiCreateNews } from '@/services/NewsService'
 
 const CreateArticle = () => {
   const navigate = useNavigate()
   const [discardConfirmationOpen, setDiscardConfirmationOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { selectedId: communityId } = useCommunitiesStore()
 
   const handleFormSubmit = async (values: Article) => {
+    if (communityId == null || communityId === '') {
+      toast.push(<Notification type="warning">Selecciona una comunidad en el encabezado.</Notification>, {
+        placement: 'top-center',
+      })
+      return
+    }
     setIsSubmitting(true)
-    console.log('Submitted:', values)
-    await sleep(800)
-    toast.push(<Notification type="success">Article created successfully</Notification>, {
-      placement: 'top-center',
-    })
-    setIsSubmitting(false)
-    navigate('/concepts/news/manage-article')
+    try {
+      await apiCreateNews(String(communityId), {
+        title: values.title,
+        content: values.content,
+        authors: values.authors,
+        tags: values.tags,
+      })
+      toast.push(<Notification type="success">Noticia creada correctamente</Notification>, {
+        placement: 'top-center',
+      })
+      navigate('/concepts/news/manage-article')
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        e?.message ||
+        'No se pudo crear la noticia'
+      toast.push(<Notification type="danger">{msg}</Notification>, { placement: 'top-center' })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleDiscard = () => setDiscardConfirmationOpen(true)
 
   const handleConfirmDiscard = () => {
-    toast.push(<Notification type="success">Changes discarded</Notification>, {
+    toast.push(<Notification type="success">Cambios descartados</Notification>, {
       placement: 'top-center',
     })
     navigate('/concepts/news/manage-article')
@@ -57,10 +79,10 @@ const CreateArticle = () => {
                   icon={<TbTrash />}
                   onClick={handleDiscard}
                 >
-                  Discard
+                  Descartar
                 </Button>
                 <Button variant="solid" type="submit" loading={isSubmitting}>
-                  Create
+                  Crear
                 </Button>
               </div>
             </ArticleForm>
@@ -71,13 +93,13 @@ const CreateArticle = () => {
       <ConfirmDialog
         isOpen={discardConfirmationOpen}
         type="danger"
-        title="Discard changes?"
+        title="¿Descartar cambios?"
         onClose={() => setDiscardConfirmationOpen(false)}
         onRequestClose={() => setDiscardConfirmationOpen(false)}
         onCancel={() => setDiscardConfirmationOpen(false)}
         onConfirm={handleConfirmDiscard}
       >
-        <p>Are you sure you want to discard this article? This action cannot be undone.</p>
+        <p>¿Seguro que quieres descartar esta noticia? Esta acción no se puede deshacer.</p>
       </ConfirmDialog>
     </>
   )

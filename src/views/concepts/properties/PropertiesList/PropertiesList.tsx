@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
-
 import PropertiesListTable from './components/PropertiesListTable'
 import PropertiesListActionTools from './components/PropertiesListActionTools'
 import PropertiesListTableTools from './components/PropertiesListTableTools'
@@ -28,9 +27,6 @@ const PropertiesList = () => {
             <p className="text-sm text-red-600 dark:text-red-400">{serverMsg}</p>
             <div className="flex gap-3">
               <Button onClick={() => mutate()} variant="solid">Reintentar</Button>
-              <Button onClick={() => navigate('/concepts/properties/properties-create')}>
-                Crear propiedad
-              </Button>
             </div>
           </div>
         </AdaptiveCard>
@@ -43,15 +39,10 @@ const PropertiesList = () => {
       <Container>
         <AdaptiveCard>
           <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-            <h3 className="text-lg font-semibold">Aún no has creado ninguna propiedad</h3>
+            <h3 className="text-lg font-semibold">No hay propiedades</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Crea tu primera propiedad para comenzar a gestionarla.
+              Cuando se creen propiedades aparecerán aquí.
             </p>
-            <div className="flex gap-3">
-              <Button variant="solid" onClick={() => navigate('/concepts/properties/properties-create')}>
-                Crear propiedad
-              </Button>
-            </div>
           </div>
         </AdaptiveCard>
       </Container>

@@ -1,12 +1,11 @@
 // src/views/concepts/condos/CondosList/components/CondosListTable.tsx
 import { useMemo } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import useCondosList from '../hooks/useCondosList'
 import { Link, useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
-import { TbPencil } from 'react-icons/tb' // 👈 quitado TbEye
+import { TbPencil } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { Condo } from '../types'
 import type { TableQueries } from '@/@types/common'
@@ -14,9 +13,8 @@ import type { TableQueries } from '@/@types/common'
 const NameColumn = ({ row }: { row: Condo }) => {
   return (
     <div className="flex items-center">
-      <Avatar size={40} shape="circle" src={(row as any).img || ''} />
       <Link
-        className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
+        className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100"
         to={`/concepts/condos/condos-details/${row.id}`}
       >
         {String((row as any).name ?? '')}
@@ -37,7 +35,6 @@ const ActionColumn = ({ onEdit }: { onEdit: () => void }) => {
           <TbPencil />
         </div>
       </Tooltip>
-      {/* 👇 Botón de "ver" eliminado */}
     </div>
   )
 }
@@ -60,8 +57,6 @@ const CondosListTable = () => {
     navigate(`/concepts/condos/condos-edit/${condo.id}`)
   }
 
-  // 👇 quitado: handleViewDetails (ya no se usa)
-
   const columns: ColumnDef<Condo>[] = useMemo(
     () => [
       {
@@ -83,9 +78,7 @@ const CondosListTable = () => {
         header: '',
         id: 'action',
         cell: (props) => (
-          <ActionColumn
-            onEdit={() => handleEdit(props.row.original)}
-          />
+          <ActionColumn onEdit={() => handleEdit(props.row.original)} />
         ),
       },
     ],
@@ -141,8 +134,6 @@ const CondosListTable = () => {
       columns={columns}
       data={condosList}
       noData={!isLoading && condosList.length === 0}
-      skeletonAvatarColumns={[0]}
-      skeletonAvatarProps={{ width: 28, height: 28 }}
       loading={isLoading}
       pagingData={{
         total: condosListTotal,

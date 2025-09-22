@@ -1,29 +1,40 @@
-import { useManageArticleStore } from '../store/manageArticleStore'
-import { apiGetArticleList } from '@/services/NewsService'
+// src/views/concepts/news/ManageArticle/hooks/useManageArticle.ts
 import useSWR from 'swr'
-import type { TableQueries } from '@/@types/common'
+import { useManageArticleStore } from '../store/manageArticleStore'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { apiGetCommunityNews, type TableQueries as NewsQueries } from '@/services/NewsService'
 import type { GetArticleListResponse } from '../types'
 
 const useManageArticle = () => {
-    const tableData = useManageArticleStore((state) => state.tableData)
-    const filterData = useManageArticleStore((state) => state.filterData)
+  const { tableData, filterData } = useManageArticleStore()
+  const { selectedId: communityId } = useCommunitiesStore()
 
-    const { data, isLoading, mutate } = useSWR(
-        ['/helps/manage/articles', { ...tableData, ...filterData }],
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ([_, params]) =>
-            apiGetArticleList<GetArticleListResponse, TableQueries>(params),
-        {
-            revalidateOnFocus: false,
-        },
-    )
+  const effectiveParams: NewsQueries = {
+    ...(tableData as NewsQueries),
+    ...(filterData?.query ? { query: filterData.query } : {}),
+  }
 
-    return {
-        articleList: data?.list || [],
-        articleTotal: data?.total || 0,
-        isLoading,
-        mutate,
-    }
+  const swrKey =
+    communityId != null && communityId !== ''
+      ? (['news:list', String(communityId), effectiveParams] as const)
+      : null
+
+  const { data, isLoading, error, mutate } = useSWR<GetArticleListResponse>(
+    swrKey,
+    ([, cid, params]) => apiGetCommunityNews<GetArticleListResponse, NewsQueries>(cid, params as NewsQueries),
+    { revalidateOnFocus: false }
+  )
+
+  return {
+    articleList: data?.list || [],
+    articleTotal: data?.total || 0,
+    isLoading,
+    error,
+    mutate,
+    tableData,
+    filterData,
+    communityId,
+  }
 }
 
 export default useManageArticle

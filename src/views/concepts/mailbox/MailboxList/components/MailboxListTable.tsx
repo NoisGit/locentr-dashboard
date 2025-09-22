@@ -1,12 +1,8 @@
 // src/views/concepts/mailbox/MailboxList/components/MailboxListTable.tsx
 import { useMemo, useCallback } from 'react'
-import Avatar from '@/components/ui/Avatar'
-import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import useMailboxList from '../hooks/useMailboxList'
-import { Link, useNavigate } from 'react-router-dom'
 import cloneDeep from 'lodash/cloneDeep'
-import { TbEye } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
 import type { MailboxEntry } from '../types'
@@ -59,52 +55,16 @@ function readBool(row: unknown, keys: string[]): boolean {
 
 const RecipientColumn = ({ row }: { row: MailboxEntry }) => {
   const id = resolveIdFromRow(row)
-  const to = id ? `/concepts/mailbox/mailbox-details/${id}` : `/concepts/mailbox/mailbox-list`
-  const img = readStr(row, ['imageUrl', 'image_url', 'img', 'photo_url', 'picture', 'image'])
   const name = readStr(row, ['recipientName', 'recipient_name', 'recipient']) || (id ? `#${id}` : '#')
   return (
     <div className="flex items-center">
-      <Avatar size={40} shape="circle" src={img} />
-      {id ? (
-        <Link
-          className="hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100"
-          to={to}
-        >
-          {name}
-        </Link>
-      ) : (
-        <span className="ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100">{name}</span>
-      )}
+      <span className="font-semibold text-gray-900 dark:text-gray-100">{name}</span>
     </div>
   )
 }
 
-const ActionColumn = ({ onViewDetail }: { onViewDetail: () => void }) => (
-  <div className="flex items-center gap-3">
-    <Tooltip title="Ver detalle">
-      <div
-        className="text-xl cursor-pointer select-none font-semibold"
-        role="button"
-        onClick={onViewDetail}
-      >
-        <TbEye />
-      </div>
-    </Tooltip>
-  </div>
-)
-
 const MailboxListTable = () => {
-  const navigate = useNavigate()
-
   const { mailboxList, mailboxListTotal, tableData, isLoading, setTableData } = useMailboxList()
-
-  const handleViewDetails = useCallback(
-    (entry: MailboxEntry) => {
-      const id = resolveIdFromRow(entry)
-      if (id) navigate(`/concepts/mailbox/mailbox-details/${id}`)
-    },
-    [navigate],
-  )
 
   const fmtDate = useCallback((v?: string) => (v ? new Date(v).toLocaleString() : ''), [])
 
@@ -142,13 +102,8 @@ const MailboxListTable = () => {
           return <span>{fmtDate(deliveredAt)}</span>
         },
       },
-      {
-        header: '',
-        id: 'action',
-        cell: (props) => <ActionColumn onViewDetail={() => handleViewDetails(props.row.original)} />,
-      },
     ],
-    [handleViewDetails, fmtDate],
+    [fmtDate],
   )
 
   const handleSetTableData = (data: TableQueries) => setTableData(data)
@@ -177,8 +132,6 @@ const MailboxListTable = () => {
       columns={columns}
       data={mailboxList}
       noData={!isLoading && mailboxList.length === 0}
-      skeletonAvatarColumns={[0]}
-      skeletonAvatarProps={{ width: 28, height: 28 }}
       loading={isLoading}
       pagingData={{
         total: mailboxListTotal,

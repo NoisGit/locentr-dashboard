@@ -1,189 +1,149 @@
+// src/views/concepts/news/ManageArticle/components/ArticleListTable.tsx
 import { useMemo } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
-import Switcher from '@/components/ui/Switcher'
-import { UsersAvatarGroup } from '@/components/shared'
 import DataTable from '@/components/shared/DataTable'
 import { useManageArticleStore } from '../store/manageArticleStore'
 import useManageArticle from '../hooks/useManageArticle'
-import { categoryIcon, categoryClass } from '../utils'
-import classNames from '@/utils/classNames'
-import { Link } from 'react-router'
-import { HiOutlinePencil } from 'react-icons/hi' // 👈 lápiz importado
+import { HiOutlinePencil } from 'react-icons/hi'
+import { Link } from 'react-router-dom' // sólo para el lápiz
 
 import type { TableQueries } from '@/@types/common'
-import type { Article } from '../types'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
+import type { Article } from '../types'
 
 const ArticleListTable = () => {
-    const tableData = useManageArticleStore((state) => state.tableData)
-    const selectedArticle = useManageArticleStore((state) => state.selectedArticle)
-    const setSelectedArticle = useManageArticleStore((state) => state.setSelectedArticle)
-    const setSelectAllArticle = useManageArticleStore((state) => state.setSelectAllArticle)
-    const setTableData = useManageArticleStore((state) => state.setTableData)
+  const tableData = useManageArticleStore((s) => s.tableData)
+  const selectedArticle = useManageArticleStore((s) => s.selectedArticle)
+  const setSelectedArticle = useManageArticleStore((s) => s.setSelectedArticle)
+  const setSelectAllArticle = useManageArticleStore((s) => s.setSelectAllArticle)
+  const setTableData = useManageArticleStore((s) => s.setTableData)
 
-    const { articleList, articleTotal, isLoading } = useManageArticle()
+  const { articleList, articleTotal, isLoading } = useManageArticle()
 
-    const columns: ColumnDef<Article>[] = useMemo(
-        () => [
-            {
-                header: 'Title',
-                accessorKey: 'title',
-                cell: (props) => {
-                    const row = props.row.original
-                    return (
-                        <div className="flex items-center gap-4">
-                            <Avatar
-                                icon={categoryIcon[row.category]}
-                                shape="round"
-                                className={classNames(
-                                    'text-gray-900',
-                                    categoryClass[row.category],
-                                )}
-                            />
-                            <div>
-                                <div className="mb-2">
-                                    <Link
-                                        to={`/concepts/news/article/${row.id}`}
-                                        className="font-bold heading-text hover:text-primary"
-                                    >
-                                        {row.title}
-                                    </Link>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    {row.tags.map((tag) => (
-                                        <Tag key={tag.id}>{tag.label}</Tag>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )
-                },
-            },
-            {
-                header: 'Authors',
-                accessorKey: 'authors',
-                enableSorting: false,
-                cell: (props) => {
-                    const row = props.row.original
-                    return (
-                        <UsersAvatarGroup
-                            avatarProps={{ size: 25 }}
-                            users={row.authors || []}
-                        />
-                    )
-                },
-            },
-            {
-                header: 'Last update',
-                accessorKey: 'updateTimeStamp',
-                cell: (props) => {
-                    const row = props.row.original
-                    return <div>{row.updateTime}</div>
-                },
-            },
-            {
-                header: 'Published',
-                accessorKey: 'published',
-                enableSorting: false,
-                cell: (props) => {
-                    const row = props.row.original
-                    return (
-                        <div className="px-4">
-                            <Switcher defaultChecked={row.published} />
-                        </div>
-                    )
-                },
-            },
-            {
-                header: '',
-                accessorKey: 'actions',
-                enableSorting: false,
-                cell: (props) => {
-                    const row = props.row.original
-                    return (
-                        <div className="text-right pr-2">
-                            <Link
-                                to={`/concepts/news/edit-article/${row.id}`}
-                                className="text-xl text-gray-500 hover:text-primary"
-                                title="Edit article"
-                            >
-                                <HiOutlinePencil />
-                            </Link>
-                        </div>
-                    )
-                },
-            },
-        ],
-        [],
-    )
+  const columns: ColumnDef<Article>[] = useMemo(
+    () => [
+      {
+        header: 'Título',
+        accessorKey: 'title',
+        cell: (props) => {
+          const row = props.row.original
+          return (
+            <div className="flex items-start gap-3">
+              <div className="min-w-0">
+                <div className="mb-1 leading-snug">
+                  <span className="font-bold heading-text break-words">{row.title}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  {(row.tags || []).map((tag) => (
+                    <Tag key={tag.id}>{tag.label}</Tag>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        header: 'Autor',
+        accessorKey: 'authors',
+        enableSorting: false,
+        cell: (props) => {
+          const r = props.row.original as unknown as Record<string, unknown>
+          const a =
+            (typeof r['author'] === 'string' && (r['author'] as string)) ||
+            (typeof r['author_name'] === 'string' && (r['author_name'] as string)) ||
+            ''
+          return <span className="truncate">{a || '—'}</span>
+        },
+      },
+      {
+        header: 'Última actualización',
+        accessorKey: 'updateTimeStamp',
+        cell: (props) => <div>{props.row.original.updateTime || '—'}</div>,
+      },
+      {
+        header: '',
+        id: 'action',
+        enableSorting: false,
+        cell: (props) => {
+          const row = props.row.original
+          const id = String((row as unknown as { id?: string | number }).id ?? '').trim()
+          return (
+            <div className="text-right pr-2">
+              {id ? (
+                <Link
+                  to={`/concepts/news/edit-article/${id}`}
+                  className="text-xl text-gray-500 hover:text-primary"
+                  title="Editar noticia"
+                >
+                  <HiOutlinePencil />
+                </Link>
+              ) : (
+                <span className="text-xl text-gray-300" title="Sin ID para editar">
+                  <HiOutlinePencil />
+                </span>
+              )}
+            </div>
+          )
+        },
+      },
+    ],
+    []
+  )
 
-    const handleSetTableData = (articleList: TableQueries) => {
-        setTableData(articleList)
-        if (selectedArticle.length > 0) {
-            setSelectAllArticle([])
-        }
-    }
+  const handleSetTableData = (data: TableQueries) => {
+    setTableData(data)
+    if (selectedArticle.length > 0) setSelectAllArticle([])
+  }
 
-    const handlePaginationChange = (page: number) => {
-        const newTableData = structuredClone(tableData)
-        newTableData.pageIndex = page
-        handleSetTableData(newTableData)
-    }
+  const handlePaginationChange = (page: number) => {
+    const next = structuredClone(tableData)
+    next.pageIndex = page
+    handleSetTableData(next)
+  }
 
-    const handleSelectChange = (value: number) => {
-        const newTableData = structuredClone(tableData)
-        newTableData.pageSize = Number(value)
-        newTableData.pageIndex = 1
-        handleSetTableData(newTableData)
-    }
+  const handleSelectChange = (value: number) => {
+    const next = structuredClone(tableData)
+    next.pageSize = Number(value)
+    next.pageIndex = 1
+    handleSetTableData(next)
+  }
 
-    const handleSort = (sort: OnSortParam) => {
-        const newTableData = structuredClone(tableData)
-        newTableData.sort = sort
-        handleSetTableData(newTableData)
-    }
+  const handleSort = (sort: OnSortParam) => {
+    const next = structuredClone(tableData)
+    next.sort = sort
+    handleSetTableData(next)
+  }
 
-    const handleRowSelect = (checked: boolean, row: Article) => {
-        setSelectedArticle(checked, row)
-    }
+  const handleRowSelect = (checked: boolean, row: Article) => setSelectedArticle(checked, row)
 
-    const handleAllRowSelect = (checked: boolean, rows: Row<Article>[]) => {
-        if (checked) {
-            const originalRows = rows.map((row) => row.original)
-            setSelectAllArticle(originalRows)
-        } else {
-            setSelectAllArticle([])
-        }
-    }
+  const handleAllRowSelect = (checked: boolean, rows: Row<Article>[]) => {
+    if (checked) setSelectAllArticle(rows.map((r) => r.original))
+    else setSelectAllArticle([])
+  }
 
-    return (
-        <div>
-            <DataTable
-                selectable
-                hoverable={false}
-                columns={columns}
-                data={articleList}
-                noData={!isLoading && articleList.length === 0}
-                skeletonAvatarColumns={[0]}
-                skeletonAvatarProps={{ width: 28, height: 28 }}
-                loading={isLoading}
-                pagingData={{
-                    total: articleTotal || 0,
-                    pageIndex: tableData.pageIndex as number,
-                    pageSize: tableData.pageSize as number,
-                }}
-                checkboxChecked={(row) =>
-                    selectedArticle.some((selected) => selected.id === row.id)
-                }
-                onPaginationChange={handlePaginationChange}
-                onSelectChange={handleSelectChange}
-                onSort={handleSort}
-                onCheckBoxChange={handleRowSelect}
-                onIndeterminateCheckBoxChange={handleAllRowSelect}
-            />
-        </div>
-    )
+  return (
+    <DataTable
+      selectable
+      hoverable={false}
+      columns={columns}
+      data={articleList}
+      noData={!isLoading && articleList.length === 0}
+      skeletonAvatarColumns={[]}
+      loading={isLoading}
+      pagingData={{
+        total: articleTotal || 0,
+        pageIndex: tableData.pageIndex as number,
+        pageSize: tableData.pageSize as number,
+      }}
+      checkboxChecked={(row) => selectedArticle.some((s) => s.id === row.id)}
+      onPaginationChange={handlePaginationChange}
+      onSelectChange={handleSelectChange}
+      onSort={handleSort}
+      onCheckBoxChange={handleRowSelect}
+      onIndeterminateCheckBoxChange={handleAllRowSelect}
+    />
+  )
 }
 
 export default ArticleListTable

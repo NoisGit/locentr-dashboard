@@ -1,12 +1,9 @@
+// src/views/concepts/condos/CondosList/components/CondosListSelected.tsx
 import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'
-import Dialog from '@/components/ui/Dialog'
-import Avatar from '@/components/ui/Avatar'
-import Tooltip from '@/components/ui/Tooltip'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useCondosList from '../hooks/useCondosList'
 import { TbChecks } from 'react-icons/tb'
@@ -24,8 +21,6 @@ const CondosListSelected = () => {
   } = useCondosList()
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-  const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
-  const [sendMessageLoading, setSendMessageLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const hasSelection = (selectedCondos?.length ?? 0) > 0
@@ -93,16 +88,6 @@ const CondosListSelected = () => {
     setDeleteLoading(false)
   }
 
-  const handleSend = () => {
-    setSendMessageLoading(true)
-    setTimeout(() => {
-      toast.push(<Notification type="success">Mensaje enviado</Notification>, { placement: 'top-center' })
-      setSendMessageLoading(false)
-      setSendMessageDialogOpen(false)
-      setSelectAllCondos([])
-    }, 500)
-  }
-
   return (
     <>
       {hasSelection && (
@@ -131,14 +116,6 @@ const CondosListSelected = () => {
                 >
                   {deleteLoading ? 'Eliminando…' : 'Eliminar'}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="solid"
-                  onClick={() => setSendMessageDialogOpen(true)}
-                  disabled={deleteLoading}
-                >
-                  Mensaje
-                </Button>
               </div>
             </div>
           </div>
@@ -161,33 +138,6 @@ const CondosListSelected = () => {
         </p>
         <p>Esta acción no se puede deshacer.</p>
       </ConfirmDialog>
-
-      <Dialog
-        isOpen={sendMessageDialogOpen}
-        onRequestClose={() => setSendMessageDialogOpen(false)}
-        onClose={() => setSendMessageDialogOpen(false)}
-      >
-        <h5 className="mb-2">Enviar mensaje</h5>
-        <p>Enviar mensaje a los siguientes condominios</p>
-        <Avatar.Group chained omittedAvatarTooltip className="mt-4" maxCount={4} omittedAvatarProps={{ size: 30 }}>
-          {selectedCondos.map((condo) => (
-            <Tooltip key={condo.id} title={condo.name}>
-              <Avatar size={30} src={condo.img} alt={condo.name} />
-            </Tooltip>
-          ))}
-        </Avatar.Group>
-        <div className="my-4">
-          <RichTextEditor content="" />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button size="sm" onClick={() => setSendMessageDialogOpen(false)} disabled={sendMessageLoading}>
-            Cancelar
-          </Button>
-          <Button size="sm" variant="solid" loading={sendMessageLoading} onClick={handleSend}>
-            Enviar
-          </Button>
-        </div>
-      </Dialog>
     </>
   )
 }

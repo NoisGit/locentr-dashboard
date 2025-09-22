@@ -1,12 +1,10 @@
 // src/views/concepts/properties/PropertiesList/components/PropertiesListActionTools.tsx
 import Button from '@/components/ui/Button'
-import { TbCloudDownload, TbUserPlus } from 'react-icons/tb'
-import { useNavigate } from 'react-router-dom'
+import { TbCloudDownload } from 'react-icons/tb'
 import { CSVLink } from 'react-csv'
 import usePropertiesList from '../hooks/usePropertiesList'
 
 const PropertiesListActionTools = () => {
-  const navigate = useNavigate()
   const { propertiesList } = usePropertiesList()
 
   return (
@@ -16,14 +14,6 @@ const PropertiesListActionTools = () => {
           Download
         </Button>
       </CSVLink>
-      <Button
-        variant="solid"
-        icon={<TbUserPlus className="text-xl" />}
-        onClick={() => navigate('/concepts/properties/properties-create')}
-        className="w-full md:w-auto"
-      >
-        Add new
-      </Button>
     </div>
   )
 }
