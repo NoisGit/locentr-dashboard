@@ -1,4 +1,3 @@
-// src/views/dashboards/dashboards.navigation.config.ts
 import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
 import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
@@ -143,6 +142,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 subMenu: [],
             },
         ],
+    },
+    {
+        key: 'concepts.invitations',
+        path: `${CONCEPTS_PREFIX_PATH}/invitations/invitations-list`,
+        title: 'Invitaciones',
+        translateKey: 'nav.invitations',
+        icon: 'orders',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN, USER],
+        meta: {
+            description: {
+                translateKey: 'nav.invitationsDesc',
+                label: 'Gestión de invitaciones',
+            },
+        },
+        subMenu: [],
     },
     {
         key: 'concepts.perks',

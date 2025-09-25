@@ -1,4 +1,4 @@
-// src/views/concepts/condos/CondosDetails/index.tsx
+// src/views/concepts/condos/CondosDetails.tsx
 import { useEffect, useMemo, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -13,11 +13,10 @@ import PropertiesForm, { type PropertiesFormSchema } from '@/views/concepts/prop
 import { apiCreateProperty } from '@/services/PropertiesService'
 import { apiGetPropertiesList, type PropertyRow } from '@/services/PropertiesService'
 import Select from '@/components/ui/Select'
+import Input from '@/components/ui/Input'
+import Checkbox from '@/components/ui/Checkbox'
 import type { Condo } from '../CondosList/types'
 
-/* ------------------------------------------------------------------ */
-/* Utils & types                                                       */
-/* ------------------------------------------------------------------ */
 type RoleKey = 'ADMIN' | 'SUB_ADMIN' | 'CONCIERGE' | 'GUARD' | 'RESIDENT'
 type RoleRecord = { id: string | number; name: string }
 type SelectOption = { label: string; value: number }
@@ -26,9 +25,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
 
-/* ------------------------------------------------------------------ */
-/* UI                                                                 */
-/* ------------------------------------------------------------------ */
 function ModalBase(props: {
   open: boolean
   title: string
@@ -46,8 +42,10 @@ function ModalBase(props: {
       <Card className="w-full max-w-4xl">
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-3">{title}</h3>
-          <div className="mb-6">{children}</div>
-          <div className="flex items-center justify-end gap-3">
+          <div className="mb-6 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 bg-gray-50/40 dark:bg-gray-900/30">
+            {children}
+          </div>
+          <div className="mt-2 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end gap-3">
             <Button
               variant="plain"
               className="rounded-xl border border-red-500 text-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-300"
@@ -56,12 +54,7 @@ function ModalBase(props: {
             >
               {cancelText}
             </Button>
-            <Button
-              variant="solid"
-              className="rounded-xl"
-              onClick={onConfirm ?? onClose}
-              disabled={disabled}
-            >
+            <Button variant="solid" className="rounded-xl" onClick={onConfirm ?? onClose} disabled={disabled}>
               {confirmText}
             </Button>
           </div>
@@ -86,9 +79,6 @@ const rolePretty: Record<RoleKey, string> = {
   RESIDENT: 'Residente',
 }
 
-/* ------------------------------------------------------------------ */
-/* Roles                                                              */
-/* ------------------------------------------------------------------ */
 function normalizeRoleName(s: string) {
   return s.trim().toUpperCase().replace(/[\s\-]+/g, '_')
 }
@@ -117,13 +107,11 @@ async function fetchRoles(): Promise<RoleRecord[]> {
     []
 
   return (list as Array<{ id?: string | number; name?: string }>)
+
     .filter((r) => r && (r.id ?? r.name))
     .map((r) => ({ id: String(r.id ?? r.name!), name: String(r.name ?? r.id!) }))
 }
 
-/* ------------------------------------------------------------------ */
-/* Endpoints NUEVOS                                                   */
-/* ------------------------------------------------------------------ */
 type CommonUserFields = {
   full_name: string
   id_number: string
@@ -136,12 +124,11 @@ type CreateUserAssignPayload = CommonUserFields & {
   community_id: number
 }
 type CreateResidentAssignPayload = Omit<CommonUserFields, 'phone'> & {
-  // phone sigue existiendo en el formulario pero es opcional, lo incluimos abajo sólo si viene
-  role_id: number | string // será 5
+  role_id: number | string
   property_id: number
   is_owner: boolean
   home_role: string
-  start_date: string // ISO requerido por backend
+  start_date: string
   phone?: string
 }
 
@@ -162,7 +149,6 @@ function createResidentAndAssign(payload: CreateResidentAssignPayload) {
   })
 }
 
-/* Selector en duro para home_role */
 const HOME_ROLE_OPTIONS: string[] = [
   'Papá',
   'Mamá',
@@ -174,9 +160,6 @@ const HOME_ROLE_OPTIONS: string[] = [
   'Adulta Responsable',
 ]
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
 const CondosDetails = () => {
   const { id } = useParams()
   const [activeModal, setActiveModal] = useState<RoleKey | null>(null)
@@ -191,7 +174,6 @@ const CondosDetails = () => {
 
   const isDataReady = !!data && !isEmpty(data) && !error
 
-  // form modal usuario (comunes)
   const [formName, setFormName] = useState('')
   const [formEmail, setFormEmail] = useState('')
   const [formPhone, setFormPhone] = useState('')
@@ -201,16 +183,14 @@ const CondosDetails = () => {
   const [formError, setFormError] = useState<string | null>(null)
   const [formOk, setFormOk] = useState<string | null>(null)
 
-  // Solo residente
   const [isOwner, setIsOwner] = useState<boolean>(true)
   const [homeRole, setHomeRole] = useState<string>('')
 
   const [roles, setRoles] = useState<RoleRecord[]>([])
   const [rolesLoaded, setRolesLoaded] = useState(false)
 
-  const communityIdNum = Number(id ?? currentCommunityId ?? 0)
+  const communityIdNum = Number(currentCommunityId ?? id ?? 0)
 
-  // propiedades (para residente)
   const { data: propsData, isLoading: loadingProps } = useSWR<{ list: PropertyRow[]; total: number }>(
     communityIdNum ? ['props:byCommunity', communityIdNum] : null,
     () =>
@@ -237,7 +217,6 @@ const CondosDetails = () => {
     }
   }, [propertyOptions, residentPropertyId])
 
-  // roles
   useEffect(() => {
     let ignore = false
     const load = async () => {
@@ -257,7 +236,6 @@ const CondosDetails = () => {
     }
   }, [])
 
-  // reset modal on open/close
   useEffect(() => {
     setFormName('')
     setFormEmail('')
@@ -273,11 +251,9 @@ const CondosDetails = () => {
 
   const modalTitle = useMemo(() => (activeModal ? roleTitle[activeModal] : ''), [activeModal])
 
-  /* Confirmar creación con payloads nuevos */
   const handleConfirm = async () => {
     if (!activeModal) return
 
-    // Reglas comunes: RUT, Nombre completo, Correo, Contraseña son obligatorios; Teléfono opcional
     if (!formIdNumber.trim() || !formName.trim() || !formEmail.trim() || !formPassword.trim()) {
       setFormError('Completa RUT, nombre completo, correo y contraseña. El teléfono es opcional.')
       return
@@ -313,12 +289,11 @@ const CondosDetails = () => {
           property_id: residentPropertyId,
           is_owner: isOwner,
           home_role: homeRole,
-          start_date: new Date().toISOString(), // backend aún lo exige
+          start_date: new Date().toISOString(),
           ...(formPhone.trim() ? { phone: formPhone.trim() } : {}),
         }
         await createResidentAndAssign(payload)
       } else {
-        // otros usuarios: role_id obligatorio (resuelto vía catálogo de roles)
         const rid = rolesLoaded ? matchRoleId(roles, activeModal) : undefined
         if (rid == null) {
           setSubmitting(false)
@@ -329,7 +304,7 @@ const CondosDetails = () => {
           full_name: formName.trim(),
           id_number: formIdNumber.trim(),
           email: formEmail.trim(),
-          phone: formPhone.trim(), // opcional pero el backend acepta string vacío
+          phone: formPhone.trim(),
           password: formPassword,
           role_id: typeof rid === 'string' ? Number(rid) || rid : rid,
           community_id: communityIdNum,
@@ -351,7 +326,6 @@ const CondosDetails = () => {
     }
   }
 
-  /* Crear Propiedad (se mantiene igual) */
   const [propSubmitting, setPropSubmitting] = useState(false)
   const [propMsg, setPropMsg] = useState<string | null>(null)
   const [propErr, setPropErr] = useState<string | null>(null)
@@ -361,11 +335,12 @@ const CondosDetails = () => {
     setPropMsg(null)
     setPropErr(null)
     try {
-      const cid = Number(id ?? 0) || Number(values.community_id ?? 0) || Number(currentCommunityId ?? 0) || 0
+      const cid = Number(currentCommunityId ?? id ?? 0)
       await apiCreateProperty({
         community_id: cid,
         property_number: values.property_number,
         floor: values.floor,
+        block: values.block ?? '',
       })
       setPropMsg('Propiedad creada correctamente.')
       setTimeout(() => setPropertyModalOpen(false), 700)
@@ -381,8 +356,8 @@ const CondosDetails = () => {
     }
   }
 
-  // Helpers de UI para orden y campos visibles
   const isResident = activeModal === 'RESIDENT'
+  const homeRoleOptions = HOME_ROLE_OPTIONS.map((label) => ({ label, value: label }))
 
   return (
     <Loading loading={isLoading}>
@@ -440,38 +415,33 @@ const CondosDetails = () => {
             confirmText="Crear"
             disabled={submitting}
           >
-            {/* 🚫 Se ocultan Rol y Comunidad destino (están seteados internamente) */}
-
-            {/* Orden NUEVO */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Rut<span className="text-red-500"> *</span></label>
-                <input
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                  value={formIdNumber}
-                  onChange={(e) => setFormIdNumber(e.target.value)}
-                />
+                <label className="block text-sm font-medium mb-1">
+                  Rut<span className="text-red-500"> *</span>
+                </label>
+                <Input className="rounded-xl" value={formIdNumber} onChange={(e) => setFormIdNumber(e.target.value)} />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Nombre completo<span className="text-red-500"> *</span></label>
-                <input
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                />
+                <label className="block text-sm font-medium mb-1">
+                  Nombre completo<span className="text-red-500"> *</span>
+                </label>
+                <Input className="rounded-xl" value={formName} onChange={(e) => setFormName(e.target.value)} />
               </div>
 
               {isResident ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Propiedad<span className="text-red-500"> *</span></label>
+                    <label className="block text-sm font-medium mb-1">
+                      Propiedad<span className="text-red-500"> *</span>
+                    </label>
                     <Select
                       options={propertyOptions}
                       isSearchable={false}
                       isLoading={loadingProps}
                       value={propertyOptions.find((o) => o.value === (residentPropertyId ?? -1)) ?? null}
-                      placeholder="Selecciona propiedad"
+                      placeholder="Seleccione propiedad"
                       onChange={(opt: unknown) => {
                         const isOpt = (v: unknown): v is SelectOption => isRecord(v) && typeof (v as any).value === 'number'
                         setResidentPropertyId(isOpt(opt) ? (opt as SelectOption).value : null)
@@ -480,62 +450,47 @@ const CondosDetails = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Rol en el hogar<span className="text-red-500"> *</span></label>
-                    <select
-                      className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                      value={homeRole}
-                      onChange={(e) => setHomeRole(e.target.value)}
-                    >
-                      <option value="">Seleccione…</option>
-                      {HOME_ROLE_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="block text-sm font-medium mb-1">
+                      Rol en el hogar<span className="text-red-500"> *</span>
+                    </label>
+                    <Select
+                      options={homeRoleOptions}
+                      isSearchable={false}
+                      value={homeRole ? { label: homeRole, value: homeRole } : null}
+                      placeholder="Seleccione Rol en el hogar"
+                      onChange={(opt: unknown) => {
+                        const isOpt = (v: unknown): v is { label: string; value: string } =>
+                          isRecord(v) && typeof (v as any).value === 'string'
+                        setHomeRole(isOpt(opt) ? (opt as { label: string; value: string }).value : '')
+                      }}
+                    />
                   </div>
 
                   <div className="flex items-center">
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="rounded"
-                        checked={isOwner}
-                        onChange={(e) => setIsOwner(e.target.checked)}
-                      />
-                      <span className="text-sm">Es propietario (opcional)</span>
-                    </label>
+                    <Checkbox checked={isOwner} onChange={(v) => setIsOwner(Boolean(v))}>
+                      Es propietario
+                    </Checkbox>
                   </div>
                 </>
               ) : null}
 
               <div>
                 <label className="block text-sm font-medium mb-1">Teléfono</label>
-                <input
-                  className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                  value={formPhone}
-                  onChange={(e) => setFormPhone(e.target.value)}
-                />
+                <Input className="rounded-xl" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Correo<span className="text-red-500"> *</span></label>
-                  <input
-                    type="email"
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                    value={formEmail}
-                    onChange={(e) => setFormEmail(e.target.value)}
-                  />
+                  <label className="block text-sm font-medium mb-1">
+                    Correo<span className="text-red-500"> *</span>
+                  </label>
+                  <Input type="email" className="rounded-xl" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Contraseña<span className="text-red-500"> *</span></label>
-                  <input
-                    type="password"
-                    className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                    value={formPassword}
-                    onChange={(e) => setFormPassword(e.target.value)}
-                  />
+                  <label className="block text-sm font-medium mb-1">
+                    Contraseña<span className="text-red-500"> *</span>
+                  </label>
+                  <Input type="password" className="rounded-xl" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} />
                 </div>
               </div>
 
@@ -550,12 +505,17 @@ const CondosDetails = () => {
                 <div className="p-6">
                   <h3 className="text-lg font-semibold mb-3">Crear propiedad</h3>
                   <PropertiesForm
-                    defaultValues={{ community_id: Number(id ?? 0), property_number: '', floor: 0 }}
+                    defaultValues={{
+                      community_id: Number(currentCommunityId ?? id ?? 0),
+                      property_number: '',
+                      floor: 0,
+                      block: '',
+                    }}
                     onFormSubmit={handleCreateProperty}
+                    hideCommunity={true}
                   >
                     <div className="flex items-center justify-between w-full">
                       <div className="text-sm">
-                        {/* Mensajes de creación de propiedad */}
                         {propMsg ? <div className="text-green-600">{propMsg}</div> : null}
                         {propErr ? <div className="text-red-600">{propErr}</div> : null}
                       </div>

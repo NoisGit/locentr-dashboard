@@ -31,6 +31,41 @@ function errMsg(e: unknown): string {
   return 'Ocurrió un error'
 }
 
+/** Fallback: lee user_id desde el JWT en storage (access_token / token / auth JSON) */
+function getCurrentUserIdFromStorage(): number | string | undefined {
+  try {
+    const keys = ['access_token', 'token', 'auth', 'session', 'authToken']
+    let raw: string | null = null
+    for (const k of keys) {
+      raw = window.localStorage.getItem(k) || window.sessionStorage.getItem(k)
+      if (raw) break
+    }
+    if (!raw) return undefined
+
+    // Si viene en JSON, intenta extraer la propiedad token
+    let token = raw
+    if (raw.startsWith('{')) {
+      const obj = JSON.parse(raw)
+      token =
+        obj.access_token ||
+        obj.accessToken ||
+        obj.token ||
+        obj.jwt ||
+        obj?.state?.token ||
+        obj?.user?.token
+    }
+    if (!token || typeof token !== 'string' || !token.includes('.')) return undefined
+
+    const base64url = token.split('.')[1]
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
+    const json = JSON.parse(decodeURIComponent(escape(atob(base64))))
+    // Claims comunes: user_id, sub, id
+    return json.user_id ?? json.sub ?? json.id ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
 const EditArticle = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -62,12 +97,28 @@ const EditArticle = () => {
     setValue,
     formState: { errors },
     reset,
-    watch,
   } = useForm<EditFormValues>({ defaultValues: defaults })
+
+  // Contenido en estado local para setearlo instantáneo en el editor
+  const [editorContent, setEditorContent] = useState<string>('')
 
   useEffect(() => {
     reset(defaults)
-  }, [defaults, reset])
+    setEditorContent(defaults.content) // carga inmediata al editor
+    setValue('content', defaults.content, { shouldDirty: false })
+  }, [defaults, reset, setValue])
+
+  // Id de autor para el backend: del detalle o del JWT como fallback
+  const authorIdForBackend = useMemo(() => {
+    const anyData = data as unknown as Record<string, any> | undefined
+    return (
+      anyData?.created_by_user_id ??
+      anyData?.created_by_id ??
+      anyData?.author_id ??
+      anyData?.author?.id ??
+      getCurrentUserIdFromStorage()
+    )
+  }, [data])
 
   const [saving, setSaving] = useState(false)
 
@@ -77,7 +128,8 @@ const EditArticle = () => {
     try {
       await apiUpdateNews(communityId, id, {
         title: values.title,
-        content: values.content,
+        content: editorContent, // manda lo que ves en el editor
+        ...(authorIdForBackend != null ? { created_by_user_id: authorIdForBackend } : {}),
       })
       toast.push(<Notification type="success">Noticia actualizada</Notification>, {
         placement: 'top-center',
@@ -103,22 +155,36 @@ const EditArticle = () => {
               <div className="max-w-[1400px] mx-auto px-6 space-y-6">
                 <h2 className="text-xl font-semibold">Editar noticia</h2>
 
+                {/* Título EDITABLE */}
                 <FormItem label="Título" invalid={!!errors.title} errorMessage={errors.title?.message}>
-                  <Input className="rounded-xl" readOnly {...register('title', { required: true })} />
-                </FormItem>
-
-                <FormItem label="Contenido">
-                  <RichTextEditor
-                    key={data?.id ?? 'editor'}
-                    content={watch('content')}
-                    onChange={({ html }) => setValue('content', html)}
-                    editorContentClass="min-h-[220px]"
+                  <Input
+                    className="rounded-xl"
+                    {...register('title', { required: 'El título es obligatorio' })}
                   />
                 </FormItem>
 
-                <FormItem label="Autor" invalid={!!errors.authors} errorMessage={errors.authors?.message}>
-                  <Input className="rounded-xl" {...register('authors')} readOnly />
+                {/* Contenido EDITABLE: caja completa clickeable */}
+                <FormItem label="Contenido">
+                  <div className="cursor-text">
+                    <RichTextEditor
+                      key={`${String(id ?? 'new')}:${(defaults.content || '').length}`}
+                      content={editorContent}
+                      onChange={({ html }) => {
+                        setEditorContent(html)
+                        setValue('content', html, { shouldDirty: true })
+                      }}
+                      editorContentClass="min-h-[300px] px-3 py-3 cursor-text"
+                    />
+                  </div>
                 </FormItem>
+
+                {/* Autor como texto plano (no input) al final */}
+                <div className="space-y-1">
+                  <div className="text-[13px] text-gray-600 dark:text-gray-400">Autor</div>
+                  <p className="text-sm leading-relaxed select-text">
+                    <strong>{defaults.authors || '—'}</strong>
+                  </p>
+                </div>
 
                 <div className="flex items-center gap-3">
                   <Button type="button" onClick={() => navigate('/concepts/news/manage-article')}>

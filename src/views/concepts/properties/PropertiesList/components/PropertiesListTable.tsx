@@ -16,9 +16,7 @@ const NumberColumn = ({ row }: { row: Property }) => {
     ((row as Record<string, unknown>)['number'] as string | undefined) ??
     ((row as Record<string, unknown>)['property_number'] as string | undefined) ??
     ''
-
   const title = display ? `# ${display}` : 'Propiedad'
-
   return (
     <div className="flex items-center">
       <Link
@@ -87,6 +85,20 @@ const PropertiesListTable = () => {
         },
       },
       {
+        header: 'Bloque/Torre',
+        accessorKey: 'block',
+        cell: (props) => {
+          const r = props.row.original as unknown as Record<string, unknown>
+          const b =
+            (r['block'] as string | undefined) ??
+            (r['block_tower'] as string | undefined) ??
+            (r['tower'] as string | undefined) ??
+            (r['building'] as string | undefined) ??
+            ''
+          return <span>{String(b ?? '')}</span>
+        },
+      },
+      {
         header: 'Comunidad',
         accessorKey: 'communityName',
         cell: (props) => {
@@ -103,9 +115,7 @@ const PropertiesListTable = () => {
       {
         header: '',
         id: 'action',
-        cell: (props) => (
-          <ActionColumn onEdit={() => handleEdit(props.row.original)} />
-        ),
+        cell: (props) => <ActionColumn onEdit={() => handleEdit(props.row.original)} />,
       },
     ],
     [],

@@ -1,4 +1,3 @@
-// src/views/dashboards/dashboardsRoute.ts
 import { lazy } from 'react'
 import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
 import { ADMIN, USER } from '@/constants/roles.constant'
@@ -187,7 +186,6 @@ const dashboardsRoute: Routes = [
     meta: { pageContainerType: 'contained' },
   },
 
-  // Noticias
   {
     key: 'concepts.helpCenter.editArticle',
     path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/:id`,
@@ -451,13 +449,15 @@ const dashboardsRoute: Routes = [
     authority: [ADMIN, USER],
     meta: { pageContainerType: 'contained' },
   },
+
   {
-    key: 'concepts.mailbox.mailboxDetails',
-    path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-details/:id`,
-    component: lazy(() => import('@/views/concepts/mailbox/MailboxDetails')),
+    key: 'concepts.invitations.invitationsList',
+    path: `${CONCEPTS_PREFIX_PATH}/invitations/invitations-list`,
+    component: lazy(() => import('@/views/concepts/invitations/InvitationsList')),
     authority: [ADMIN, USER],
     meta: { pageContainerType: 'contained' },
   },
+
   {
     key: 'concepts.properties.propertiesList',
     path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
@@ -471,7 +471,7 @@ const dashboardsRoute: Routes = [
     authority: [ADMIN, USER],
     meta: {
       header: {
-        title: 'Edit property',
+        title: '',
         description: 'Manage property details and assignments.',
         contained: true,
       },

@@ -28,6 +28,7 @@ export type NewsDetail = {
   title: string
   content: string
   created_by?: string
+  created_by_user_id?: number | string   // ← NUEVO
   updated_at?: string
 }
 
@@ -40,6 +41,11 @@ function toStr(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
+}
+function toId(v: unknown): number | string | undefined {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string' && v.trim() !== '') return v
+  return undefined
 }
 
 /* ---------- LISTADO ---------- */
@@ -63,8 +69,8 @@ function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
   const r = isRec(raw) ? (raw as Dict) : {}
   const items = pickArray(raw)
   const cand =
-    r.total ??
-    r.count ??
+    (r.total as unknown) ??
+    (r.count as unknown) ??
     (isRec(r.data) ? (r.data as Dict).total : undefined) ??
     (isRec(r.pagination) ? (r.pagination as Dict).total : undefined) ??
     items.length
@@ -130,11 +136,20 @@ function pickDetailObject(raw: unknown): Dict {
 }
 
 function mapDetail(r: Dict, idFallback: string | number): NewsDetail {
+  // intenta id del autor desde varias formas
+  const authorId =
+    toId(r.created_by_user_id) ??
+    toId(r.created_by_id) ??
+    toId(r.author_id) ??
+    toId((isRec(r.author) ? (r.author as Dict).id : undefined)) ??
+    toId((isRec(r.created_by) ? (r.created_by as Dict).id : undefined))
+
   return {
     id: toStr(r.id ?? idFallback) || String(idFallback),
     title: toStr(r.title),
     content: toStr(r.content ?? r.body ?? ''),
     created_by: toStr(r.created_by ?? r.author ?? r.author_name ?? r.createdBy),
+    created_by_user_id: authorId,
     updated_at: toStr(r.updated_at ?? r.updatedAt ?? r.updated),
   }
 }
@@ -175,12 +190,14 @@ export async function apiGetNewsById<T = NewsDetail>(
 
 export async function apiCreateNews(
   communityId: string | number,
-  payload: { title: string; content: string }
+  payload: { title: string; content: string; created_by_user_id?: number | string }
 ) {
-  const data = {
+  const data: Record<string, unknown> = {
     title: String(payload.title ?? '').trim(),
     content: String(payload.content ?? '').trim(),
   }
+  if (payload.created_by_user_id != null) data.created_by_user_id = payload.created_by_user_id
+
   return ApiService.fetchDataWithAxios({
     url: `/api/v1/news/community/${encodeURIComponent(String(communityId))}`,
     method: 'post',
@@ -191,11 +208,12 @@ export async function apiCreateNews(
 export async function apiUpdateNews(
   communityId: string | number,
   id: string | number,
-  patch: Partial<{ title: string; content: string }>
+  patch: Partial<{ title: string; content: string; created_by_user_id: number | string }>
 ) {
   const data: Record<string, unknown> = {}
   if (patch.title !== undefined) data.title = String(patch.title ?? '').trim()
   if (patch.content !== undefined) data.content = String(patch.content ?? '').trim()
+  if (patch.created_by_user_id !== undefined) data.created_by_user_id = patch.created_by_user_id
 
   return ApiService.fetchDataWithAxios({
     url: `/api/v1/news/community/${encodeURIComponent(String(communityId))}/id/${encodeURIComponent(String(id))}`,

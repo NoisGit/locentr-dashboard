@@ -14,11 +14,7 @@ import Select from '@/components/ui/Select'
 import isEmpty from 'lodash/isEmpty'
 import { useAuth } from '@/auth'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
-import {
-  apiGetMyCommunities,
-  apiListCommunities,
-  type Community,
-} from '@/services/CommunitiesService'
+import { apiGetMyCommunities, apiListCommunities, type Community } from '@/services/CommunitiesService'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -26,32 +22,33 @@ export type PropertiesFormSchema = {
   community_id: number
   property_number: string
   floor: number
+  block?: string
 }
 
 type PropertiesFormProps = {
   onFormSubmit: (values: PropertiesFormSchema) => void
   defaultValues?: Partial<PropertiesFormSchema>
   children?: ReactNode
+  hideCommunity?: boolean
+  title?: string
 } & CommonProps
 
 const validationSchema = z.object({
   community_id: z.coerce.number().int().gt(0, { message: 'Selecciona la comunidad' }),
   property_number: z.string().min(1, { message: 'Número requerido' }),
   floor: z.coerce.number().int().min(0, { message: 'Piso requerido' }),
+  block: z.string().optional(),
 })
 
-/** Lee tokens de rol del usuario (authority/roles/etc.) y detecta SuperAdmin */
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
 function readRoleTokens(user: unknown): string[] {
   if (!isRecord(user)) return []
-  const src =
-    (user as any).roles ??
-    (user as any).role ??
-    (user as any).authorities ??
-    (user as any).authority ??
-    []
+  const src = (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).roles ??
+    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).role ??
+    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).authorities ??
+    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).authority ?? []
   if (Array.isArray(src)) return src.map((x) => String(x).toLowerCase())
   if (src != null) return [String(src).toLowerCase()]
   return []
@@ -63,8 +60,16 @@ function isSuperAdminUser(user: unknown): boolean {
   return hits.some((t) => set.has(t) || tokens.some((x) => x.includes(t)))
 }
 
+type Option = { label: string; value: number }
+
 const PropertiesForm = (props: PropertiesFormProps) => {
-  const { onFormSubmit, defaultValues = {}, children } = props
+  const {
+    onFormSubmit,
+    defaultValues = {},
+    children,
+    hideCommunity = true,
+    title = 'Editar propiedad',
+  } = props
 
   const {
     handleSubmit,
@@ -72,12 +77,14 @@ const PropertiesForm = (props: PropertiesFormProps) => {
     control,
     formState: { errors },
     getValues,
+    setValue,
   } = useForm<PropertiesFormSchema>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
       community_id: 0,
       property_number: '',
       floor: 0,
+      block: '',
       ...defaultValues,
     },
   })
@@ -92,7 +99,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
     { revalidateOnFocus: false }
   )
 
-  const communityOptions = useMemo(
+  const communityOptions: Option[] = useMemo(
     () =>
       (communities ?? [])
         .map((c) => {
@@ -100,7 +107,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
           if (!Number.isFinite(idNum)) return null
           return { label: (c as Community).name || String((c as Community).id), value: idNum }
         })
-        .filter(Boolean) as Array<{ label: string; value: number }>,
+        .filter(Boolean) as Array<Option>,
     [communities]
   )
 
@@ -113,20 +120,24 @@ const PropertiesForm = (props: PropertiesFormProps) => {
           defaultValues.floor === undefined || defaultValues.floor === null
             ? 0
             : Number(defaultValues.floor as unknown),
+        block: defaultValues.block ?? '',
       })
       return
     }
-    if (communityOptions.length > 0 && headerCommunityId != null && headerCommunityId !== '') {
+    if (headerCommunityId != null && String(headerCommunityId) !== '') {
       const formVal = getValues()
-      if (!formVal.community_id || Number.isNaN(Number(formVal.community_id))) {
+      if (hideCommunity || !formVal.community_id || Number.isNaN(Number(formVal.community_id))) {
         const headerIdNum = Number(headerCommunityId)
-        const exists = communityOptions.some((o) => o.value === headerIdNum)
-        if (exists) {
-          reset({ ...formVal, community_id: headerIdNum })
-        }
+        reset({ ...formVal, community_id: headerIdNum })
       }
     }
-  }, [JSON.stringify(defaultValues), communityOptions, headerCommunityId, reset, getValues])
+  }, [JSON.stringify(defaultValues), headerCommunityId, hideCommunity, reset, getValues])
+
+  useEffect(() => {
+    if (hideCommunity && headerCommunityId != null && String(headerCommunityId) !== '') {
+      setValue('community_id', Number(headerCommunityId), { shouldDirty: false })
+    }
+  }, [hideCommunity, headerCommunityId, setValue])
 
   const onSubmit = (values: PropertiesFormSchema) => onFormSubmit?.(values)
 
@@ -137,39 +148,42 @@ const PropertiesForm = (props: PropertiesFormProps) => {
       onSubmit={handleSubmit(onSubmit)}
     >
       <Container>
+        <h3 className="text-lg font-semibold mb-3">{title}</h3>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="gap-4 flex flex-col flex-auto">
             <Card className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="md:col-span-2">
-                  <FormItem
-                    label="Comunidad"
-                    invalid={!!errors.community_id}
-                    errorMessage={errors.community_id?.message}
-                  >
-                    <Controller
-                      name="community_id"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          options={communityOptions}
-                          isSearchable={false}
-                          isLoading={loadingCommunities}
-                          isDisabled={loadingCommunities}
-                          value={
-                            communityOptions.find(
-                              (o) => Number(o.value) === Number(field.value)
-                            ) ?? null
-                          }
-                          placeholder="Selecciona comunidad"
-                          onChange={(opt) =>
-                            field.onChange(opt ? Number((opt as any).value) : 0)
-                          }
-                        />
-                      )}
-                    />
-                  </FormItem>
-                </div>
+                {!hideCommunity && (
+                  <div className="md:col-span-2">
+                    <FormItem
+                      label="Comunidad"
+                      invalid={!!errors.community_id}
+                      errorMessage={errors.community_id?.message}
+                    >
+                      <Controller
+                        name="community_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            options={communityOptions}
+                            isSearchable={false}
+                            isLoading={loadingCommunities}
+                            isDisabled={loadingCommunities}
+                            value={
+                              communityOptions.find(
+                                (o) => Number(o.value) === Number(field.value),
+                              ) ?? null
+                            }
+                            placeholder="Selecciona comunidad"
+                            onChange={(opt) =>
+                              field.onChange(opt ? Number((opt as Option).value) : 0)
+                            }
+                          />
+                        )}
+                      />
+                    </FormItem>
+                  </div>
+                )}
 
                 <div className="md:col-span-2">
                   <FormItem
@@ -196,6 +210,18 @@ const PropertiesForm = (props: PropertiesFormProps) => {
                       control={control}
                       render={({ field }) => (
                         <Input type="number" inputMode="numeric" {...field} />
+                      )}
+                    />
+                  </FormItem>
+                </div>
+
+                <div className="md:col-span-2">
+                  <FormItem label="Bloque/Torre" invalid={false}>
+                    <Controller
+                      name="block"
+                      control={control}
+                      render={({ field }) => (
+                        <Input autoComplete="off" placeholder="Opcional" {...field} />
                       )}
                     />
                   </FormItem>

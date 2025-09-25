@@ -37,6 +37,10 @@ export type MailboxRow = {
   imageUrl: string
   folder: string
   subject: string
+  /** 🔹 NUEVO: número visible de la propiedad */
+  propertyNumber: string
+  /** 🔹 NUEVO: id de propiedad (si existe) */
+  propertyId: string | number | ''
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -164,6 +168,38 @@ function joinName(first: string, last: string, email: string) {
   if (a.length) return a.join(' ')
   return email || ''
 }
+
+/** 🔹 NUEVO: lector robusto para número de propiedad */
+function readPropertyNumber(o: Record<string, unknown>): string {
+  const direct = toString(
+    get(o, 'property_number') ??
+      get(o, 'propertyNumber') ??
+      get(o, 'unit') ??
+      get(o, 'apartment') ??
+      get(o, 'apt') ??
+      get(o, 'houseNumber') ??
+      get(o, 'house_number') ??
+      get(o, 'property')
+  )
+  if (direct) return direct
+
+  const prop = get(o, 'property')
+  if (isObject(prop)) {
+    const nested = toString(
+      get(prop, 'number') ??
+        get(prop, 'propertyNumber') ??
+        get(prop, 'code') ??
+        get(prop, 'name') ??
+        get(prop, 'id')
+    )
+    if (nested) return nested
+  }
+
+  // fallback: id si no hay número visible
+  const byId = toString(get(o, 'property_id') ?? get(o, 'propertyId'))
+  return byId
+}
+
 function toMailboxRow(v: unknown): MailboxRow {
   const o = isObject(v) ? v : {}
   const first = toString(get(o, 'recipientFirstName') ?? get(o, 'first_name') ?? get(o, 'recipient_first_name'))
@@ -216,6 +252,9 @@ function toMailboxRow(v: unknown): MailboxRow {
     ),
     folder: toString(get(o, 'folder')),
     subject: toString(get(o, 'subject')),
+    /** 🔹 NUEVO */
+    propertyNumber: readPropertyNumber(o),
+    propertyId: (get(o, 'property_id') ?? get(o, 'propertyId') ?? '') as string | number | '',
   }
 }
 
