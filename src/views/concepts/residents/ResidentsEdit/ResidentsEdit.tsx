@@ -10,11 +10,7 @@ import { TbTrash, TbArrowNarrowLeft } from 'react-icons/tb'
 import { useParams, useNavigate } from 'react-router'
 import useSWR, { mutate as globalMutate } from 'swr'
 import ResidentsForm, { type ResidentsFormSchema } from '../ResidentsForm'
-import {
-  apiGetResidentById,
-  apiUpdateResident,
-  apiDeleteResident,
-} from '@/services/ResidentsService'
+import { apiGetResidentById, apiUpdateResident, apiDeleteResident } from '@/services/ResidentsService'
 import type { ResidentRow } from '@/services/ResidentsService'
 
 const ResidentsEdit = () => {
@@ -24,11 +20,7 @@ const ResidentsEdit = () => {
   const { data, isLoading, error } = useSWR<ResidentRow>(
     id ? ['/api/residents/id', id] : null,
     ([, _id]) => apiGetResidentById(String(_id)),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      shouldRetryOnError: false,
-    }
+    { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
@@ -39,7 +31,7 @@ const ResidentsEdit = () => {
     if (!id) return
     setIsSubmitting(true)
     try {
-      const endDate = values.endDate && String(values.endDate).trim() !== '' ? values.endDate : null
+      const endDate = values.endDate && String(values.endDate).trim() !== '' ? values.endDate : undefined
 
       await apiUpdateResident(id, {
         user_id: values.userId,
@@ -49,16 +41,12 @@ const ResidentsEdit = () => {
         end_date: endDate,
       })
 
-      await globalMutate((key: any) => Array.isArray(key) && key[0] === '/api/residents')
+      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === '/api/residents')
 
-      toast.push(<Notification type="success">¡Cambios guardados!</Notification>, {
-        placement: 'top-center',
-      })
+      toast.push(<Notification type="success">¡Cambios guardados!</Notification>, { placement: 'top-center' })
       navigate('/concepts/residents/residents-list')
     } catch {
-      toast.push(<Notification type="danger">No se pudo guardar el residente</Notification>, {
-        placement: 'top-center',
-      })
+      toast.push(<Notification type="danger">No se pudo guardar el residente</Notification>, { placement: 'top-center' })
     } finally {
       setIsSubmitting(false)
     }
@@ -67,11 +55,12 @@ const ResidentsEdit = () => {
   const getDefaultValues = (): Partial<ResidentsFormSchema> => {
     if (!data) return {}
     return {
-      propertyId: Number(data.propertyId) as any,
-      userId: Number(data.userId) as any,
+      propertyId: Number(data.propertyId),
+      userId: Number(data.userId),
       isOwner: Boolean(data.isOwner),
       startDate: data.startDate ?? '',
       endDate: data.endDate ?? '',
+      homeRole: (data as unknown as { homeRole?: string }).homeRole ?? '',
     }
   }
 
@@ -80,17 +69,12 @@ const ResidentsEdit = () => {
     setIsDeleting(true)
     try {
       await apiDeleteResident(id)
+      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === '/api/residents')
 
-      await globalMutate((key: any) => Array.isArray(key) && key[0] === '/api/residents')
-
-      toast.push(<Notification type="success">¡Residente eliminado!</Notification>, {
-        placement: 'top-center',
-      })
+      toast.push(<Notification type="success">¡Residente eliminado!</Notification>, { placement: 'top-center' })
       navigate('/concepts/residents/residents-list')
     } catch {
-      toast.push(<Notification type="danger">No se pudo eliminar el residente</Notification>, {
-        placement: 'top-center',
-      })
+      toast.push(<Notification type="danger">No se pudo eliminar el residente</Notification>, { placement: 'top-center' })
     } finally {
       setIsDeleting(false)
       setDeleteConfirmationOpen(false)
@@ -115,29 +99,23 @@ const ResidentsEdit = () => {
           <ResidentsForm defaultValues={getDefaultValues()} newResident={false} onFormSubmit={handleFormSubmit}>
             <Container>
               <div className="flex items-center justify-between px-8">
-                <Button
-                  className="ltr:mr-3 rtl:ml-3"
-                  type="button"
-                  variant="plain"
-                  icon={<TbArrowNarrowLeft />}
-                  onClick={handleBack}
-                >
+                <Button className="ltr:mr-3 rtl:ml-3" type="button" variant="plain" icon={<TbArrowNarrowLeft />} onClick={handleBack}>
                   Volver
                 </Button>
                 <div className="flex items-center">
                   <Button
                     className="ltr:mr-3 rtl:ml-3"
-                    type="button"
                     customColorClass={() =>
                       'border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent'
                     }
-                    icon={<TbTrash />}
-                    onClick={handleDelete}
                     disabled={isDeleting}
+                    icon={<TbTrash />}
+                    type="button"
+                    onClick={handleDelete}
                   >
                     Eliminar
                   </Button>
-                  <Button variant="solid" type="submit" loading={isSubmitting} disabled={isDeleting}>
+                  <Button variant="solid" disabled={isDeleting} loading={isSubmitting} type="submit">
                     Guardar
                   </Button>
                 </div>
@@ -147,12 +125,12 @@ const ResidentsEdit = () => {
 
           <ConfirmDialog
             isOpen={deleteConfirmationOpen}
-            type="danger"
             title="Eliminar residente"
-            onClose={handleCancel}
-            onRequestClose={handleCancel}
+            type="danger"
             onCancel={handleCancel}
             onConfirm={handleConfirmDelete}
+            onClose={handleCancel}
+            onRequestClose={handleCancel}
           >
             <p>¿Estás segura de que quieres eliminar este residente? Esta acción no se puede deshacer.</p>
           </ConfirmDialog>

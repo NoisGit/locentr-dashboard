@@ -1,15 +1,30 @@
 // src/views/concepts/news/ManageArticle/components/ArticleListTable.tsx
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import Tag from '@/components/ui/Tag'
 import DataTable from '@/components/shared/DataTable'
 import { useManageArticleStore } from '../store/manageArticleStore'
 import useManageArticle from '../hooks/useManageArticle'
 import { HiOutlinePencil } from 'react-icons/hi'
-import { Link } from 'react-router-dom' // sólo para el lápiz
-
+import { useAuth } from '@/auth'
+import {
+  extractCreatedBy,
+  getCurrentUserIdSmart,
+  isSuperAdmin,
+  canEditNewsStrict,
+} from '@/utils/newsPermissions'
 import type { TableQueries } from '@/@types/common'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { Article } from '../types'
+
+function formatDateIsoLike(v: unknown): string {
+  if (typeof v !== 'string') return ''
+  let s = v.trim()
+  s = s.replace('T', ' ')
+  s = s.replace(/Z$/, '')
+  s = s.replace(/\.\d+$/, '')
+  return s
+}
 
 const ArticleListTable = () => {
   const tableData = useManageArticleStore((s) => s.tableData)
@@ -19,6 +34,10 @@ const ArticleListTable = () => {
   const setTableData = useManageArticleStore((s) => s.setTableData)
 
   const { articleList, articleTotal, isLoading } = useManageArticle()
+
+  const { user } = useAuth()
+  const currentUserId = getCurrentUserIdSmart(user)
+  const superAdmin = isSuperAdmin(undefined, user)
 
   const columns: ColumnDef<Article>[] = useMemo(
     () => [
@@ -48,9 +67,10 @@ const ArticleListTable = () => {
         accessorKey: 'authors',
         enableSorting: false,
         cell: (props) => {
-          const r = props.row.original as unknown as Record<string, unknown>
+          const r = props.row.original as Record<string, unknown>
           const a =
             (typeof r['author'] === 'string' && (r['author'] as string)) ||
+            (typeof r['created_by'] === 'string' && (r['created_by'] as string)) ||
             (typeof r['author_name'] === 'string' && (r['author_name'] as string)) ||
             ''
           return <span className="truncate">{a || '—'}</span>
@@ -59,36 +79,45 @@ const ArticleListTable = () => {
       {
         header: 'Última actualización',
         accessorKey: 'updateTimeStamp',
-        cell: (props) => <div>{props.row.original.updateTime || '—'}</div>,
+        cell: (props) => {
+          const r = props.row.original as Record<string, unknown>
+          const u =
+            (r['updated_at'] as string | undefined) ||
+            (r['updatedAt'] as string | undefined) ||
+            (r['updateTime'] as string | undefined)
+          const pretty = formatDateIsoLike(u)
+          return <div>{pretty || '—'}</div>
+        },
       },
       {
         header: '',
         id: 'action',
         enableSorting: false,
         cell: (props) => {
-          const row = props.row.original
-          const id = String((row as unknown as { id?: string | number }).id ?? '').trim()
+          const row = props.row.original as Article & Record<string, unknown>
+          const id = String(row.id ?? '').trim()
+          const createdBy = extractCreatedBy(row)
+          const canEdit = canEditNewsStrict({
+            currentUserId,
+            createdByUserId: createdBy,
+            isSuperAdmin: superAdmin,
+          })
+          if (!id || !canEdit) return <div className="text-right pr-2" />
           return (
             <div className="text-right pr-2">
-              {id ? (
-                <Link
-                  to={`/concepts/news/edit-article/${id}`}
-                  className="text-xl text-gray-500 hover:text-primary"
-                  title="Editar noticia"
-                >
-                  <HiOutlinePencil />
-                </Link>
-              ) : (
-                <span className="text-xl text-gray-300" title="Sin ID para editar">
-                  <HiOutlinePencil />
-                </span>
-              )}
+              <Link
+                to={`/concepts/news/edit-article/${id}`}
+                className="text-xl text-gray-500 hover:text-primary"
+                title="Editar noticia"
+              >
+                <HiOutlinePencil />
+              </Link>
             </div>
           )
         },
       },
     ],
-    []
+    [currentUserId, superAdmin]
   )
 
   const handleSetTableData = (data: TableQueries) => {

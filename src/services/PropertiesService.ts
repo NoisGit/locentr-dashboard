@@ -1,3 +1,4 @@
+// src/services/PropertiesService.ts
 import ApiService from '@/services/ApiService'
 
 export type TableQueries = {
@@ -15,6 +16,7 @@ export type PropertyRow = {
   propertyNumber?: string
   floor?: number
   tower?: string
+  block?: string
   status?: string
   img?: string
 }
@@ -102,7 +104,14 @@ function mapRow(p: unknown): PropertyRow {
     get(o, 'code')
 
   const floorNum = toNum(get(o, 'floor'))
-  const tower = toStr(get(o, 'tower') ?? get(o, 'block') ?? get(o, 'building'))
+
+  // ⇩ aquí soportamos todas las variantes que puede devolver el backend
+  const towerVal =
+    toStr(get(o, 'tower')) ??
+    toStr(get(o, 'block')) ??
+    toStr(get(o, 'block_tower')) ??
+    toStr(get(o, 'building'))
+
   const status = toStr(get(o, 'status')) ?? ''
   const img = toStr(get(o, 'img') ?? get(o, 'avatar') ?? get(o, 'avatar_url')) ?? ''
 
@@ -112,7 +121,8 @@ function mapRow(p: unknown): PropertyRow {
     communityName: toStr(communityName),
     propertyNumber: toStr(propertyNumber),
     floor: floorNum,
-    tower,
+    tower: towerVal,
+    block: towerVal, // alias por compatibilidad con la tabla
     status,
     img,
   }
@@ -153,6 +163,7 @@ export async function apiCreateProperty(payload: {
   community_id?: number | string
   property_number: string
   floor: number | string
+  block?: string
 }) {
   const data: Record<string, unknown> = {
     property_number: String(payload.property_number ?? '').trim(),
@@ -161,6 +172,13 @@ export async function apiCreateProperty(payload: {
   if (payload.community_id !== undefined && payload.community_id !== '') {
     data.community_id = Number(payload.community_id)
   }
+  const block = (payload.block ?? '').toString().trim()
+  if (block) {
+    data.block = block
+    data.block_tower = block
+    data.tower = block
+  }
+
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: '/api/v1/communities/properties',
     method: 'post',
@@ -179,13 +197,19 @@ export async function apiGetPropertyById(id: string | number) {
 
 export async function apiUpdateProperty(
   id: string | number,
-  patch: Partial<{ community_id: number | string; property_number: string; floor: number | string }>
+  patch: Partial<{ community_id: number | string; property_number: string; floor: number | string; block: string }>
 ) {
   const cleanId = trimSlashes(String(id))
   const data: Record<string, unknown> = {}
   if (patch.community_id !== undefined && patch.community_id !== '') data.community_id = Number(patch.community_id)
   if (patch.property_number !== undefined) data.property_number = String(patch.property_number ?? '').trim()
   if (patch.floor !== undefined) data.floor = Number(patch.floor)
+  if (patch.block !== undefined) {
+    const block = String(patch.block ?? '').trim()
+    data.block = block
+    data.block_tower = block
+    data.tower = block
+  }
 
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: `/api/v1/communities/properties/id/${encodeURIComponent(cleanId)}`,

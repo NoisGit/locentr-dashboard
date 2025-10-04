@@ -1,4 +1,3 @@
-// src/views/concepts/condos/CondosDetails.tsx
 import { useEffect, useMemo, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -9,13 +8,13 @@ import useSWR from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
-import PropertiesForm, { type PropertiesFormSchema } from '@/views/concepts/properties/PropertiesForm/PropertiesForm'
-import { apiCreateProperty } from '@/services/PropertiesService'
-import { apiGetPropertiesList, type PropertyRow } from '@/services/PropertiesService'
+import PropertiesCreateModalForm, { type CreatePropertySchema } from '@/views/concepts/properties/PropertiesForm/PropertiesCreateModalForm'
+import { apiCreateProperty, apiGetPropertiesList, type PropertyRow } from '@/services/PropertiesService'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 import type { Condo } from '../CondosList/types'
+import useSyncCommunityFromCondo from '../CondosList/hooks/useSyncCommunityFromCondo'
 
 type RoleKey = 'ADMIN' | 'SUB_ADMIN' | 'CONCIERGE' | 'GUARD' | 'RESIDENT'
 type RoleRecord = { id: string | number; name: string }
@@ -71,45 +70,94 @@ const roleTitle: Record<RoleKey, string> = {
   GUARD: 'Crear guardia',
   RESIDENT: 'Crear residente',
 }
-const rolePretty: Record<RoleKey, string> = {
-  ADMIN: 'Administrador',
-  SUB_ADMIN: 'Sub-Administrador',
-  CONCIERGE: 'Conserje',
-  GUARD: 'Guardia',
-  RESIDENT: 'Residente',
-}
 
 function normalizeRoleName(s: string) {
-  return s.trim().toUpperCase().replace(/[\s\-]+/g, '_')
+  return String(s)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
 }
-function matchRoleId(roles: RoleRecord[], key: RoleKey): string | number | undefined {
-  const wanted = normalizeRoleName(key)
-  const byNormalized = roles.find((r) => normalizeRoleName(r.name) === wanted)
-  if (byNormalized) return byNormalized.id
-  const fallbackMap: Record<RoleKey, Array<string>> = {
-    ADMIN: ['ADMIN', 'ADMINISTRADOR'],
-    SUB_ADMIN: ['SUB_ADMIN', 'SUBADMIN', 'SUB-ADMIN', 'SUB ADMIN'],
-    CONCIERGE: ['CONCIERGE', 'CONSERJE'],
-    GUARD: ['GUARD', 'GUARDIA', 'SECURITY'],
-    RESIDENT: ['RESIDENT', 'RESIDENTE'],
-  }
-  const aliases = fallbackMap[key].map(normalizeRoleName)
-  const byAlias = roles.find((r) => aliases.includes(normalizeRoleName(r.name)))
-  return byAlias?.id
-}
+
 async function fetchRoles(): Promise<RoleRecord[]> {
   const raw = await ApiService.fetchDataWithAxios<unknown>({ url: '/api/v1/roles/', method: 'get' })
   const list =
     (Array.isArray(raw) && raw) ||
-    (isRecord(raw) && Array.isArray(raw.items) && (raw.items as unknown[])) ||
-    (isRecord(raw) && Array.isArray(raw.data) && (raw.data as unknown[])) ||
-    (isRecord(raw) && Array.isArray(raw.results) && (raw.results as unknown[])) ||
+    (isRecord(raw) && Array.isArray((raw as any).items) && ((raw as any).items as unknown[])) ||
+    (isRecord(raw) && Array.isArray((raw as any).data) && ((raw as any).data as unknown[])) ||
+    (isRecord(raw) && Array.isArray((raw as any).results) && ((raw as any).results as unknown[])) ||
     []
+  return (list as Array<Record<string, unknown>>)
+    .filter(Boolean)
+    .map((r) => {
+      const name =
+        (r.code as string | undefined) ??
+        (r.key as string | undefined) ??
+        (r.slug as string | undefined) ??
+        (r.display_name as string | undefined) ??
+        (r.role as string | undefined) ??
+        (r.name as string | undefined) ??
+        String((r.id as string | number | undefined) ?? '')
+      const id = (r.id as string | number | undefined) ?? name
+      return { id: String(id), name: String(name) }
+    })
+}
 
-  return (list as Array<{ id?: string | number; name?: string }>)
+function matchRoleId(roles: RoleRecord[], key: RoleKey): string | number | undefined {
+  const norm = (s: string) => normalizeRoleName(s)
+  const wanted = norm(key)
+  const exact = roles.find((r) => norm(r.name) === wanted)
+  if (exact) return exact.id
 
-    .filter((r) => r && (r.id ?? r.name))
-    .map((r) => ({ id: String(r.id ?? r.name!), name: String(r.name ?? r.id!) }))
+  const aliasMap: Record<RoleKey, string[]> = {
+    ADMIN: ['ADMIN', 'ADMINISTRADOR', 'ADMINISTRATOR'],
+    SUB_ADMIN: [
+      'SUB_ADMIN', 'SUBADMIN', 'SUB-ADMIN', 'SUB ADMIN',
+      'SUB_ADMINISTRADOR', 'SUBADMINISTRADOR', 'SUB-ADMINISTRADOR',
+      'SUB ADMINISTRADOR', 'SUB-ADMINISTRATOR', 'SUBADMINISTRATOR'
+    ],
+    CONCIERGE: ['CONCIERGE', 'CONSERJE'],
+    GUARD: ['GUARD', 'GUARDIA', 'SECURITY', 'SEGURIDAD', 'VIGILANTE'],
+    RESIDENT: ['RESIDENT', 'RESIDENTE'],
+  }
+  const aliases = aliasMap[key].map(norm)
+  const byAlias = roles.find((r) => aliases.includes(norm(r.name)))
+  if (byAlias) return byAlias.id
+
+  if (key === 'SUB_ADMIN') {
+    const cand = roles.find((r) => {
+      const n = norm(r.name)
+      return n.includes('SUB') && n.includes('ADMIN') && !n.includes('SUPER')
+    })
+    if (cand) return cand.id
+  }
+  if (key === 'ADMIN') {
+    const cand = roles.find((r) => {
+      const n = norm(r.name)
+      return n.includes('ADMIN') && !n.includes('SUB') && !n.includes('SUPER')
+    })
+    if (cand) return cand.id
+  }
+  if (key === 'CONCIERGE') {
+    const cand = roles.find((r) => {
+      const n = norm(r.name)
+      return n.includes('CONSERJE') || n.includes('CONCIERGE')
+    })
+    if (cand) return cand.id
+  }
+  if (key === 'GUARD') {
+    const cand = roles.find((r) => {
+      const n = norm(r.name)
+      return n.includes('GUARD') || n.includes('GUARDIA') || n.includes('SEGURIDAD') || n.includes('VIGILANTE')
+    })
+    if (cand) return cand.id
+  }
+  if (key === 'RESIDENT') {
+    const cand = roles.find((r) => norm(r.name).includes('RESIDENT'))
+    if (cand) return cand.id
+  }
+  return undefined
 }
 
 type CommonUserFields = {
@@ -172,6 +220,8 @@ const CondosDetails = () => {
     { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
+  useSyncCommunityFromCondo(data?.id ?? id ?? null, (data?.name as string | undefined) ?? null, true)
+
   const isDataReady = !!data && !isEmpty(data) && !error
 
   const [formName, setFormName] = useState('')
@@ -191,7 +241,7 @@ const CondosDetails = () => {
 
   const communityIdNum = Number(currentCommunityId ?? id ?? 0)
 
-  const { data: propsData, isLoading: loadingProps } = useSWR<{ list: PropertyRow[]; total: number }>(
+  const { data: propsData, isLoading: loadingProps, mutate: mutateProps } = useSWR<{ list: PropertyRow[]; total: number }>(
     communityIdNum ? ['props:byCommunity', communityIdNum] : null,
     () =>
       apiGetPropertiesList<{ list: PropertyRow[]; total: number }>({
@@ -201,6 +251,7 @@ const CondosDetails = () => {
       }),
     { revalidateOnFocus: false },
   )
+
   const propertyOptions: SelectOption[] = useMemo(
     () =>
       (propsData?.list ?? []).map((p) => {
@@ -210,6 +261,7 @@ const CondosDetails = () => {
       }),
     [propsData],
   )
+
   const [residentPropertyId, setResidentPropertyId] = useState<number | null>(null)
   useEffect(() => {
     if (propertyOptions.length === 1 && residentPropertyId == null) {
@@ -253,7 +305,6 @@ const CondosDetails = () => {
 
   const handleConfirm = async () => {
     if (!activeModal) return
-
     if (!formIdNumber.trim() || !formName.trim() || !formEmail.trim() || !formPassword.trim()) {
       setFormError('Completa RUT, nombre completo, correo y contraseña. El teléfono es opcional.')
       return
@@ -262,11 +313,9 @@ const CondosDetails = () => {
       setFormError('Selecciona una comunidad en el header para crear aquí.')
       return
     }
-
     setSubmitting(true)
     setFormError(null)
     setFormOk(null)
-
     try {
       if (activeModal === 'RESIDENT') {
         if (!residentPropertyId) {
@@ -279,7 +328,6 @@ const CondosDetails = () => {
           setFormError('Selecciona el rol en el hogar.')
           return
         }
-
         const payload: CreateResidentAssignPayload = {
           full_name: formName.trim(),
           id_number: formIdNumber.trim(),
@@ -311,7 +359,6 @@ const CondosDetails = () => {
         }
         await createUserAndAssign(payload)
       }
-
       setFormOk('Creación realizada correctamente.')
       setTimeout(() => setActiveModal(null), 700)
     } catch (e) {
@@ -330,7 +377,7 @@ const CondosDetails = () => {
   const [propMsg, setPropMsg] = useState<string | null>(null)
   const [propErr, setPropErr] = useState<string | null>(null)
 
-  const handleCreateProperty = async (values: PropertiesFormSchema) => {
+  const handleCreateProperty = async (values: CreatePropertySchema) => {
     setPropSubmitting(true)
     setPropMsg(null)
     setPropErr(null)
@@ -342,6 +389,7 @@ const CondosDetails = () => {
         floor: values.floor,
         block: values.block ?? '',
       })
+      await mutateProps?.()
       setPropMsg('Propiedad creada correctamente.')
       setTimeout(() => setPropertyModalOpen(false), 700)
     } catch (e) {
@@ -354,6 +402,11 @@ const CondosDetails = () => {
     } finally {
       setPropSubmitting(false)
     }
+  }
+
+  const submitCreateProperty = () => {
+    const form = document.getElementById('create-property-form') as HTMLFormElement | null
+    if (form) form.requestSubmit()
   }
 
   const isResident = activeModal === 'RESIDENT'
@@ -443,7 +496,8 @@ const CondosDetails = () => {
                       value={propertyOptions.find((o) => o.value === (residentPropertyId ?? -1)) ?? null}
                       placeholder="Seleccione propiedad"
                       onChange={(opt: unknown) => {
-                        const isOpt = (v: unknown): v is SelectOption => isRecord(v) && typeof (v as any).value === 'number'
+                        const isOpt = (v: unknown): v is SelectOption =>
+                          isRecord(v) && typeof (v as any).value === 'number'
                         setResidentPropertyId(isOpt(opt) ? (opt as SelectOption).value : null)
                       }}
                     />
@@ -484,13 +538,23 @@ const CondosDetails = () => {
                   <label className="block text-sm font-medium mb-1">
                     Correo<span className="text-red-500"> *</span>
                   </label>
-                  <Input type="email" className="rounded-xl" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} />
+                  <Input
+                    type="email"
+                    className="rounded-xl"
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Contraseña<span className="text-red-500"> *</span>
                   </label>
-                  <Input type="password" className="rounded-xl" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} />
+                  <Input
+                    type="password"
+                    className="rounded-xl"
+                    value={formPassword}
+                    onChange={(e) => setFormPassword(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -499,46 +563,26 @@ const CondosDetails = () => {
             </div>
           </ModalBase>
 
-          {propertyModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-              <Card className="w-full max-w-4xl">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-3">Crear propiedad</h3>
-                  <PropertiesForm
-                    defaultValues={{
-                      community_id: Number(currentCommunityId ?? id ?? 0),
-                      property_number: '',
-                      floor: 0,
-                      block: '',
-                    }}
-                    onFormSubmit={handleCreateProperty}
-                    hideCommunity={true}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="text-sm">
-                        {propMsg ? <div className="text-green-600">{propMsg}</div> : null}
-                        {propErr ? <div className="text-red-600">{propErr}</div> : null}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="plain"
-                          className="rounded-xl border border-red-500 text-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-300"
-                          type="button"
-                          onClick={() => setPropertyModalOpen(false)}
-                          disabled={propSubmitting}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button variant="solid" className="rounded-xl" type="submit" loading={propSubmitting}>
-                          Crear
-                        </Button>
-                      </div>
-                    </div>
-                  </PropertiesForm>
-                </div>
-              </Card>
-            </div>
-          )}
+          <ModalBase
+            open={propertyModalOpen}
+            title="Crear propiedad"
+            onClose={() => setPropertyModalOpen(false)}
+            onConfirm={submitCreateProperty}
+            confirmText="Crear"
+            disabled={propSubmitting}
+          >
+            <>
+              <PropertiesCreateModalForm
+                formId="create-property-form"
+                hideCommunity={true}
+                onSubmit={handleCreateProperty}
+              />
+              <div className="mt-2 text-sm">
+                {propMsg ? <div className="text-green-600">{propMsg}</div> : null}
+                {propErr ? <div className="text-red-600">{propErr}</div> : null}
+              </div>
+            </>
+          </ModalBase>
         </>
       ) : (
         <div className="text-center text-gray-500 p-4">No se pudo cargar la información de la comunidad.</div>

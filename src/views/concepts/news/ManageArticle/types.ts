@@ -16,12 +16,16 @@ export type Article = {
   title: string
   content?: string
   category?: string
+  author?: string
   authors?: ArticleAuthor[]
   tags?: ArticleTag[]
+  created_by_user_id?: string | number | null
   starred?: boolean
   published?: boolean
-  updateTime?: string
+  updateTime?: string | null
   updateTimeStamp?: number
+  createdAt?: string
+  updatedAt?: string
   createdBy?: string
   timeToRead?: number
   viewCount?: number

@@ -1,9 +1,13 @@
+// src/auth/AuthProvider.tsx
 import { useRef, useImperativeHandle, useEffect, useRef as useRef2, forwardRef } from 'react'
+import { useSWRConfig } from 'swr'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import { apiSignIn } from '@/services/AuthService'
 import { apiGetMe, normalizeUser } from '@/services/UserService'
+import { apiGetMyCommunities, apiListCommunities } from '@/services/CommunitiesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import type {
@@ -27,36 +31,22 @@ const IsolatedNavigator = forwardRef<IsolatedNavigatorRef>(function IsolatedNavi
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
-
 function toStr(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
 }
-
 function normalizeRoleToken(s: string): string {
   return s.trim().toLowerCase().replace(/[^a-z]/g, '')
 }
-
-/**
- * Extrae tokens de rol desde estructuras comunes:
- * - roles: string[] | {name:string}[]
- * - role: string
- * - authorities: string[] | {authority:string}[]
- * - authority: string
- */
 function readRoleTokens(user: unknown): string[] {
   if (!isRecord(user)) return []
-
   const candidates: unknown[] = []
-  const keys = ['roles', 'role', 'authorities', 'authority'] as const
-
+  const keys = ['roles', 'role', 'authorities', 'authority', 'permissions', 'scopes'] as const
   for (const k of keys) {
     if (k in user) candidates.push((user as Record<string, unknown>)[k])
   }
-
   const out: string[] = []
-
   for (const c of candidates) {
     if (typeof c === 'string') {
       out.push(c)
@@ -91,18 +81,18 @@ function readRoleTokens(user: unknown): string[] {
       if (maybe) out.push(maybe)
     }
   }
-
   return out
 }
-
-/** Devuelve true si algún token equivale a SUPERADMIN / ADMIN / SUBADMIN (tolerante a ROLE_*, guiones, etc.) */
 function hasDashboardAccess(user: unknown): boolean {
   const tokens = readRoleTokens(user).map(normalizeRoleToken)
   if (!tokens.length) return false
   const allow = ['superadmin', 'admin', 'subadmin']
   return tokens.some((t) => allow.some((a) => t.includes(a)))
 }
-
+function isSuperAdminUser(user: unknown): boolean {
+  const tokens = readRoleTokens(user).map(normalizeRoleToken)
+  return tokens.some((t) => t.includes('superadmin') || t.includes('owner') || t.includes('root'))
+}
 function ensureBearerPrefix(token: string, tokenType?: string): string {
   const type = tokenType && tokenType.trim() ? tokenType : 'Bearer'
   const finalType = /^bearer$/i.test(type) ? 'Bearer' : type
@@ -115,12 +105,27 @@ function AuthProvider({ children }: AuthProviderProps) {
   const user = useSessionUser((s) => s.user)
   const setUser = useSessionUser((s) => s.setUser)
   const setSessionSignedIn = useSessionUser((s) => s.setSessionSignedIn)
-
   const { token, setToken } = useToken()
   const authenticated = Boolean(token)
 
+  const { setCommunities, reset: resetCommunities } = useCommunitiesStore()
+  const { mutate, cache } = useSWRConfig()
+
   const navigatorRef = useRef<IsolatedNavigatorRef>(null)
   const hydratingRef = useRef2(false)
+  const prefetchedRef = useRef2(false)
+
+  const resetPerUserState = async () => {
+    try { resetCommunities() } catch {}
+    try { (cache as unknown as { clear?: () => void })?.clear?.() } catch {}
+    await mutate(
+      (key) =>
+        Array.isArray(key) &&
+        (key[0] === 'communities:list' || key[0] === 'news:list' || key[0] === 'news:detail'),
+      undefined,
+      { revalidate: false },
+    )
+  }
 
   const redirect = () => {
     const params = new URLSearchParams(window.location.search)
@@ -130,12 +135,28 @@ function AuthProvider({ children }: AuthProviderProps) {
     })
   }
 
+  const prefetchCommunitiesOnce = async (uLike: unknown) => {
+    if (prefetchedRef.current) return
+    prefetchedRef.current = true
+    try {
+      const superAdmin = isSuperAdminUser(uLike)
+      let list = await apiGetMyCommunities()
+      if (superAdmin && list.length === 0) {
+        try {
+          list = await apiListCommunities({ pageIndex: 1, pageSize: 200 })
+        } catch {}
+      }
+      setCommunities(list, superAdmin ? 'all' : 'mine', { autoSelectIfSingle: true })
+    } catch {}
+  }
+
   const handleSignIn = (tokens: Token, u?: AppUser) => {
     setToken(tokens.accessToken)
     setSessionSignedIn(true)
     if (u) {
       const n = normalizeUser(u as unknown)
       setUser(n as AppUser)
+      void prefetchCommunitiesOnce(n)
     } else {
       const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
       setUser(emptyUser)
@@ -147,6 +168,8 @@ function AuthProvider({ children }: AuthProviderProps) {
     const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
     setUser(emptyUser)
     setSessionSignedIn(false)
+    prefetchedRef.current = false
+    void resetPerUserState()
   }
 
   const hydrateUserFromApi = async () => {
@@ -156,6 +179,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       const me = await apiGetMe()
       const normalized = normalizeUser(me)
       setUser(normalized as unknown as AppUser)
+      void prefetchCommunitiesOnce(normalized)
     } finally {
       hydratingRef.current = false
     }
@@ -164,36 +188,26 @@ function AuthProvider({ children }: AuthProviderProps) {
   const signIn = async (values: SignInCredential): AuthResult => {
     try {
       const resp = await apiSignIn(values)
-
       const rawToken =
         toStr((resp as Record<string, unknown>)?.token) ||
         toStr((resp as Record<string, unknown>)?.access_token) ||
         toStr((resp as Record<string, unknown>)?.accessToken)
-
       if (!rawToken) {
         return { status: 'failed', message: 'No fue posible iniciar sesión' }
       }
-
       const tokenType =
         toStr((resp as Record<string, unknown>)?.token_type) ||
         toStr((resp as Record<string, unknown>)?.tokenType)
-
       const headerToken = ensureBearerPrefix(rawToken, tokenType)
-
       let userLike: unknown =
         (resp as Record<string, unknown>)?.user ??
         (resp as Record<string, unknown>)?.data
-
       if (!userLike) {
-        setToken(headerToken) // temporal para poder llamar /me
+        setToken(headerToken)
         try {
           userLike = await apiGetMe()
-        } catch {
-          // ignoramos; validaremos con lo que tengamos
-        }
+        } catch {}
       }
-
-      // Gate de roles
       if (!hasDashboardAccess(userLike)) {
         setToken('')
         const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
@@ -204,9 +218,8 @@ function AuthProvider({ children }: AuthProviderProps) {
           message: 'Acceso denegado: tu rol no tiene permiso para ingresar.',
         }
       }
-
       handleSignIn({ accessToken: headerToken }, (userLike ?? undefined) as AppUser)
-      hydrateUserFromApi()
+      void hydrateUserFromApi()
       redirect()
       return { status: 'success', message: '' }
     } catch (e: unknown) {
@@ -235,7 +248,13 @@ function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const hasMinimalUser = isRecord(user) && typeof user.email === 'string' && user.email.length > 0
     if (token && !hasMinimalUser) hydrateUserFromApi()
-  }, [token]) // eslint-disable-line
+  }, [token])
+
+  useEffect(() => {
+    if (authenticated && isRecord(user)) {
+      void prefetchCommunitiesOnce(user)
+    }
+  }, [authenticated, user])
 
   return (
     <AuthContext.Provider value={{ authenticated, user, signIn, signOut, oAuthSignIn }}>

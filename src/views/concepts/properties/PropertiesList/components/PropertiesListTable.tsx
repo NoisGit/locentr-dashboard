@@ -85,7 +85,7 @@ const PropertiesListTable = () => {
         },
       },
       {
-        header: 'Bloque/Torre',
+        header: 'Torre',
         accessorKey: 'block',
         cell: (props) => {
           const r = props.row.original as unknown as Record<string, unknown>

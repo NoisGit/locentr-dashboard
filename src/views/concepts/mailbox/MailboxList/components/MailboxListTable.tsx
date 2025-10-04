@@ -131,7 +131,7 @@ const MailboxListTable = () => {
         cell: (props) => <span>{readFloor(props.row.original)}</span>,
       },
       {
-        header: <span className="whitespace-nowrap">Bloque/Torre</span>,
+        header: <span className="whitespace-nowrap">Torre</span>,
         accessorKey: 'block',
         cell: (props) => <span>{readBlock(props.row.original)}</span>,
       },

@@ -1,3 +1,4 @@
+// src/views/concepts/residents/ResidentsForm/ResidentsForm.tsx
 import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { useForm, Controller } from 'react-hook-form'
@@ -26,6 +27,7 @@ export type ResidentsFormSchema = {
   isOwner: boolean
   startDate?: string
   endDate?: string
+  homeRole: string
 }
 
 type ResidentsFormProps = {
@@ -48,6 +50,7 @@ const validationSchema = z
     isOwner: z.boolean().default(false),
     startDate: z.string().optional().refine(isValidDate, { message: 'Fecha inválida (YYYY-MM-DD)' }),
     endDate: z.string().optional().refine(isValidDate, { message: 'Fecha inválida (YYYY-MM-DD)' }),
+    homeRole: z.string().min(1, { message: 'Seleccione rol en el hogar' }),
   })
   .refine(
     (d) => {
@@ -57,7 +60,8 @@ const validationSchema = z
     { path: ['endDate'], message: 'La fecha de fin debe ser mayor o igual a la de inicio' },
   )
 
-type Option = { value: number; label: string }
+type OptionNum = { value: number; label: string }
+type OptionStr = { value: string; label: string }
 
 type PropertyLike = {
   id?: number | string
@@ -91,7 +95,8 @@ async function fetchProperties(): Promise<PropertyLike[]> {
   const limit = 100
   let skip = 0
   const all: unknown[] = []
-  while (true) {
+  // simple paginado
+  for (;;) {
     const resp = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
       url: '/api/v1/communities/properties',
       method: 'get',
@@ -105,11 +110,31 @@ async function fetchProperties(): Promise<PropertyLike[]> {
   return all as PropertyLike[]
 }
 
+const HOME_ROLE_OPTIONS: string[] = [
+  'Papá',
+  'Mamá',
+  'Hijo',
+  'Hija',
+  'Abuela',
+  'Abuelo',
+  'Adulto Responsable',
+  'Adulta Responsable',
+]
+
+// lector seguro del nombre de rol sin usar `any`
+function readRoleName(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v && typeof v === 'object' && 'name' in (v as Record<string, unknown>)) {
+    const n = (v as Record<string, unknown>).name
+    return typeof n === 'string' ? n : ''
+  }
+  return ''
+}
+
 const ResidentsForm = (props: ResidentsFormProps) => {
   const { onFormSubmit, defaultValues = {}, children, newResident } = props
   const isCreate =
-    newResident ??
-    !(defaultValues.userId || defaultValues.propertyId || defaultValues.startDate || defaultValues.endDate)
+    newResident ?? !(defaultValues.userId || defaultValues.propertyId || defaultValues.startDate || defaultValues.endDate)
 
   const {
     handleSubmit,
@@ -124,6 +149,7 @@ const ResidentsForm = (props: ResidentsFormProps) => {
       isOwner: false,
       startDate: '',
       endDate: '',
+      homeRole: '',
       ...defaultValues,
     },
   })
@@ -159,11 +185,12 @@ const ResidentsForm = (props: ResidentsFormProps) => {
   }, [residentsData])
 
   const userIsResident = (u: CustomerRow) => {
-    const roleName = (typeof u.role === 'string' ? u.role : u.role?.name) || ''
+    // compatible con string o { name }
+    const roleName = readRoleName((u as unknown as Record<string, unknown>)?.role)
     return roleName.trim().toLowerCase() === 'residente'
   }
 
-  const usersOptions = useMemo<Option[]>(() => {
+  const usersOptions = useMemo<OptionNum[]>(() => {
     return usersRaw.filter(userIsResident).map((u: CustomerRow) => {
       const idNum = Number(u.id ?? 0)
       const label =
@@ -174,9 +201,16 @@ const ResidentsForm = (props: ResidentsFormProps) => {
     })
   }, [usersRaw])
 
-  const propertiesOptions = useMemo<Option[]>(() => {
+  const propertiesOptions = useMemo<OptionNum[]>(() => {
     const arr = Array.isArray(propertiesRaw) ? propertiesRaw : []
-    const filteredBase = residentsErr ? arr : arr.filter((p) => !usedPropertyIds.has(Number((p as PropertyLike)?.id ?? 0)))
+    const currentPropId = Number(defaultValues.propertyId ?? 0)
+    const filteredBase = residentsErr
+      ? arr
+      : arr.filter((p) => {
+          const pid = Number((p as PropertyLike)?.id ?? (p as PropertyLike)?.property_id ?? 0)
+          if (pid === currentPropId) return true // mantener la actual aunque esté ocupada
+          return !usedPropertyIds.has(pid)
+        })
     const finalArr = filteredBase.length ? filteredBase : arr
     return finalArr.map((p: PropertyLike) => {
       const idNum = Number(p?.id ?? p?.property_id ?? 0)
@@ -184,7 +218,12 @@ const ResidentsForm = (props: ResidentsFormProps) => {
       const label = number ? `Propiedad ${String(number)}` : `Propiedad #${idNum}`
       return { value: idNum, label }
     })
-  }, [propertiesRaw, usedPropertyIds, residentsErr])
+  }, [propertiesRaw, usedPropertyIds, residentsErr, defaultValues.propertyId])
+
+  const homeRoleOptions: OptionStr[] = useMemo(
+    () => HOME_ROLE_OPTIONS.map((label) => ({ label, value: label })),
+    [],
+  )
 
   useEffect(() => {
     reset({
@@ -193,6 +232,7 @@ const ResidentsForm = (props: ResidentsFormProps) => {
       isOwner: defaultValues.isOwner ?? false,
       startDate: defaultValues.startDate ?? '',
       endDate: defaultValues.endDate ?? '',
+      homeRole: defaultValues.homeRole ?? '',
     })
   }, [
     reset,
@@ -201,13 +241,19 @@ const ResidentsForm = (props: ResidentsFormProps) => {
     defaultValues.isOwner,
     defaultValues.startDate,
     defaultValues.endDate,
+    defaultValues.homeRole,
   ])
 
   const onSubmit = (values: ResidentsFormSchema) => onFormSubmit?.(values)
 
-  const selectValue =
-    (options: Option[]) =>
+  const selectValueNum =
+    (options: OptionNum[]) =>
     (val?: number) =>
+      options.find((o) => String(o.value) === String(val)) ?? null
+
+  const selectValueStr =
+    (options: OptionStr[]) =>
+    (val?: string) =>
       options.find((o) => String(o.value) === String(val)) ?? null
 
   return (
@@ -230,8 +276,8 @@ const ResidentsForm = (props: ResidentsFormProps) => {
                         isSearchable={false}
                         options={propertiesOptions}
                         placeholder="Seleccione una propiedad"
-                        value={selectValue(propertiesOptions)(field.value)}
-                        onChange={(opt) => field.onChange(opt ? (opt as Option).value : undefined)}
+                        value={selectValueNum(propertiesOptions)(field.value)}
+                        onChange={(opt) => field.onChange(opt ? (opt as OptionNum).value : undefined)}
                       />
                     )}
                   />
@@ -246,9 +292,25 @@ const ResidentsForm = (props: ResidentsFormProps) => {
                         isSearchable={false}
                         options={usersOptions}
                         placeholder="Seleccione un usuario"
-                        value={selectValue(usersOptions)(field.value)}
+                        value={selectValueNum(usersOptions)(field.value)}
                         isDisabled={!isCreate}
-                        onChange={(opt) => field.onChange(opt ? (opt as Option).value : undefined)}
+                        onChange={(opt) => field.onChange(opt ? (opt as OptionNum).value : undefined)}
+                      />
+                    )}
+                  />
+                </FormItem>
+
+                <FormItem label="Rol en el hogar" invalid={!!errors.homeRole} errorMessage={errors.homeRole?.message}>
+                  <Controller
+                    name="homeRole"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        isSearchable={false}
+                        options={homeRoleOptions}
+                        placeholder="Seleccione rol"
+                        value={selectValueStr(homeRoleOptions)(field.value)}
+                        onChange={(opt) => field.onChange(opt ? (opt as OptionStr).value : '')}
                       />
                     )}
                   />

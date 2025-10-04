@@ -9,36 +9,41 @@ type CommunitiesState = {
   selectedId?: string | number
   selectedName?: string
   source: CommunitiesSource
-  /** true si la última carga de comunidades auto-seleccionó una sola comunidad */
   autoSelected: boolean
 }
 
 type CommunitiesActions = {
-  /**
-   * Establece la lista de comunidades. Si hay exactamente 1 y
-   * `opts.autoSelectIfSingle !== false`, se auto-selecciona.
-   * También limpia la selección si el seleccionado ya no existe.
-   */
   setCommunities: (
     list: Community[],
     source?: Exclude<CommunitiesSource, 'none'>,
     opts?: { autoSelectIfSingle?: boolean }
   ) => void
-
-  /** Selecciona y persiste en storage */
   selectCommunity: (c: { id: string | number; name: string }) => void
-
-  /** Limpia selección y storage */
   clearCommunity: () => void
-
-  /**
-   * Si no hay selección y hay exactamente 1 comunidad en memoria,
-   * la selecciona. Devuelve true si auto-seleccionó.
-   */
   ensureSelectionFromList: () => boolean
+  reset: () => void
 }
 
 const STORAGE_KEY = 'current_community'
+
+type NameLike = {
+  name?: string
+  full_name?: string
+  title?: string
+  community_name?: string
+  label?: string
+}
+
+function readCommunityName(c: Community): string {
+  const n =
+    (c as unknown as NameLike).name ??
+    (c as unknown as NameLike).full_name ??
+    (c as unknown as NameLike).title ??
+    (c as unknown as NameLike).community_name ??
+    (c as unknown as NameLike).label ??
+    ''
+  return String(n)
+}
 
 function persistSelected(id?: string | number, name?: string) {
   try {
@@ -61,44 +66,54 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
     const { selectedId } = get()
     const autoSelectIfSingle = opts?.autoSelectIfSingle ?? true
 
-    // ¿Sigue existiendo el seleccionado actual?
+    if (list.length === 0) {
+      set({
+        communities: [],
+        source: source ?? get().source,
+        autoSelected: false,
+      })
+      return
+    }
+
     const stillExists =
       selectedId !== undefined &&
       selectedId !== null &&
       list.some((c) => String(c.id) === String(selectedId))
 
-    let didAutoSelect = false
-
-    // Autoselect si hay 1 comunidad y se permite
     if (!stillExists && autoSelectIfSingle && list.length === 1) {
       const only = list[0]
-      persistSelected(only.id, (only as any).name ?? '')
+      const onlyName = readCommunityName(only)
+      persistSelected(only.id, onlyName)
       set({
         communities: list,
         source: source ?? get().source,
         selectedId: only.id,
-        selectedName: (only as any).name ?? '',
+        selectedName: onlyName,
         autoSelected: true,
       })
-      didAutoSelect = true
-    } else {
-      // Set básico
+      return
+    }
+
+    if (stillExists) {
+      const current = list.find((c) => String(c.id) === String(selectedId))!
+      const name = readCommunityName(current)
+      persistSelected(current.id, name)
       set({
         communities: list,
         source: source ?? get().source,
+        selectedName: name,
         autoSelected: false,
       })
-      // Si el seleccionado ya no existe, limpiamos
-      if (!stillExists) {
-        persistSelected(undefined, undefined)
-        set({ selectedId: undefined, selectedName: undefined })
-      }
+      return
     }
 
-    // Valor de retorno vía estado (por si el consumidor quiere observarlo)
-    if (didAutoSelect) {
-      set({ autoSelected: true })
-    }
+    set({
+      communities: list,
+      source: source ?? get().source,
+      autoSelected: false,
+    })
+    persistSelected(undefined, undefined)
+    set({ selectedId: undefined, selectedName: undefined })
   },
 
   selectCommunity: ({ id, name }) => {
@@ -115,16 +130,28 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
     const { selectedId, communities } = get()
     if ((selectedId === undefined || selectedId === null) && communities.length === 1) {
       const only = communities[0]
-      persistSelected(only.id, (only as any).name ?? '')
+      const onlyName = readCommunityName(only)
+      persistSelected(only.id, onlyName)
       set({
         selectedId: only.id,
-        selectedName: (only as any).name ?? '',
+        selectedName: onlyName,
         autoSelected: true,
       })
       return true
     }
     set({ autoSelected: false })
     return false
+  },
+
+  reset: () => {
+    persistSelected(undefined, undefined)
+    set({
+      communities: [],
+      selectedId: undefined,
+      selectedName: undefined,
+      source: 'none',
+      autoSelected: false,
+    })
   },
 }))
 
@@ -134,9 +161,10 @@ export function hydrateCommunitiesFromStorage() {
     if (!raw) return
     const parsed = JSON.parse(raw) as { id?: string | number; name?: string }
     if (parsed?.id !== undefined && parsed?.id !== null) {
-      useCommunitiesStore
-        .getState()
-        .selectCommunity({ id: parsed.id, name: parsed.name ?? '' })
+      useCommunitiesStore.getState().selectCommunity({
+        id: parsed.id,
+        name: parsed.name ?? '',
+      })
     }
   } catch {}
 }

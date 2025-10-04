@@ -108,7 +108,7 @@ const InvitationsListTable = () => {
         },
       },
       {
-        header: 'BLOQUE/TORRE',
+        header: 'TORRE',
         accessorKey: 'resident.block',
         cell: (props) => {
           const row = props.row.original as unknown as Rec

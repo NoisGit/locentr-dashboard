@@ -8,7 +8,8 @@ import {
 } from '@/services/MailboxService'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import type { GetMailboxListResponse, MailboxEntry } from '../types'
-import { apiGetPropertiesList, type PropertyRow } from '@/services/PropertiesService'
+import { useAuth } from '@/auth'
+import { isSuperAdmin } from '@/utils/newsPermissions'
 
 type SWRKey = [typeof MAILBOX_COMMUNITY_BASE, number | string, MailboxTableQueries]
 
@@ -16,27 +17,24 @@ type Rec = Record<string, unknown>
 function isRec(v: unknown): v is Rec {
   return typeof v === 'object' && v !== null
 }
-function pick(row: unknown, keys: string[]) {
-  if (!isRec(row)) return undefined
+function pickFrom(obj: Rec | undefined, keys: string[]): unknown {
+  if (!obj) return undefined
   for (const k of keys) {
-    const v = (row as Rec)[k]
+    const v = obj[k]
     if (v !== undefined && v !== null && String(v) !== '') return v
   }
   return undefined
 }
-function readPropId(row: unknown): string {
-  const direct = pick(row, ['property_id', 'propertyId'])
-  if (direct !== undefined) return String(direct)
-  const nested = isRec(row) ? (row as Rec)['property'] : undefined
-  if (isRec(nested)) {
-    const nid = pick(nested, ['id'])
-    if (nid !== undefined) return String(nid)
-  }
+function toStr(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
 }
 
 export default function useMailboxList() {
   const { selectedId: communityId } = useCommunitiesStore()
+  const { user } = useAuth()
+  const superAdmin = isSuperAdmin(undefined, user)
 
   const {
     tableData,
@@ -49,12 +47,15 @@ export default function useMailboxList() {
   } = useMailboxListStore((state) => state)
 
   const baseParams = { ...tableData, ...filterData } as MailboxTableQueries
-  const effectiveParams: MailboxTableQueries = {
-    ...baseParams,
-    communityId: communityId ?? baseParams.communityId,
-  }
+  const listAll = superAdmin && (communityId == null || String(communityId) === '')
 
-  const swrKey: SWRKey | null = communityId
+  const effectiveParams: MailboxTableQueries = listAll
+    ? { ...baseParams, communityId: undefined }
+    : { ...baseParams, communityId: communityId ?? baseParams.communityId }
+
+  const swrKey: SWRKey | null = listAll
+    ? [MAILBOX_COMMUNITY_BASE, 'all', effectiveParams]
+    : communityId
     ? [MAILBOX_COMMUNITY_BASE, communityId, effectiveParams]
     : null
 
@@ -64,71 +65,57 @@ export default function useMailboxList() {
     { revalidateOnFocus: false },
   )
 
-  const raw: any = data
-  const list: MailboxEntry[] = Array.isArray(raw?.list)
-    ? raw.list
+  const raw = data as { list?: unknown[]; data?: unknown[]; total?: number } | undefined
+  const listRaw: unknown[] = Array.isArray(raw?.list)
+    ? (raw!.list as unknown[])
     : Array.isArray(raw?.data)
-    ? raw.data
+    ? (raw!.data as unknown[])
     : []
 
-  const total: number =
-    typeof raw?.total === 'number' ? raw.total : Array.isArray(list) ? list.length : 0
+  const list: MailboxEntry[] = listRaw.map((row) => {
+    const r = (isRec(row) ? row : {}) as Rec
+    const p = isRec(r.property) ? (r.property as Rec) : undefined
 
-  const shouldLoadProps = Boolean(communityId)
-  const { data: propsResp } = useSWR<{ list: PropertyRow[]; total: number }>(
-    shouldLoadProps ? ['props:byCommunity', communityId] : null,
-    () =>
-      apiGetPropertiesList<{ list: PropertyRow[]; total: number }>({
-        pageIndex: 1,
-        pageSize: 1000,
-        communityId: communityId as number | string,
-      }),
-    { revalidateOnFocus: false },
-  )
+    const property_number = toStr(
+      pickFrom(r, [
+        'property_number',
+        'propertyNumber',
+        'unit',
+        'apartment',
+        'apt',
+        'houseNumber',
+        'house_number',
+        'property_id',
+        'propertyId',
+      ]) ?? pickFrom(p, ['number', 'propertyNumber', 'code', 'name', 'id']),
+    )
 
-  const propMap = new Map<string, { number: string; block: string; floor: string }>()
-  for (const p of propsResp?.list ?? []) {
-    const id = String((p as unknown as { id: string | number }).id)
-    const number =
-      (p as unknown as any).propertyNumber ??
-      (p as unknown as any).number ??
-      (p as unknown as any).property_number ??
-      id
-    const block =
-      (p as unknown as any).block ??
-      (p as unknown as any).block_tower ??
-      (p as unknown as any).tower ??
-      ''
+    const floorRaw = pickFrom(r, ['floor', 'level']) ?? pickFrom(p, ['floor', 'level'])
     const floor =
-      (p as unknown as any).floor ??
-      (p as unknown as any).level ??
-      ''
-    propMap.set(id, { number: String(number ?? ''), block: String(block ?? ''), floor: String(floor ?? '') })
-  }
+      typeof floorRaw === 'number' || typeof floorRaw === 'string' ? (floorRaw as number | string) : ''
 
-  const enrichedList: MailboxEntry[] = list.map((row: any) => {
-    const pid = readPropId(row)
-    const info = pid ? propMap.get(pid) : undefined
-    const blockVal = row?.block ?? row?.block_tower ?? row?.property?.block ?? (info?.block ?? '')
-    const floorVal = row?.floor ?? row?.property?.floor ?? (info?.floor ?? '')
-    const numberVal = row?.property_number ?? row?.property?.number ?? (info?.number ?? '')
+    const block = toStr(pickFrom(r, ['block', 'block_tower', 'tower']) ?? pickFrom(p, ['block', 'tower']))
+
+    const base = r as unknown as MailboxEntry
+
     return {
-      ...row,
-      property_number: numberVal,
-      block: blockVal,
-      floor: floorVal,
+      ...base,
+      property_number,
+      floor,
+      block,
       property: {
-        ...(row?.property ?? {}),
-        id: row?.property?.id ?? pid,
-        number: row?.property?.number ?? numberVal,
-        block: row?.property?.block ?? blockVal,
-        floor: row?.property?.floor ?? floorVal,
+        ...(p ?? {}),
+        number: (p?.number as unknown as string) ?? property_number,
+        floor: (p?.floor as unknown as number | string) ?? floor,
+        block: (p?.block as unknown as string) ?? block,
       },
-    }
+    } as MailboxEntry
   })
 
+  const total: number = typeof raw?.total === 'number' ? raw!.total : list.length
+
   return {
-    mailboxList: enrichedList,
+    mailboxList: list,
     mailboxListTotal: total,
     error,
     isLoading,

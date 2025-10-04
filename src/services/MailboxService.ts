@@ -1,6 +1,7 @@
 // src/services/MailboxService.ts
 import ApiService from '@/services/ApiService'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { apiGetMyCommunities, apiListCommunities, type Community } from '@/services/CommunitiesService'
 
 export const MAILBOX_COMMUNITY_BASE = '/api/v1/mailboxes/community'
 export const MAILBOX_ENTRY_BASE = '/api/v1/mailboxes/entries'
@@ -37,10 +38,10 @@ export type MailboxRow = {
   imageUrl: string
   folder: string
   subject: string
-  /** 🔹 NUEVO: número visible de la propiedad */
   propertyNumber: string
-  /** 🔹 NUEVO: id de propiedad (si existe) */
   propertyId: string | number | ''
+  floor: number | string | ''
+  block: string
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -168,8 +169,6 @@ function joinName(first: string, last: string, email: string) {
   if (a.length) return a.join(' ')
   return email || ''
 }
-
-/** 🔹 NUEVO: lector robusto para número de propiedad */
 function readPropertyNumber(o: Record<string, unknown>): string {
   const direct = toString(
     get(o, 'property_number') ??
@@ -182,30 +181,34 @@ function readPropertyNumber(o: Record<string, unknown>): string {
       get(o, 'property')
   )
   if (direct) return direct
-
   const prop = get(o, 'property')
   if (isObject(prop)) {
     const nested = toString(
-      get(prop, 'number') ??
-        get(prop, 'propertyNumber') ??
-        get(prop, 'code') ??
-        get(prop, 'name') ??
-        get(prop, 'id')
+      get(prop, 'number') ?? get(prop, 'propertyNumber') ?? get(prop, 'code') ?? get(prop, 'name') ?? get(prop, 'id')
     )
     if (nested) return nested
   }
-
-  // fallback: id si no hay número visible
   const byId = toString(get(o, 'property_id') ?? get(o, 'propertyId'))
   return byId
 }
-
 function toMailboxRow(v: unknown): MailboxRow {
   const o = isObject(v) ? v : {}
   const first = toString(get(o, 'recipientFirstName') ?? get(o, 'first_name') ?? get(o, 'recipient_first_name'))
   const last = toString(get(o, 'recipientLastName') ?? get(o, 'last_name') ?? get(o, 'recipient_last_name'))
   const email = toString(get(o, 'recipientEmail') ?? get(o, 'email') ?? get(o, 'recipient_email'))
   const composedRecipient = joinName(first, last, email)
+  let floor: number | string | '' = ''
+  const floorRaw = get(o, 'floor') ?? get(get(o, 'property'), 'floor')
+  if (typeof floorRaw === 'number') floor = floorRaw
+  else if (typeof floorRaw === 'string' && floorRaw.trim() !== '') floor = floorRaw
+  const block = toString(
+    get(o, 'block') ??
+      get(o, 'block_tower') ??
+      get(o, 'tower') ??
+      get(get(o, 'property'), 'block') ??
+      get(get(o, 'property'), 'block_tower') ??
+      get(get(o, 'property'), 'tower')
+  )
   return {
     id: pickIdDeep(o),
     description: toString(get(o, 'description') ?? get(o, 'notes') ?? get(o, 'note') ?? get(o, 'observations')),
@@ -217,7 +220,7 @@ function toMailboxRow(v: unknown): MailboxRow {
         get(o, 'guide') ??
         get(o, 'trackingCode') ??
         get(o, 'tracking_code') ??
-        get(o, 'code'),
+        get(o, 'code')
     ),
     deliveryCompany: toString(
       get(o, 'deliveryCompany') ??
@@ -225,7 +228,7 @@ function toMailboxRow(v: unknown): MailboxRow {
         get(o, 'company') ??
         get(o, 'carrier') ??
         get(o, 'courier') ??
-        get(o, 'delivery_company_name'),
+        get(o, 'delivery_company_name')
     ),
     createdAt: toString(get(o, 'createdAt') ?? get(o, 'created_at') ?? get(o, 'created') ?? get(o, 'received_at') ?? get(o, 'receivedAt')),
     createdByGuard: (get(o, 'createdByGuard') ?? get(o, 'created_by_guard') ?? '') as string | number | '',
@@ -236,7 +239,7 @@ function toMailboxRow(v: unknown): MailboxRow {
         get(o, 'delivered') ??
         get(o, 'picked_up') ??
         get(o, 'is_picked_up') ??
-        (toString(get(o, 'status')).toLowerCase() === 'delivered'),
+        (toString(get(o, 'status')).toLowerCase() === 'delivered')
     ),
     deliveredAt: toString(get(o, 'deliveredAt') ?? get(o, 'delivered_at') ?? get(o, 'picked_up_at') ?? get(o, 'pickedUpAt')),
     deliveredByGuard: (get(o, 'deliveredByGuard') ?? get(o, 'delivered_by_guard') ?? '') as string | number | '',
@@ -248,14 +251,24 @@ function toMailboxRow(v: unknown): MailboxRow {
         get(o, 'photo_url') ??
         get(o, 'picture') ??
         get(o, 'thumbnail') ??
-        get(o, 'thumb_url'),
+        get(o, 'thumb_url')
     ),
     folder: toString(get(o, 'folder')),
     subject: toString(get(o, 'subject')),
-    /** 🔹 NUEVO */
     propertyNumber: readPropertyNumber(o),
     propertyId: (get(o, 'property_id') ?? get(o, 'propertyId') ?? '') as string | number | '',
+    floor,
+    block,
   }
+}
+async function getAllCommunityIds(): Promise<Array<string | number>> {
+  let list: Community[] = []
+  try { list = await apiGetMyCommunities<Community[]>() } catch {}
+  if (!list.length) {
+    try { list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 }) } catch {}
+  }
+  const ids = list.map(c => c.id).filter(id => id !== undefined && id !== null)
+  return Array.from(new Set(ids.map(x => String(x)))).map(x => /^\d+$/.test(x) ? Number(x) : x)
 }
 
 export async function apiGetMailboxList<
@@ -263,12 +276,48 @@ export async function apiGetMailboxList<
   U extends MailboxTableQueries = MailboxTableQueries
 >(params: U) {
   const cid = activeCommunityId(params.communityId ?? null)
+  const cfgParams = withPagination({ ...params, communityId: undefined })
+  if (!cid) {
+    const ids = await getAllCommunityIds()
+    if (!ids.length) return { list: [], total: 0 } as T
+    const reqSkip = Number(cfgParams.skip ?? 0)
+    const reqLimit = Number(cfgParams.limit ?? 10)
+    const innerParams = { ...cfgParams, skip: 0, limit: 1000 }
+    const reqs = ids.map(id =>
+      ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
+        url: `${MAILBOX_COMMUNITY_BASE}/${encodeURIComponent(String(id))}/entries`,
+        method: 'get',
+        params: innerParams,
+      }).catch(() => ({ data: [] } as unknown)),
+    )
+    const settled = await Promise.allSettled(reqs)
+    const allItems: unknown[] = []
+    let totalAcc = 0
+    for (const r of settled) {
+      if (r.status === 'fulfilled') {
+        const { items, total } = pickItemsAndTotal(r.value)
+        allItems.push(...items)
+        totalAcc += typeof total === 'number' ? total : items.length
+      }
+    }
+    const mapped = allItems.map(toMailboxRow)
+    mapped.sort((a, b) => {
+      const da = Date.parse(a.createdAt || '')
+      const db = Date.parse(b.createdAt || '')
+      if (Number.isNaN(da) && Number.isNaN(db)) return 0
+      if (Number.isNaN(da)) return 1
+      if (Number.isNaN(db)) return -1
+      return db - da
+    })
+    const sliced = mapped.slice(reqSkip, reqSkip + reqLimit)
+    return { list: sliced, total: totalAcc || mapped.length } as T
+  }
   const url = buildCommunityEntriesUrl(cid)
   if (!url) return { list: [], total: 0 } as T
   const resp = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url,
     method: 'get',
-    params: withPagination({ ...params, communityId: undefined }),
+    params: cfgParams,
   })
   const { items, total } = pickItemsAndTotal(resp)
   const list = items.map(toMailboxRow)

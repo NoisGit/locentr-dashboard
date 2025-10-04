@@ -4,12 +4,10 @@ import { useInvitationsListStore } from '../store/InvitationsListStore'
 import {
   apiGetInvitationsList,
   type InvitationsTableQueries,
-  INVITATIONS_COMMUNITY_BASE,
 } from '@/services/InvitationsService'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import type { GetInvitationsListResponse, InvitationEntry } from '../types'
-
-type SWRKey = [typeof INVITATIONS_COMMUNITY_BASE, number | string, InvitationsTableQueries]
+import { useAuth } from '@/auth'
 
 type Rec = Record<string, unknown>
 
@@ -43,8 +41,48 @@ function pickStr(...vals: unknown[]): string {
   return typeof v === 'number' ? String(v) : (v as string)
 }
 
+function tokensFrom(user: unknown): string[] {
+  if (!isRec(user)) return []
+  const u = user as Rec
+  const cands: unknown[] = [
+    u['roles'],
+    u['role'],
+    u['authorities'],
+    u['authority'],
+    u['permissions'],
+    u['scopes'],
+  ]
+  const out: string[] = []
+  for (const c of cands) {
+    if (typeof c === 'string' || typeof c === 'number') out.push(String(c))
+    else if (Array.isArray(c)) {
+      for (const x of c) {
+        if (typeof x === 'string' || typeof x === 'number') out.push(String(x))
+        else if (isRec(x)) {
+          const n = (x['name'] ?? x['code'] ?? x['id'] ?? x['authority']) as unknown
+          if (typeof n === 'string' || typeof n === 'number') out.push(String(n))
+        }
+      }
+    } else if (isRec(c)) {
+      const n = (c['name'] ?? c['code'] ?? c['id'] ?? c['authority']) as unknown
+      if (typeof n === 'string' || typeof n === 'number') out.push(String(n))
+    }
+  }
+  return out.map((s) => s.toLowerCase())
+}
+function isSuperAdmin(user: unknown): boolean {
+  const toks = tokensFrom(user)
+  if (!toks.length) return false
+  const re = /(super)[\s_\-]*admin/i
+  if (toks.some((t) => re.test(t))) return true
+  if (toks.some((t) => t.includes('owner') || t.includes('root'))) return true
+  return false
+}
+
 export default function useInvitationsList() {
   const { selectedId: communityId } = useCommunitiesStore()
+  const { user } = useAuth()
+  const superAdmin = isSuperAdmin(user)
 
   const {
     tableData,
@@ -57,17 +95,60 @@ export default function useInvitationsList() {
   } = useInvitationsListStore((state) => state)
 
   const baseParams = { ...tableData, ...filterData } as InvitationsTableQueries
+
+  const listAll =
+    superAdmin && (communityId == null || String(communityId) === '')
+
   const effectiveParams: InvitationsTableQueries = {
     ...baseParams,
-    communityId: communityId ?? baseParams.communityId,
+    communityId: listAll ? undefined : (communityId as string | number | undefined),
   }
 
-  const swrKey: SWRKey | null = communityId ? [INVITATIONS_COMMUNITY_BASE, communityId, effectiveParams] : null
+  type SWRKey =
+    | [
+        'invitations:list',
+        'all' | string,
+        number,
+        number,
+        string,
+        string,
+        string
+      ]
+    | null
 
-  const { data, error, isLoading, mutate } = useSWR<GetInvitationsListResponse, unknown, SWRKey | null>(
+  const swrKey: SWRKey = listAll
+    ? [
+        'invitations:list',
+        'all',
+        Number(baseParams.pageIndex ?? 1),
+        Number(baseParams.pageSize ?? 10),
+        String(baseParams.sort?.key ?? ''),
+        String(baseParams.sort?.order ?? ''),
+        String(baseParams.query ?? ''),
+      ]
+    : communityId != null && String(communityId) !== ''
+    ? [
+        'invitations:list',
+        String(communityId),
+        Number(baseParams.pageIndex ?? 1),
+        Number(baseParams.pageSize ?? 10),
+        String(baseParams.sort?.key ?? ''),
+        String(baseParams.sort?.order ?? ''),
+        String(baseParams.query ?? ''),
+      ]
+    : null
+
+  const { data, error, isLoading, mutate } = useSWR<
+    GetInvitationsListResponse,
+    unknown,
+    SWRKey
+  >(
     swrKey,
-    ([, , p]) => apiGetInvitationsList<GetInvitationsListResponse, InvitationsTableQueries>(p),
-    { revalidateOnFocus: false },
+    () => apiGetInvitationsList<GetInvitationsListResponse, InvitationsTableQueries>(effectiveParams),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000,
+    },
   )
 
   const listRaw: InvitationEntry[] = data?.list ?? []

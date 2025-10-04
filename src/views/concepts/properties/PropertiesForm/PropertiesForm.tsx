@@ -216,7 +216,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <FormItem label="Bloque/Torre" invalid={false}>
+                  <FormItem label="Torre" invalid={false}>
                     <Controller
                       name="block"
                       control={control}

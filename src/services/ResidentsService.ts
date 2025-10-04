@@ -1,3 +1,4 @@
+// src/services/ResidentsService.ts
 import ApiService from '@/services/ApiService'
 
 export type TableQueries = {
@@ -19,11 +20,18 @@ export type ResidentRow = {
   propertyId: number | string
   userName?: string
   propertyName?: string
+  propertyNumber?: string
+  floor?: number | string
+  block?: string
+  homeRole?: string
   isOwner?: boolean
   startDate?: string
   endDate?: string
   img?: string
   status?: string
+  idNumber?: string
+  userEmail?: string
+  communityName?: string
 }
 
 export type GetResidentsListResponse = {
@@ -36,13 +44,11 @@ type Dict = Record<string, unknown>
 function isRecord(v: unknown): v is Dict {
   return typeof v === 'object' && v !== null
 }
-
 function str(v: unknown): string {
   if (typeof v === 'string') return v
-  if (typeof v === 'number') return String(v)
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
 }
-
 function toYMD(input: unknown): string | undefined {
   if (input === '' || input == null) return undefined
   if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.trim())) return input.trim()
@@ -53,7 +59,6 @@ function toYMD(input: unknown): string | undefined {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-
 function boolOrUndef(v: unknown): boolean | undefined {
   if (v === '' || v == null) return undefined
   if (typeof v === 'boolean') return v
@@ -62,185 +67,101 @@ function boolOrUndef(v: unknown): boolean | undefined {
   if (s === 'false' || s === '0') return false
   return undefined
 }
-
-function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
-  const r = raw as Dict
-  const items =
-    (Array.isArray((r as Dict)?.residents) && ((r as Dict).residents as unknown[])) ||
-    (Array.isArray((r as Dict)?.items) && ((r as Dict).items as unknown[])) ||
-    (Array.isArray((r as Dict)?.list) && ((r as Dict).list as unknown[])) ||
-    (isRecord((r as Dict)?.data) && Array.isArray(((r as Dict).data as Dict).residents) && ((((r as Dict).data as Dict).residents as unknown[]) ?? [])) ||
-    (isRecord((r as Dict)?.data) && Array.isArray(((r as Dict).data as Dict).items) && ((((r as Dict).data as Dict).items as unknown[]) ?? [])) ||
-    (isRecord((r as Dict)?.data) && Array.isArray(((r as Dict).data as Dict).list) && ((((r as Dict).data as Dict).list as unknown[]) ?? [])) ||
-    (Array.isArray((r as Dict)?.data) && ((r as Dict).data as unknown[])) ||
-    (Array.isArray((r as Dict)?.results) && ((r as Dict).results as unknown[])) ||
-    (Array.isArray(raw) && (raw as unknown[])) ||
-    []
-  const cand =
-    (r as Dict)?.total ??
-    (r as Dict)?.count ??
-    (isRecord((r as Dict)?.data) ? ((r as Dict).data as Dict).total : undefined) ??
-    (isRecord((r as Dict)?.pagination) ? ((r as Dict).pagination as Dict).total : undefined)
-  const total = Number(typeof cand === 'number' || typeof cand === 'string' ? cand : items.length)
-  return { items, total }
+function pickItemsAndTotalDetailed(raw: unknown): { items: unknown[]; total: number } {
+  if (isRecord(raw) && Array.isArray(raw.data as unknown[])) {
+    const items = raw.data as unknown[]
+    const total = Number((raw.total as unknown) ?? items.length)
+    return { items, total }
+  }
+  const items = Array.isArray(raw) ? (raw as unknown[]) : []
+  return { items, total: items.length }
 }
 
-function adaptResidentRow(u: unknown): ResidentRow {
-  const r = isRecord(u) ? u : ({} as Dict)
-  const rawId = (r.id ?? r.resident_id ?? r._id) as unknown
-  const cleanId = String(rawId ?? '').replace(/\/+$/, '')
-  const userIdRaw = (r.user_id ?? r.userId ?? (isRecord(r.user) ? (r.user as Dict).id : undefined) ?? (isRecord(r.user) ? (r.user as Dict)._id : undefined)) as unknown
-  const propertyIdRaw = (r.property_id ?? r.propertyId ?? (isRecord(r.property) ? (r.property as Dict).id : undefined) ?? (isRecord(r.property) ? (r.property as Dict)._id : undefined)) as unknown
-  const first = (isRecord(r.user) ? (r.user as Dict).first_name : r.first_name) as unknown
-  const last = (isRecord(r.user) ? (r.user as Dict).last_name : r.last_name) as unknown
-  const nameParts = [str(first), str(last)].filter(Boolean)
-  const joinedName = nameParts.length ? nameParts.join(' ') : undefined
-  const preferredName = (r.user_name ?? (isRecord(r.user) ? (r.user as Dict).name : undefined) ?? joinedName ?? r.name) as unknown
-  const userName = str(preferredName)
-  const propertyName = str(r.property_name ?? (isRecord(r.property) ? (r.property as Dict).name : undefined) ?? (isRecord(r.property) ? (r.property as Dict).address : undefined) ?? r.propertyAddress)
-  const startDate = r.start_date ?? r.startDate ?? (isRecord(r.dates) ? (r.dates as Dict).start : undefined) ?? (isRecord(r.period) ? (r.period as Dict).start : undefined)
-  const endDate = r.end_date ?? r.endDate ?? (isRecord(r.dates) ? (r.dates as Dict).end : undefined) ?? (isRecord(r.period) ? (r.period as Dict).end : undefined)
-  const img =
-    (isRecord(r.user) ? ((r.user as Dict).avatar as unknown) : undefined) ??
-    (isRecord(r.user) ? ((r.user as Dict).avatar_url as unknown) : undefined) ??
-    (r.avatar_url as unknown) ??
-    (r.avatar as unknown) ??
-    ''
+function adaptResidentDetailed(u: unknown): ResidentRow {
+  const r: Dict = isRecord(u) ? u : {}
+  const id = String(r.id ?? '')
+  const userId = String(r.user_id ?? '')
+  const propertyId = String(r.property_id ?? '')
+  const userName = str(r.user_name)
+  const propertyNumber = str(r.property_number)
+
+  const floorRaw = r.floor
+  const floor: number | string | undefined =
+    typeof floorRaw === 'number'
+      ? floorRaw
+      : typeof floorRaw === 'string' && floorRaw.trim() !== ''
+      ? floorRaw
+      : undefined
+
+  const block = str(r.block)
+  const homeRole = str(r.home_role)
+  const isOwner = Boolean(r.is_owner)
+  const startDate = toYMD(r.start_date)
+  const endDate = toYMD(r.end_date)
+  const idNumber = str(r.id_number)
+  const userEmail = str(r.user_email)
+  const communityName = str(r.community_name)
+
   return {
-    id: cleanId,
-    userId: String(userIdRaw ?? ''),
-    propertyId: String(propertyIdRaw ?? ''),
+    id,
+    userId,
+    propertyId,
     userName,
-    propertyName,
-    isOwner: Boolean(r.is_owner ?? r.isOwner ?? r.owner ?? (isRecord(r.relation) ? (r.relation as Dict).is_owner : undefined) ?? false),
-    startDate: toYMD(startDate),
-    endDate: toYMD(endDate),
-    img: typeof img === 'string' ? img : '',
-    status: str(r.status),
+    propertyNumber,
+    floor,
+    block,
+    homeRole,
+    isOwner,
+    startDate,
+    endDate,
+    idNumber,
+    userEmail,
+    communityName,
   }
 }
 
-function tryParsePythonishDict(input: unknown): unknown | null {
-  if (typeof input !== 'string') return null
-  const approx = input.replace(/None\b/g, 'null').replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false').replace(/'/g, '"')
-  try {
-    return JSON.parse(approx)
-  } catch {
-    return null
-  }
-}
-
-function trySalvageFromError(err: unknown): { list: ResidentRow[]; total: number } | null {
-  const e = isRecord(err) ? err : {}
-  const resp = isRecord(e.response) ? (e.response as Dict) : {}
-  const data = (resp.data as unknown) ?? undefined
-  const candidates: unknown[] = []
-  if (isRecord(data)) {
-    const d = data as Dict
-    if (Array.isArray(d.detail) && d.detail.length) {
-      for (const it of d.detail as unknown[]) {
-        if (isRecord(it)) {
-          const di = it as Dict
-          if (di.input) candidates.push(di.input)
-          if (isRecord(di.ctx) && (di.ctx as Dict).input) candidates.push((di.ctx as Dict).input as unknown)
-          if (isRecord(di.ctx) && (di.ctx as Dict).error) candidates.push((di.ctx as Dict).error as unknown)
-        }
-      }
-    }
-    if ((d as Dict).input_value) candidates.push((d as Dict).input_value as unknown)
-    if ((d as Dict).input) candidates.push((d as Dict).input as unknown)
-    candidates.push(data)
-  } else if (typeof data === 'string') {
-    candidates.push(data)
-  }
-  for (const c of candidates) {
-    let obj: unknown = c
-    if (typeof obj === 'string') obj = tryParsePythonishDict(obj) ?? {}
-    if (isRecord(obj)) {
-      const { items, total } = pickItemsAndTotal(obj)
-      if (Array.isArray(items)) {
-        const list = items.map(adaptResidentRow)
-        return { list, total: Number(total ?? list.length) }
-      }
-      const d = obj as Dict
-      if (isRecord(d.data) && Array.isArray((d.data as Dict).residents)) {
-        const list = ((d.data as Dict).residents as unknown[]).map(adaptResidentRow)
-        const t = Number(d.total ?? (d.data as Dict).total ?? list.length)
-        return { list, total: t }
-      }
-    }
-  }
-  return null
-}
-
-async function tryRequest(params?: Record<string, unknown>) {
-  return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
-    url: '/api/v1/residents/',
-    method: 'get',
-    params,
-  })
-}
-
-export async function apiGetResidentsList<T = GetResidentsListResponse, Q extends TableQueries = TableQueries>(params: Q): Promise<T> {
-  const pageIndex = Math.max(1, Number((params as TableQueries).pageIndex ?? 1))
-  const pageSize = Math.max(1, Number((params as TableQueries).pageSize ?? 10))
+export async function apiGetResidentsList<
+  T = GetResidentsListResponse,
+  Q extends TableQueries = TableQueries
+>(params: Q): Promise<T> {
+  const pageIndex = Math.max(1, Number(params.pageIndex ?? 1))
+  const pageSize = Math.max(1, Number(params.pageSize ?? 10))
   const skip = (pageIndex - 1) * pageSize
-  const qpFull: Record<string, unknown> = { pageIndex, pageSize, limit: pageSize, skip }
-  const qRaw = (params as TableQueries).query
-  const q = (qRaw == null ? '' : String(qRaw)).trim()
-  if (q) {
-    qpFull.query = q
-    qpFull.search = q
-    qpFull.q = q
-    qpFull.name = q
-    qpFull.user_name = q
-    qpFull.property_name = q
-    qpFull['filters[name]'] = q
+
+  const qp: Record<string, unknown> = {
+    pageIndex,
+    pageSize,
+    limit: pageSize,
+    skip,
   }
-  const propertyId = (params as TableQueries).propertyId
-  if (propertyId !== '' && propertyId != null) qpFull.property_id = Number(propertyId)
-  const userId = (params as TableQueries).userId
-  if (userId !== '' && userId != null) qpFull.user_id = Number(userId)
-  const isOwner = boolOrUndef((params as TableQueries).isOwner)
-  if (typeof isOwner === 'boolean') qpFull.is_owner = isOwner
-  const startFrom = toYMD((params as TableQueries).startDateFrom)
-  if (startFrom) qpFull.start_date_from = startFrom
-  const endTo = toYMD((params as TableQueries).endDateTo)
-  if (endTo) qpFull.end_date_to = endTo
-  const commId = (params as TableQueries).communityId
-  if (commId !== '' && commId != null) qpFull.community_id = Number(commId)
-  if ((params as TableQueries).sort?.key) qpFull['sort[key]'] = (params as TableQueries).sort?.key
-  if ((params as TableQueries).sort?.order) qpFull['sort[order]'] = (params as TableQueries).sort?.order
-  if (!(params as TableQueries).sort) {
-    qpFull['sort[key]'] = 'id'
-    qpFull['sort[order]'] = 'desc'
+
+  const q = (params.query ?? '').toString().trim()
+  if (q) qp.query = q
+  if (params.propertyId !== '' && params.propertyId != null) qp.property_id = Number(params.propertyId)
+  if (params.userId !== '' && params.userId != null) qp.user_id = Number(params.userId)
+  const isOwner = boolOrUndef(params.isOwner)
+  if (typeof isOwner === 'boolean') qp.is_owner = isOwner
+  const startFrom = toYMD(params.startDateFrom)
+  if (startFrom) qp.start_date_from = startFrom
+  const endTo = toYMD(params.endDateTo)
+  if (endTo) qp.end_date_to = endTo
+  if (params.communityId !== '' && params.communityId != null) qp.community_id = Number(params.communityId)
+  if (params.sort?.key) qp['sort[key]'] = params.sort.key
+  if (params.sort?.order) qp['sort[order]'] = params.sort.order
+  if (!params.sort) {
+    qp['sort[key]'] = 'id'
+    qp['sort[order]'] = 'desc'
   }
-  try {
-    const resp = await tryRequest(qpFull)
-    const { items, total } = pickItemsAndTotal(resp)
-    const list: ResidentRow[] = items.map(adaptResidentRow)
-    return { list, total } as T
-  } catch (errFull: unknown) {
-    const salvaged = trySalvageFromError(errFull)
-    if (salvaged) return { list: salvaged.list, total: salvaged.total } as T
-    try {
-      const resp = await tryRequest({ limit: pageSize, skip })
-      const { items, total } = pickItemsAndTotal(resp)
-      const list: ResidentRow[] = items.map(adaptResidentRow)
-      return { list, total } as T
-    } catch (errBasic: unknown) {
-      const salvaged2 = trySalvageFromError(errBasic)
-      if (salvaged2) return { list: salvaged2.list, total: salvaged2.total } as T
-      try {
-        const resp = await tryRequest()
-        const { items, total } = pickItemsAndTotal(resp)
-        const list: ResidentRow[] = items.map(adaptResidentRow)
-        return { list, total } as T
-      } catch {
-        return { list: [], total: 0 } as T
-      }
-    }
-  }
+
+  const resp = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
+    url: '/api/v1/residents/detailed',
+    method: 'get',
+    params: qp,
+  })
+
+  const { items, total } = pickItemsAndTotalDetailed(resp)
+  const list: ResidentRow[] = items.map(adaptResidentDetailed)
+  return { list, total } as T
 }
 
 export async function apiCreateResident(payload: {
@@ -270,7 +191,7 @@ export async function apiGetResidentById(id: string | number) {
     url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
     method: 'get',
   })
-  return adaptResidentRow(resp)
+  return adaptResidentDetailed(resp)
 }
 
 export async function apiUpdateResident(
@@ -283,18 +204,18 @@ export async function apiUpdateResident(
     end_date?: string | Date
   },
 ) {
-    const cleanId = String(id).replace(/\/+$/, '')
-    const body: Record<string, unknown> = {}
-    if (patch.user_id != null) body.user_id = Number(patch.user_id)
-    if (patch.property_id != null) body.property_id = Number(patch.property_id)
-    if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
-    body.start_date = toYMD(patch.start_date) ?? null
-    body.end_date = toYMD(patch.end_date) ?? null
-    return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
-      url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
-      method: 'put',
-      data: body,
-    })
+  const cleanId = String(id).replace(/\/+$/, '')
+  const body: Record<string, unknown> = {}
+  if (patch.user_id != null) body.user_id = Number(patch.user_id)
+  if (patch.property_id != null) body.property_id = Number(patch.property_id)
+  if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
+  body.start_date = toYMD(patch.start_date) ?? null
+  body.end_date = toYMD(patch.end_date) ?? null
+  return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
+    url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
+    method: 'put',
+    data: body,
+  })
 }
 
 export async function apiDeleteResident(id: string | number) {
@@ -319,8 +240,10 @@ export async function apiGetMyProperties(): Promise<MyProperty[]> {
     []
   return (items as unknown[]).map((p) => {
     const r = isRecord(p) ? (p as Dict) : {}
-    const idNum = Number(r.id ?? r.property_id ?? 0)
-    const name = str(r.name ?? r.address) || `Propiedad #${idNum}`
+    const idCandidate = r.id ?? r.property_id ?? 0
+    const idNum = Number(typeof idCandidate === 'string' || typeof idCandidate === 'number' ? idCandidate : 0)
+    const nameCandidate = typeof r.name === 'string' ? r.name : typeof r.address === 'string' ? r.address : ''
+    const name = nameCandidate || `Propiedad #${idNum}`
     return { id: idNum, name }
   })
 }

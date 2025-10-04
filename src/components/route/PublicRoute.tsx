@@ -17,50 +17,66 @@ type UserLike = {
   role?: unknown
   authorities?: unknown
   authority?: unknown
+  isSuperAdmin?: boolean
+  superAdmin?: boolean
+  is_super_admin?: boolean
+  is_superadmin?: boolean
 }
-function readRoleTokens(u: unknown): string[] {
+function tokensFrom(u: unknown): string[] {
   if (!isRecord(u)) return []
-  const src =
-    (u as UserLike).roles ??
-    (u as UserLike).role ??
-    (u as UserLike).authorities ??
-    (u as UserLike).authority ??
-    []
-  if (Array.isArray(src)) return src.map((x) => String(x).toLowerCase())
-  if (src != null && (typeof src === 'string' || typeof src === 'number' || typeof src === 'boolean')) {
-    return [String(src).toLowerCase()]
+  const out: string[] = []
+  const push = (val: unknown) => {
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') out.push(String(val))
   }
-  return []
+  const srcs = [
+    (u as UserLike).roles,
+    (u as UserLike).role,
+    (u as UserLike).authorities,
+    (u as UserLike).authority,
+  ]
+  for (const s of srcs) {
+    if (Array.isArray(s)) {
+      for (const x of s) {
+        if (typeof x === 'string') out.push(x)
+        else if (isRecord(x)) {
+          push(x.name)
+          push(x.code)
+          push(x.key)
+          push(x.role)
+          push(x.authority)
+          push(x.value)
+        }
+      }
+    } else if (isRecord(s)) {
+      push(s.name)
+      push(s.code)
+      push(s.key)
+      push(s.role)
+      push(s.authority)
+      push(s.value)
+    } else {
+      push(s)
+    }
+  }
+  return out.map((s) => s.toLowerCase().replace(/[^a-z]/g, ''))
 }
 function isSuperAdminUser(user: unknown): boolean {
-  const tokens = readRoleTokens(user)
-  const set = new Set(tokens)
-  const hits = ['superadmin', 'super-admin', 'super_admin', 'super', 'owner', 'root']
-  return hits.some((t) => set.has(t) || tokens.some((x) => x.includes(t)))
-}
-function clearClientSession() {
-  try {
-    localStorage.removeItem('sessionUser')
-    localStorage.removeItem('token')
-    sessionStorage.removeItem('token')
-    document.cookie = 'token=; Max-Age=0; path=/'
-  } catch {}
+  if (isRecord(user)) {
+    const direct =
+      (user as UserLike).isSuperAdmin ??
+      (user as UserLike).superAdmin ??
+      (user as UserLike).is_super_admin ??
+      (user as UserLike).is_superadmin
+    if (direct === true) return true
+  }
+  const toks = tokensFrom(user)
+  const hits = ['superadmin', 'superadministrator', 'owner', 'root']
+  return toks.some((t) => hits.some((h) => t.includes(h)))
 }
 
 const PublicRoute = () => {
   const { authenticated, user } = useAuth()
   const location = useLocation()
-  const sp = new URLSearchParams(location.search)
-
-  if (sp.get('logout') === '1') {
-    clearClientSession()
-    return <Navigate replace to="/auth/sign-in" />
-  }
-
-  if (sp.get('previewLogin') === '1') {
-    clearClientSession()
-    return <Outlet />
-  }
 
   if (!authenticated) {
     return <Outlet />

@@ -6,6 +6,8 @@ import type { GetPropertiesListResponse } from '../types'
 import type { TableQueries as PropertiesTableQueries } from '@/services/PropertiesService'
 import { useEffect, useMemo } from 'react'
 
+type SWRKey = readonly [endpoint: string, params: PropertiesTableQueries]
+
 export default function usePropertiesList() {
   const {
     tableData,
@@ -20,7 +22,6 @@ export default function usePropertiesList() {
   } = usePropertiesListStore((state) => state)
 
   const selectedId = useCommunitiesStore((s) => s.selectedId)
-  const communityKey = selectedId != null ? String(selectedId) : 'all'
 
   useEffect(() => {
     setFilterData((prev) => ({
@@ -29,22 +30,26 @@ export default function usePropertiesList() {
     }))
   }, [selectedId, setFilterData])
 
-  const swrKey = useMemo(
-    () => [
-      '/api/v1/communities/properties',
-      { ...tableData, ...filterData },
-      communityKey,
-    ] as const,
-    [tableData, filterData, communityKey]
+  const params = useMemo(() => {
+    const merged = { ...tableData, ...filterData } as PropertiesTableQueries
+    merged.communityId =
+      selectedId != null ? String(selectedId) : (merged.communityId ?? '')
+    return merged
+  }, [tableData, filterData, selectedId])
+
+  const swrKey: SWRKey = useMemo(
+    () => ['/api/v1/communities/properties', params] as const,
+    [params],
   )
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<
+    GetPropertiesListResponse,
+    unknown,
+    SWRKey
+  >(
     swrKey,
-    ([, params]) =>
-      apiGetPropertiesList<GetPropertiesListResponse, PropertiesTableQueries>(
-        params as PropertiesTableQueries
-      ),
-    { revalidateOnFocus: false }
+    ([, p]) => apiGetPropertiesList<GetPropertiesListResponse, PropertiesTableQueries>(p),
+    { revalidateOnFocus: false },
   )
 
   const propertiesList = data?.list || []

@@ -427,7 +427,7 @@ const dashboardsRoute: Routes = [
     authority: [ADMIN, USER],
     meta: {
       header: {
-        title: 'Edit resident',
+        title: 'Editar residente',
         description: 'Manage resident details and assignments.',
         contained: true,
       },

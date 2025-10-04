@@ -148,7 +148,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         path: `${CONCEPTS_PREFIX_PATH}/invitations/invitations-list`,
         title: 'Invitaciones',
         translateKey: 'nav.invitations',
-        icon: 'orders',
+        icon: 'invitations',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [ADMIN, USER],
         meta: {

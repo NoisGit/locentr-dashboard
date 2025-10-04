@@ -32,7 +32,15 @@ function pickId(o: Record<string, unknown>): string | number | '' {
   return ''
 }
 function pickName(o: Record<string, unknown>): string {
-  return toStr(o.name) || toStr(o.community_name) || toStr(get(o, 'title')) || toStr(get(o, 'label'))
+  return (
+    toStr(o.name) ||
+    toStr(o.community_name) ||
+    toStr(o.full_name) ||
+    toStr(get(o, 'title')) ||
+    toStr(get(o, 'label')) ||
+    toStr(get(o, 'slug')) ||
+    toStr(get(o, 'code'))
+  )
 }
 function mapToCommunity(v: unknown): Community | null {
   const o = isRecord(v) ? v : {}
@@ -77,7 +85,6 @@ function deepFindFirstArray(input: unknown, depth = 0): unknown[] {
   return []
 }
 
-/** Comunidades del usuario (admins asignados) */
 export async function apiGetMyCommunities<T = Community[]>() {
   const resp = await ApiService.fetchDataWithAxios<unknown>({
     url: COMMUNITY_ACCESS_BASE,
@@ -88,11 +95,10 @@ export async function apiGetMyCommunities<T = Community[]>() {
   return list as T
 }
 
-/** Comunidades globales (para SUPERADMIN) */
 export async function apiListCommunities<T = Community[]>(
   params: { pageIndex?: number; pageSize?: number; sort?: { key?: string; order?: 'asc' | 'desc' } } = {},
 ) {
-  const { pageIndex = 1, pageSize = 100, sort = { key: 'id', order: 'desc' } } = params
+  const { pageIndex = 1, pageSize = 200, sort = { key: 'id', order: 'desc' } } = params
   const resp = await ApiService.fetchDataWithAxios<unknown>({
     url: COMMUNITIES_BASE,
     method: 'get',
@@ -108,7 +114,6 @@ export async function apiListCommunities<T = Community[]>(
   return list as T
 }
 
-/** Detalle de una comunidad (opcional, útil si lo necesitas en header) */
 export async function apiGetCommunityById<T = Community>(id: string | number) {
   const resp = await ApiService.fetchDataWithAxios<unknown>({
     url: `${COMMUNITIES_BASE}id/${encodeURIComponent(String(id))}`,

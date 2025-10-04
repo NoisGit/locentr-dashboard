@@ -92,6 +92,8 @@ import {
     PiBuildingOfficeDuotone,
     PiUsersThreeDuotone,
     PiStorefrontDuotone,
+    PiQrCodeDuotone,
+
 } from 'react-icons/pi'
 import type { JSX } from 'react'
 
@@ -147,6 +149,7 @@ const navigationIcon: NavigationIcons = {
     customerList: <PiUserListDuotone />,
     customerEdit: <PiPencilSimpleLineDuotone />,
     // customerCreate: <PiUserPlusDuotone />, //
+    invitations: <PiQrCodeDuotone />,
     building: <PiBuildingOfficeDuotone/>, 
     customerDetails: <PiUserCircleDuotone />, 
     products: <PiPackageDuotone />,

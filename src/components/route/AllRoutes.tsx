@@ -1,4 +1,4 @@
-// AllRoutes.tsx
+// src/components/route/AllRoutes.tsx
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import AuthorityGuard from './AuthorityGuard'
@@ -21,18 +21,16 @@ const { authenticatedEntryPath } = appConfig
 const AllRoutes = (props: AllRoutesProps) => {
   const { user } = useAuth()
 
-  // Normaliza hijos de /auth: "/auth/sign-in" -> "sign-in"
   const toAuthChildPath = (p: string) => p.replace(/^\/auth\//, '')
 
   return (
     <Routes>
-      {/* ===== Ramas públicas (AUTH) ===== */}
       <Route path="/auth/*" element={<PublicRoute />}>
         <Route index element={<Navigate replace to="sign-in" />} />
         {publicRoutes.map((route) => (
           <Route
             key={route.key}
-            path={toAuthChildPath(route.path)}  
+            path={toAuthChildPath(route.path)}
             element={
               <AppRoute
                 routeKey={route.key}
@@ -45,15 +43,12 @@ const AllRoutes = (props: AllRoutesProps) => {
         <Route path="*" element={<Navigate replace to="sign-in" />} />
       </Route>
 
-      {/* ===== Ramas protegidas ===== */}
       <Route path="/" element={<ProtectedRoute />}>
-        {/* index del branch protegido */}
         <Route index element={<Navigate replace to={authenticatedEntryPath} />} />
-
         {protectedRoutes.map((route, index) => (
           <Route
             key={route.key + index}
-            path={route.path} 
+            path={route.path}
             element={
               <AuthorityGuard
                 userAuthority={user?.authority ?? []}
@@ -70,7 +65,6 @@ const AllRoutes = (props: AllRoutesProps) => {
             }
           />
         ))}
-
         <Route path="*" element={<Navigate replace to={authenticatedEntryPath} />} />
       </Route>
     </Routes>
