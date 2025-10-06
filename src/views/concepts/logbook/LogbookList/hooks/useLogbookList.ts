@@ -1,60 +1,134 @@
-import { useLogbookListStore } from '../store/logbookListStore'
-import type { LogbookEntry } from '../types'
+// src/views/concepts/logbook/hooks/useLogbookList.ts
+import { useCallback, useMemo } from 'react'
+import useSWR from 'swr'
+import { useLogbookListStore } from '../store/LogbookListStore'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { useAuth } from '@/auth'
+import { isSuperAdmin } from '@/utils/newsPermissions'
+import {
+  apiGetCommunityLogbook,
+  apiGetAllLogbookAggregated,
+  type TableQueries as LogbookQueries,
+  type GetLogbookListResponse,
+} from '@/services/LogbookService'
 
 const useLogbookList = () => {
-    const {
-        tableData,
-        filterData,
-        setTableData,
-        setFilterData,
-        selectedLogbookItem,
-        setSelectedLogbookItem,
-        setSelectAllLogbook,
-        logbookList,                // <-- central logbook array from the store
-        setLogbookList,             // <-- setter for the main list
-    } = useLogbookListStore((state) => state)
+  // Store
+  const tableData = useLogbookListStore((s) => s.tableData)
+  const filterData = useLogbookListStore((s) => s.filterData)
+  const selectedLogbookItem = useLogbookListStore((s) => s.selectedLogbookItem)
 
-    // ---- Simple local filter & pagination ----
-    const { pageIndex, pageSize, query } = tableData
+  const setTableData = useLogbookListStore((s) => s.setTableData)
+  const setFilterData = useLogbookListStore((s) => s.setFilterData)
+  const setSelectAllLogbook = useLogbookListStore((s) => s.setSelectAllLogbook)
+  const setLogbookList = useLogbookListStore((s) => s.setLogbookList)
 
-    // Local copy for filtering and pagination
-    let data = [...logbookList] as LogbookEntry[]
+  // Comunidad seleccionada en el header
+  const { selectedId: communityId } = useCommunitiesStore()
 
-    // Filter by search
-    if (query && query.length > 0) {
-        data = data.filter((item) =>
-            item.title.toLowerCase().includes(query.toLowerCase())
-        )
-    }
+  // Permisos
+  const { user } = useAuth()
+  const superAdmin = isSuperAdmin(undefined, user)
 
-    // Pagination
-    const start = ((pageIndex || 1) - 1) * (pageSize || 10)
-    const end = start + (pageSize || 10)
-    const paginated = data.slice(start, end)
-    const paginatedList = paginated
-    const logbookListTotal = data.length
+  // Unificamos la query: prioridad tableData.query (lo que usa tu Search),
+  // con fallback a filterData.query si existe.
+  const unifiedQuery = useMemo(() => {
+    const fromTable = (tableData as any)?.query
+    const fromFilter = (filterData as any)?.query
+    const q =
+      (typeof fromTable === 'string' && fromTable.trim() !== '' && fromTable) ||
+      (typeof fromFilter === 'string' && fromFilter.trim() !== '' && fromFilter) ||
+      undefined
+    return q
+  }, [tableData, filterData])
 
-    // Optional: delete entry
-    const deleteLogbookEntry = (id: string) => {
-        const newList = logbookList.filter(item => item.id !== id)
-        setLogbookList(newList)
-    }
+  // Parámetros efectivos (mismo shape que News)
+  const effectiveParams: LogbookQueries = useMemo(() => {
+    const sortKey =
+      tableData.sort?.key !== undefined && tableData.sort?.key !== null
+        ? String(tableData.sort.key)
+        : undefined
+    const sortOrder = (tableData.sort?.order as 'asc' | 'desc' | undefined) ?? undefined
 
     return {
-        error: null,
-        isLoading: false,
-        tableData,
-        filterData,
-        logbookList: paginatedList,
-        logbookListTotal,
-        setTableData,
-        selectedLogbookItem,
-        setSelectedLogbookItem,
-        setSelectAllLogbook,
-        setFilterData,
-        setLogbookList,
-        deleteLogbookEntry,
+      pageIndex: Number(tableData.pageIndex),
+      pageSize: Number(tableData.pageSize),
+      sort: sortKey ? { key: sortKey, order: sortOrder } : undefined,
+      query: unifiedQuery,
     }
+  }, [
+    tableData.pageIndex,
+    tableData.pageSize,
+    tableData.sort?.key,
+    tableData.sort?.order,
+    unifiedQuery,
+  ])
+
+  // Lógica superadmin vs comunidad
+  const listAll = superAdmin && (communityId == null || String(communityId) === '')
+
+  const swrKey =
+    listAll
+      ? ([
+          'logbook:list',
+          'all',
+          effectiveParams.pageIndex,
+          effectiveParams.pageSize,
+          effectiveParams.sort?.key ?? '',
+          effectiveParams.sort?.order ?? '',
+          effectiveParams.query ?? '',
+        ] as const)
+      : communityId != null && String(communityId) !== ''
+      ? ([
+          'logbook:list',
+          String(communityId),
+          effectiveParams.pageIndex,
+          effectiveParams.pageSize,
+          effectiveParams.sort?.key ?? '',
+          effectiveParams.sort?.order ?? '',
+          effectiveParams.query ?? '',
+        ] as const)
+      : null
+
+  const fetcher = useCallback(() => {
+    if (listAll) {
+      return apiGetAllLogbookAggregated<GetLogbookListResponse, LogbookQueries>(effectiveParams)
+    }
+    return apiGetCommunityLogbook<GetLogbookListResponse, LogbookQueries>(
+      String(communityId),
+      effectiveParams,
+    )
+  }, [listAll, communityId, effectiveParams])
+
+  const swr = useSWR<GetLogbookListResponse>(swrKey, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: true,
+    dedupingInterval: 2000,
+  })
+
+  return {
+    // datos
+    logbookList: swr.data?.list || [],
+    logbookListTotal: swr.data?.total || 0,
+    isLoading: swr.isLoading,
+    isValidating: swr.isValidating,
+    error: swr.error,
+    mutate: swr.mutate,
+
+    // store
+    tableData,
+    filterData,
+    selectedLogbookItem,
+    setTableData,
+    setFilterData,
+    setSelectAllLogbook,
+    setLogbookList,
+
+    // contexto
+    communityId,
+    superAdmin,
+  }
 }
 
 export default useLogbookList

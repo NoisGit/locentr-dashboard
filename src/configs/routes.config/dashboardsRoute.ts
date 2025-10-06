@@ -264,34 +264,6 @@ const dashboardsRoute: Routes = [
     component: lazy(() => import('@/views/concepts/logbook/LogbookList')),
     authority: [ADMIN, USER],
   },
-  {
-    key: 'concepts.logbook.logbookEdit',
-    path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-edit/:id`,
-    component: lazy(() => import('@/views/concepts/logbook/LogbookEdit')),
-    authority: [ADMIN, USER],
-    meta: {
-      header: {
-        title: 'Editar novedad',
-        contained: true,
-        description: 'Edita la información de la novedad',
-      },
-      footer: false,
-    },
-  },
-  {
-    key: 'concepts.logbook.logbookCreate',
-    path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-create`,
-    component: lazy(() => import('@/views/concepts/logbook/LogbookCreate')),
-    authority: [ADMIN, USER],
-    meta: {
-      header: {
-        title: 'Agregar novedad',
-        contained: true,
-        description: 'Agrega una nueva novedad al libro',
-      },
-      footer: false,
-    },
-  },
 
   {
     key: 'concepts.entry.entryList',

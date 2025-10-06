@@ -1,32 +1,67 @@
+import { useState, useCallback, type ChangeEvent } from 'react'
 import Input from '@/components/ui/Input'
 import useDebounce from '@/utils/hooks/useDebounce'
-import { TbSearch } from 'react-icons/tb'
-import type { ChangeEvent } from 'react'
+import { TbSearch, TbX } from 'react-icons/tb'
+import { useLogbookListStore } from '../store/LogbookListStore'
 
 type LogbookListSearchProps = {
-    onInputChange: (value: string) => void
+  /** opcional: si lo pasas, se ejecuta además del update al store */
+  onInputChange?: (value: string) => void
 }
 
-const LogbookListSearch = (props: LogbookListSearchProps) => {
-    const { onInputChange } = props
+const LogbookListSearch = ({ onInputChange }: LogbookListSearchProps) => {
+  const filterData = useLogbookListStore((s) => s.filterData)
+  const tableData  = useLogbookListStore((s) => s.tableData)
+  const setFilterData = useLogbookListStore((s) => s.setFilterData)
+  const setTableData  = useLogbookListStore((s) => s.setTableData)
 
-    function handleDebounceFn(value: string) {
-        onInputChange?.(value)
+  const [value, setValue] = useState<string>(filterData.query ?? '')
+
+  const applyQuery = useCallback((q: string) => {
+    // Actualiza filtro
+    setFilterData({ query: q })
+    // Resetea a la primera página para que el usuario vea resultados desde el inicio
+    if (tableData.pageIndex !== 1) {
+      setTableData({ ...tableData, pageIndex: 1 })
     }
+    // Callback opcional externo
+    onInputChange?.(q)
+  }, [setFilterData, setTableData, tableData, onInputChange])
 
-    const debounceFn = useDebounce(handleDebounceFn, 500)
+  const debouncedApply = useDebounce(applyQuery, 500)
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        debounceFn(e.target.value)
-    }
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const q = e.target.value
+    setValue(q)
+    debouncedApply(q)
+  }
 
-    return (
-        <Input
-            placeholder="Search in Logbook"
-            suffix={<TbSearch className="text-lg" />}
-            onChange={handleInputChange}
-        />
+  const clear = () => {
+    setValue('')
+    applyQuery('')
+  }
+
+  const suffix = value
+    ? (
+      <button
+        type="button"
+        aria-label="Limpiar búsqueda"
+        onClick={clear}
+        className="text-lg hover:text-red-600"
+      >
+        <TbX />
+      </button>
     )
+    : <TbSearch className="text-lg" />
+
+  return (
+    <Input
+      value={value}
+      placeholder="Quick search..."
+      suffix={suffix}
+      onChange={handleInputChange}
+    />
+  )
 }
 
 export default LogbookListSearch

@@ -1,225 +1,143 @@
 import { useMemo, useState } from 'react'
-import Avatar from '@/components/ui/Avatar'
-import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
-import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useLogbookList from '../hooks/useLogbookList'
-import classNames from '@/utils/classNames'
-import cloneDeep from 'lodash/cloneDeep'
-import { useNavigate } from 'react-router'
-import { TbPencil, TbTrash } from 'react-icons/tb'
-import { FiPackage } from 'react-icons/fi'
-import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
-import type { LogbookItem } from '../types'
+import { useLogbookListStore } from '../store/LogbookListStore'
 import type { TableQueries } from '@/@types/common'
+import type { OnSortParam, ColumnDef } from '@/components/shared/DataTable'
+import type { LogbookRow } from '@/services/LogbookService'
 
-const LogbookColumn = ({ row }: { row: LogbookItem }) => {
-    return (
-        <div className="flex items-center gap-2">
-            <Avatar
-                shape="round"
-                size={60}
-                {...(row.img ? { src: row.img } : { icon: <FiPackage /> })}
-            />
-            <div>
-                <div className="font-bold heading-text mb-1">{row.title}</div>
-                <span>ID: {row.id}</span>
-            </div>
-        </div>
-    )
+function formatDateIsoLike(v: unknown): string {
+  const s = typeof v === 'string' ? v.trim() : ''
+  if (!s) return ''
+  return s.replace('T', ' ').replace(/Z$/, '').replace(/\.\d+$/, '')
 }
 
-const ActionColumn = ({
-    onEdit,
-    onDelete,
-}: {
-    onEdit: () => void
-    onDelete: () => void
-}) => (
-    <div className="flex items-center justify-end gap-3">
-        <Tooltip title="Edit">
-            <div
-                className="text-xl cursor-pointer select-none font-semibold"
-                role="button"
-                onClick={onEdit}
-            >
-                <TbPencil />
-            </div>
-        </Tooltip>
-        <Tooltip title="Delete">
-            <div
-                className="text-xl cursor-pointer select-none font-semibold"
-                role="button"
-                onClick={onDelete}
-            >
-                <TbTrash />
-            </div>
-        </Tooltip>
+function DescriptionCell({ text }: { text?: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const raw = (text ?? '').trim()
+  if (!raw) return <span>—</span>
+
+  const LIMIT = 320
+  const isLong = raw.length > LIMIT
+  const display = expanded ? raw : isLong ? raw.slice(0, LIMIT) + '…' : raw
+
+  return (
+    <div
+      className="whitespace-pre-line break-words"
+      style={{ maxWidth: '78vw', width: 860 }}
+    >
+      {display}
+      {isLong && (
+        <button
+          type="button"
+          className="text-primary text-xs mt-1 hover:underline block"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? 'Ver menos' : 'Ver más'}
+        </button>
+      )}
     </div>
-)
+  )
+}
 
 const LogbookListTable = () => {
-    const navigate = useNavigate()
-    const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-    const [toDeleteId, setToDeleteId] = useState('')
+  const tableData = useLogbookListStore((s) => s.tableData)
+  const setTableData = useLogbookListStore((s) => s.setTableData)
+  const { logbookList, logbookListTotal, isLoading } = useLogbookList()
 
-    const {
-        logbookList,
-        setLogbookList,
-        logbookListTotal,
-        tableData,
-        isLoading,
-        setTableData,
-        setSelectAllLogbook,
-        setSelectedLogbookItem,
-        selectedLogbookItem,
-    } = useLogbookList()
+  const columns: ColumnDef<LogbookRow>[] = useMemo(
+    () => [
+      {
+        header: 'Registro',
+        accessorKey: 'id',
+        cell: (props) => {
+          const r = props.row.original
+          const id = r?.id != null ? String(r.id) : ''
+          return (
+            <div className="font-bold heading-text whitespace-nowrap" style={{ width: 56 }}>
+              #{id || '—'}
+            </div>
+          )
+        },
+      },
+      {
+        header: 'Descripción',
+        id: 'description',
+        cell: (props) => <DescriptionCell text={props.row.original.description} />,
+      },
+      {
+        header: 'Autor',
+        id: 'author',
+        enableSorting: false,
+        cell: (props) => {
+          const r = props.row.original as any
+          const name = r.user_name || r.created_by || ''
+          return (
+            <div className="truncate" style={{ width: 110 }}>
+              {name || '—'}
+            </div>
+          )
+        },
+      },
+      {
+        // Evita que el texto del header se parta y que el icono quede abajo
+        header: () => <span className="whitespace-nowrap">Fecha de creación</span>,
+        id: 'created_at',
+        accessorKey: 'created_at',
+        cell: (props) => {
+          const r = props.row.original as any
+          const u = r.updated_at || r.updatedAt || r.created_at || r.createdAt
+          const pretty = formatDateIsoLike(u)
+          return (
+            <div className="whitespace-nowrap" style={{ width: 138 }}>
+              {pretty || '—'}
+            </div>
+          )
+        },
+      },
+    ],
+    []
+  )
 
-    const handleCancel = () => setDeleteConfirmationOpen(false)
+  const handleSetTableData = (data: TableQueries) => setTableData(data)
 
-    const handleDelete = (item: LogbookItem) => {
-        setDeleteConfirmationOpen(true)
-        setToDeleteId(item.id)
-    }
+  const handlePaginationChange = (page: number) => {
+    const next = structuredClone(tableData)
+    next.pageIndex = page
+    handleSetTableData(next)
+  }
 
-    const handleEdit = (item: LogbookItem) => {
-        navigate(`/concepts/logbook/logbook-edit/${item.id}`)
-    }
+  const handleSelectChange = (value: number) => {
+    const next = structuredClone(tableData)
+    next.pageSize = Number(value)
+    next.pageIndex = 1
+    handleSetTableData(next)
+  }
 
-    const handleConfirmDelete = () => {
-        const newLogbookList = logbookList.filter(
-            (item) => item.id !== toDeleteId
-        )
-        setLogbookList(newLogbookList)
-        setSelectAllLogbook([])
-        setDeleteConfirmationOpen(false)
-        setToDeleteId('')
-    }
+  const handleSort = (sort: OnSortParam) => {
+    const next = structuredClone(tableData)
+    next.sort = sort
+    handleSetTableData(next)
+  }
 
-    const columns: ColumnDef<LogbookItem>[] = useMemo(
-        () => [
-            {
-                header: 'Logbook Item',
-                accessorKey: 'title',
-                cell: (props) => <LogbookColumn row={props.row.original} />,
-            },
-            {
-                header: 'Responsible',
-                accessorKey: 'responsible',
-                cell: (props) => {
-                    const { responsible } = props.row.original
-                    return <span className="font-bold heading-text">{responsible}</span>
-                },
-            },
-            {
-                header: 'Date',
-                accessorKey: 'date',
-                cell: (props) => {
-                    const { date } = props.row.original
-                    return <span className="font-bold heading-text">{date}</span>
-                },
-            },
-            {
-                header: 'Status',
-                accessorKey: 'status',
-                cell: (props) => {
-                    const { status } = props.row.original
-                    return <span className="font-bold heading-text">{status}</span>
-                },
-            },
-            {
-                header: '',
-                id: 'action',
-                cell: (props) => (
-                    <ActionColumn
-                        onEdit={() => handleEdit(props.row.original)}
-                        onDelete={() => handleDelete(props.row.original)}
-                    />
-                ),
-            },
-        ],
-        []
-    )
-
-    const handleSetTableData = (data: TableQueries) => {
-        setTableData(data)
-        if (selectedLogbookItem.length > 0) {
-            setSelectAllLogbook([])
-        }
-    }
-
-    const handlePaginationChange = (page: number) => {
-        const newTableData = cloneDeep(tableData)
-        newTableData.pageIndex = page
-        handleSetTableData(newTableData)
-    }
-
-    const handleSelectChange = (value: number) => {
-        const newTableData = cloneDeep(tableData)
-        newTableData.pageSize = Number(value)
-        newTableData.pageIndex = 1
-        handleSetTableData(newTableData)
-    }
-
-    const handleSort = (sort: OnSortParam) => {
-        const newTableData = cloneDeep(tableData)
-        newTableData.sort = sort
-        handleSetTableData(newTableData)
-    }
-
-    const handleRowSelect = (checked: boolean, row: LogbookItem) => {
-        setSelectedLogbookItem(checked, row)
-    }
-
-    const handleAllRowSelect = (checked: boolean, rows: Row<LogbookItem>[]) => {
-        if (checked) {
-            const originalRows = rows.map((row) => row.original)
-            setSelectAllLogbook(originalRows)
-        } else {
-            setSelectAllLogbook([])
-        }
-    }
-
-    return (
-        <>
-            <DataTable
-                selectable
-                columns={columns}
-                data={logbookList}
-                noData={!isLoading && logbookList.length === 0}
-                skeletonAvatarColumns={[0]}
-                skeletonAvatarProps={{ width: 28, height: 28 }}
-                loading={isLoading}
-                pagingData={{
-                    total: logbookListTotal,
-                    pageIndex: tableData.pageIndex as number,
-                    pageSize: tableData.pageSize as number,
-                }}
-                checkboxChecked={(row) =>
-                    selectedLogbookItem.some((selected) => selected.id === row.id)
-                }
-                onPaginationChange={handlePaginationChange}
-                onSelectChange={handleSelectChange}
-                onSort={handleSort}
-                onCheckBoxChange={handleRowSelect}
-                onIndeterminateCheckBoxChange={handleAllRowSelect}
-            />
-            <ConfirmDialog
-                isOpen={deleteConfirmationOpen}
-                type="danger"
-                title="Remove logbook item"
-                onClose={handleCancel}
-                onRequestClose={handleCancel}
-                onCancel={handleCancel}
-                onConfirm={handleConfirmDelete}
-            >
-                <p>
-                    Are you sure you want to remove this logbook item? This action
-                    can't be undone.
-                </p>
-            </ConfirmDialog>
-        </>
-    )
+  return (
+    <DataTable
+      hoverable={false}
+      columns={columns}
+      data={logbookList}
+      noData={!isLoading && logbookList.length === 0}
+      skeletonAvatarColumns={[]}
+      loading={isLoading}
+      pagingData={{
+        total: logbookListTotal || 0,
+        pageIndex: tableData.pageIndex as number,
+        pageSize: tableData.pageSize as number,
+      }}
+      onPaginationChange={handlePaginationChange}
+      onSelectChange={handleSelectChange}
+      onSort={handleSort}
+    />
+  )
 }
 
 export default LogbookListTable
