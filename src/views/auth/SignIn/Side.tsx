@@ -10,11 +10,16 @@ const Side = ({ children }: { children: React.ReactNode }) => {
                     {children}
                 </div>
             </div>
-            <div className="py-6 px-10 lg:flex flex-col flex-1 justify-between hidden rounded-3xl items-end relative max-w-[520px] 2xl:max-w-[720px]">
+
+            {/* Panel derecho con fondo SVG y recorte por borde redondeado */}
+            <div className="py-6 px-10 lg:flex flex-col flex-1 justify-between hidden rounded-3xl items-end relative max-w-[520px] 2xl:max-w-[720px] overflow-hidden">
                 <img
-                    src="/img/others/auth-side-bg.png"
-                    className="absolute h-full w-full top-0 left-0 rounded-3xl object-cover"
+                    src="/img/others/auth-side-bg.svg"      // <-- usa el SVG nuevo en public/
+                    className="absolute inset-0 h-full w-full object-cover select-none pointer-events-none"
                     alt="Login Side Background"
+                    loading="eager"
+                    decoding="sync"
+                    draggable={false}
                 />
             </div>
         </div>

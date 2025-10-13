@@ -137,6 +137,7 @@ const ProtectedRoute = () => {
     return <Outlet />
   }
 
+  // SUPERADMIN pasa y va directo al Home si está en rutas de /auth
   if (superAdmin) {
     if (onSelector || (inAuth && pathname !== unAuthenticatedEntryPath)) {
       return <Navigate replace to="/" />
@@ -144,6 +145,7 @@ const ProtectedRoute = () => {
     return <Outlet />
   }
 
+  // ADMIN / SUBADMIN / USER deben tener comunidad seleccionada
   if (!hasSelection) {
     if (!onSelector) return <Navigate replace to={COMMUNITY_SELECT_PATH} />
     return <Outlet />
