@@ -55,6 +55,11 @@ function persistSelected(id?: string | number, name?: string) {
   } catch {}
 }
 
+/** Helper público: selección virtual (p.ej. SUPERADMIN) => id que empieza por "__" */
+export function isVirtualCommunityId(id: unknown): id is string {
+  return typeof id === 'string' && id.startsWith('__')
+}
+
 export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>((set, get) => ({
   communities: [],
   selectedId: undefined,
@@ -65,6 +70,16 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
   setCommunities: (list, source, opts) => {
     const { selectedId } = get()
     const autoSelectIfSingle = opts?.autoSelectIfSingle ?? true
+
+    // Mantener selección virtual independientemente de la lista entrante
+    if (isVirtualCommunityId(selectedId)) {
+      set({
+        communities: list,
+        source: source ?? get().source,
+        autoSelected: false,
+      })
+      return
+    }
 
     if (list.length === 0) {
       set({
@@ -107,6 +122,7 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
       return
     }
 
+    // Selección actual ya no existe y no es virtual
     set({
       communities: list,
       source: source ?? get().source,
@@ -128,6 +144,13 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
 
   ensureSelectionFromList: () => {
     const { selectedId, communities } = get()
+
+    // Si hay selección virtual, no auto-seleccionar ni tocarla
+    if (isVirtualCommunityId(selectedId)) {
+      set({ autoSelected: false })
+      return false
+    }
+
     if ((selectedId === undefined || selectedId === null) && communities.length === 1) {
       const only = communities[0]
       const onlyName = readCommunityName(only)

@@ -10,7 +10,6 @@ import sleep from '@/utils/sleep'
 import { TbTrash, TbArrowNarrowLeft } from 'react-icons/tb'
 import { useParams, useNavigate } from 'react-router'
 import type { MarketplaceFormSchema, MarketplaceItem } from '../types'
-import { marketplaceData } from '@/mock/data/marketplaceData' // Ajusta la ruta si es necesario
 
 const MarketplaceEdit = () => {
     const { id } = useParams()

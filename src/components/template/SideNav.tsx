@@ -37,7 +37,6 @@ const sideNavCollapseStyle = {
   minWidth: SIDE_NAV_COLLAPSED_WIDTH,
 }
 
-/** Claves del navigation.config a ocultar para ADMIN/SUBADMIN/USER */
 const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'dashboard',
   'concepts.ai',
@@ -49,7 +48,7 @@ const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'concepts.plan',
   'concepts.chat',
   'concepts.calendar',
-  'concepts.products',     //Amenidades
+  'concepts.products',
 ])
 
 type NavNode = (typeof navigationConfig)[number]
@@ -67,10 +66,8 @@ function filterTreeByKeys(nodes: NavNode[], hideKeys: Set<string>): NavNode[] {
   return out
 }
 
-/** Normaliza cualquier forma de authority a un Set<string> en MAYÚSCULAS */
 function normalizeAuthority(authority: unknown): Set<string> {
   const roles = new Set<string>()
-
   const add = (v: unknown) => {
     if (v == null) return
     if (typeof v === 'string') {
@@ -86,7 +83,6 @@ function normalizeAuthority(authority: unknown): Set<string> {
       return
     }
     if (typeof v === 'object') {
-      // Soporta estructuras: {name:'superadmin'}, {role:'ADMIN'}, {authority:'SubAdmin'}
       const o = v as Record<string, unknown>
       const byName =
         (typeof o.name === 'string' && o.name) ||
@@ -97,7 +93,6 @@ function normalizeAuthority(authority: unknown): Set<string> {
       }
     }
   }
-
   add(authority)
   return roles
 }
@@ -114,7 +109,12 @@ const SideNav = ({
   const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
   const rawAuthority = useSessionUser((state) => state.user.authority)
 
-  const roles = useMemo(() => normalizeAuthority(rawAuthority), [rawAuthority])
+  const roles = useMemo(() => {
+    const s = normalizeAuthority(rawAuthority)
+    if (s.size === 0) s.add('USER')
+    return s
+  }, [rawAuthority])
+
   const isSuperAdmin = roles.has('SUPERADMIN')
   const isSubAdmin = roles.has('SUBADMIN')
   const isAdmin = roles.has('ADMIN') || roles.has('USER')
@@ -127,7 +127,6 @@ const SideNav = ({
         HIDE_KEYS_FOR_ADMIN_GROUP,
       )
     }
-    // Cualquier otro perfil: mismo filtro visual
     return filterTreeByKeys(
       navigationConfig as NavNode[],
       HIDE_KEYS_FOR_ADMIN_GROUP,

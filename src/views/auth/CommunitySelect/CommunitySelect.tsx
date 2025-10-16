@@ -65,6 +65,8 @@ function isSuperAdmin(user: unknown): boolean {
   return false
 }
 
+const STORAGE_KEY = 'current_community'
+
 const CommunitySelect = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -83,29 +85,52 @@ const CommunitySelect = () => {
   const [value, setValue] = useState<string>('')
   const fetchedRef = useRef(false)
 
+  // Evita navegaciones múltiples
+  const navigatedRef = useRef(false)
+
+  // SUPERADMIN: setear selección virtual (en español) y navegar una sola vez
   useEffect(() => {
-    if (superAdmin) {
-      navigate(authenticatedEntryPath, { replace: true })
+    if (!superAdmin || navigatedRef.current) return
+    const missing = selectedId == null || String(selectedId) === ''
+    if (missing) {
+      const virtual = { id: '__SUPER__', name: 'Comunidades' }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(virtual)) } catch {}
+      selectCommunity(virtual)
     }
-  }, [superAdmin, navigate])
+    navigatedRef.current = true
+    requestAnimationFrame(() => {
+      navigate(authenticatedEntryPath, { replace: true })
+    })
+  }, [superAdmin, selectedId, selectCommunity, navigate])
+
+  // Si es superadmin, no renderizar el selector
+  if (superAdmin) {
+    return null
+  }
 
   useEffect(() => {
     const load = async () => {
-      if (fetchedRef.current || superAdmin) return
+      if (fetchedRef.current) return
       fetchedRef.current = true
       setLoading(true)
       setError(null)
       try {
         const list = await apiGetMyCommunities()
         setCommunities(list, 'mine', { autoSelectIfSingle: false })
-        if (list.length <= 1) {
-          if (list.length === 1) {
-            const only = list[0]
-            selectCommunity({ id: only.id, name: only.name })
+
+        if (list.length === 0) {
+          return
+        }
+
+        if (list.length === 1) {
+          const only = list[0]
+          selectCommunity({ id: only.id, name: only.name })
+          if (!navigatedRef.current) {
+            navigatedRef.current = true
+            requestAnimationFrame(() => {
+              navigate(authenticatedEntryPath, { replace: true })
+            })
           }
-          requestAnimationFrame(() => {
-            navigate(authenticatedEntryPath, { replace: true })
-          })
           return
         }
       } catch {
@@ -115,15 +140,17 @@ const CommunitySelect = () => {
       }
     }
     load()
-  }, [superAdmin, setCommunities, selectCommunity, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setCommunities, selectCommunity, navigate])
 
   useEffect(() => {
-    if (!superAdmin && selectedId != null && String(selectedId) !== '') {
+    if (selectedId != null && String(selectedId) !== '' && !navigatedRef.current) {
+      navigatedRef.current = true
       requestAnimationFrame(() => {
         navigate(authenticatedEntryPath, { replace: true })
       })
     }
-  }, [selectedId, superAdmin, navigate])
+  }, [selectedId, navigate])
 
   const options = useMemo(
     () => communities.map((c) => ({ id: String(c.id), name: communityLabel(c) })),
@@ -136,9 +163,12 @@ const CommunitySelect = () => {
     const found = options.find((o) => o.id === value)
     if (!found) return
     selectCommunity({ id: found.id, name: found.name })
-    requestAnimationFrame(() => {
-      navigate(authenticatedEntryPath, { replace: true })
-    })
+    if (!navigatedRef.current) {
+      navigatedRef.current = true
+      requestAnimationFrame(() => {
+        navigate(authenticatedEntryPath, { replace: true })
+      })
+    }
   }
 
   return (

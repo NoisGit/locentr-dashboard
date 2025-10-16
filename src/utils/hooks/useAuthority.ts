@@ -1,24 +1,16 @@
+// src/utils/hooks/useAuthority.ts
 import { useMemo } from 'react'
-import isEmpty from 'lodash/isEmpty'
+import { canAccess } from '@/utils/authority'
 
-function useAuthority(
-    userAuthority: string[] = [],
-    authority: string[] = [],
-    emptyCheck = false,
-) {
-    const roleMatched = useMemo(() => {
-        return authority.some((role) => userAuthority.includes(role))
-    }, [authority, userAuthority])
+export default function useAuthority(userAuthority: unknown, authority?: unknown) {
+  return useMemo(() => {
+    const required =
+      typeof authority === 'string'
+        ? [authority]
+        : Array.isArray(authority)
+          ? (authority as string[])
+          : undefined
 
-    if (
-        isEmpty(authority) ||
-        isEmpty(userAuthority) ||
-        typeof authority === 'undefined'
-    ) {
-        return !emptyCheck
-    }
-
-    return roleMatched
+    return canAccess(userAuthority, required)
+  }, [userAuthority, authority])
 }
-
-export default useAuthority
