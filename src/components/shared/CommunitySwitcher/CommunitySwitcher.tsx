@@ -117,19 +117,29 @@ const CommunitySwitcher = ({ className, onChange }: Props) => {
     (selectedId != null ? options.find((o) => String(o.id) === String(selectedId))?.name : undefined) ||
     'Seleccionar comunidad'
 
-  const handlePick = (id: string | number) => {
+  const handlePick = (id: string | number, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     const found = options.find((o) => String(o.id) === String(id))
     if (!found) return
     selectCommunity({ id: found.id, name: found.name })
     setOpen(false)
+    setSearch('')
     onChange?.({ id: found.id, name: found.name })
+  }
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setSearch('')
+    setOpen((v) => !v)
   }
 
   return (
     <div className={className} ref={rootRef}>
       <button
         type="button"
-        onClick={() => { setSearch(''); setOpen((v) => !v) }}
+        onClick={handleToggle}
         className="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -159,7 +169,7 @@ const CommunitySwitcher = ({ className, onChange }: Props) => {
                 <li key={String(opt.id)} className="p-1">
                   <button
                     type="button"
-                    onClick={() => handlePick(opt.id)}
+                    onClick={(e) => handlePick(opt.id, e)}
                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 ${String(selectedId) === String(opt.id) ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
                   >
                     {opt.imageUrl ? <img src={opt.imageUrl} alt="" className="h-7 w-7 rounded-md object-cover" /> : <div className="h-7 w-7 rounded-md bg-gray-200 dark:bg-gray-600" />}
