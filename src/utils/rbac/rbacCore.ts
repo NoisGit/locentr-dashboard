@@ -7,7 +7,29 @@ import {
     ROLE_PERMISSIONS,
     PermissionCheckOptions,
     PermissionCheckResult,
+    ROLE_IDS,
 } from './types'
+
+/**
+ * Convierte un ID de rol de la base de datos al enum Role
+ */
+export function roleIdToRole(roleId: unknown): Role | null {
+    if (typeof roleId === 'number' || typeof roleId === 'string') {
+        const id = Number(roleId)
+
+        switch (id) {
+            case ROLE_IDS.SUPERADMIN:
+                return Role.SUPERADMIN
+            case ROLE_IDS.ADMIN:
+                return Role.ADMIN
+            case ROLE_IDS.SUBADMIN:
+                return Role.SUBADMIN
+            default:
+                return null
+        }
+    }
+    return null
+}
 
 /**
  * Normaliza un rol a su valor enum correcto
@@ -55,7 +77,26 @@ export function extractUserRole(user: unknown): Role | null {
     // DEBUG: Ver estructura del usuario
     console.log('🔍 extractUserRole - user object:', u)
 
-    // Verificar si es SUPERADMIN por flags
+    // PRIORIDAD 1: Intentar extraer por role_id (más confiable)
+    const roleIdCandidates = [
+        u.role_id,
+        u.roleId,
+        typeof u.role === 'object' ? (u.role as Record<string, unknown>).id : undefined,
+    ]
+
+    console.log('🔍 extractUserRole - roleIdCandidates:', roleIdCandidates)
+
+    for (const roleId of roleIdCandidates) {
+        if (roleId !== undefined && roleId !== null) {
+            const role = roleIdToRole(roleId)
+            if (role) {
+                console.log('✅ extractUserRole - Rol encontrado por ID:', role, 'ID:', roleId)
+                return role
+            }
+        }
+    }
+
+    // PRIORIDAD 2: Verificar si es SUPERADMIN por flags
     const superAdminFlags = [
         u.isSuperAdmin,
         u.superAdmin,
@@ -69,7 +110,7 @@ export function extractUserRole(user: unknown): Role | null {
         return Role.SUPERADMIN
     }
 
-    // Intentar extraer de diferentes propiedades
+    // PRIORIDAD 3: Intentar extraer por nombre del rol
     const roleCandidates = [
         u.role,
         Array.isArray(u.roles) ? u.roles[0] : undefined,
@@ -80,7 +121,7 @@ export function extractUserRole(user: unknown): Role | null {
         u.roleType,
     ]
 
-    console.log('🔍 extractUserRole - roleCandidates:', roleCandidates)
+    console.log('🔍 extractUserRole - roleCandidates (por nombre):', roleCandidates)
 
     for (const candidate of roleCandidates) {
         if (!candidate) continue
@@ -92,7 +133,7 @@ export function extractUserRole(user: unknown): Role | null {
             if (roleName) {
                 const normalized = normalizeRole(roleName)
                 if (normalized) {
-                    console.log('✅ extractUserRole - Rol encontrado (object):', normalized)
+                    console.log('✅ extractUserRole - Rol encontrado por nombre (object):', normalized)
                     return normalized
                 }
             }
@@ -101,7 +142,7 @@ export function extractUserRole(user: unknown): Role | null {
         // Si es string directo
         const normalized = normalizeRole(candidate)
         if (normalized) {
-            console.log('✅ extractUserRole - Rol encontrado (string):', normalized)
+            console.log('✅ extractUserRole - Rol encontrado por nombre (string):', normalized)
             return normalized
         }
     }
@@ -294,6 +335,7 @@ export function createAuthUser(userData: unknown): AuthUser | null {
  * Exportar funciones principales
  */
 export const RBAC = {
+    roleIdToRole,
     normalizeRole,
     extractUserRole,
     getUserPermissions,

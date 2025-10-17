@@ -207,12 +207,15 @@ export async function apiGetMe() {
 export function normalizeUser(u: UserRow | undefined | null) {
   const v = (u ?? ({} as UserRow)) as UserRow
   const roleName = (typeof v.role === 'string' ? v.role : v.role?.name) || undefined
+  const roleId = v.role_id || (typeof v.role === 'object' ? v.role?.id : undefined)
+
   return {
     id: v.id,
     userName: userDisplayName(v),
     email: v.email ?? '',
     avatar: undefined as unknown as string | undefined,
     role: roleName,
+    role_id: roleId, // Agregar el ID del rol para identificación más confiable
   }
 }
 

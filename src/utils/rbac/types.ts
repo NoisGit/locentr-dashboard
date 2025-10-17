@@ -1,5 +1,11 @@
 // src/utils/rbac/types.ts
 
+export const ROLE_IDS = {
+    SUPERADMIN: 1,
+    ADMIN: 2,
+    SUBADMIN: 6,
+} as const
+
 /**
  * Roles del sistema
  * Solo 3 roles están en uso en esta aplicación

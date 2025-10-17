@@ -72,10 +72,22 @@ const ProtectedRoute = ({
     const { user } = useAuth()
     const location = useLocation()
 
+    // Prevenir loop: Si ya estamos en access-denied, no redirigir
+    const isAccessDeniedPage = location.pathname === '/access-denied'
+
     // Si no hay usuario, redirigir a login
     if (!user || !user.email) {
+        // No redirigir a login si ya estamos en access-denied
+        if (isAccessDeniedPage) {
+            return <>{children}</>
+        }
         const currentPath = location.pathname !== '/' ? `?${REDIRECT_URL_KEY}=${location.pathname}` : ''
         return <Navigate to={`${appConfig.unAuthenticatedEntryPath}${currentPath}`} replace />
+    }
+
+    // Si estamos en la página de access-denied, permitir renderizado
+    if (isAccessDeniedPage) {
+        return <>{children}</>
     }
 
     // Verificar si es SUPERADMIN y si se permite
