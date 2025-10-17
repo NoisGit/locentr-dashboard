@@ -10,6 +10,7 @@ import { apiGetMe, normalizeUser } from '@/services/UserService'
 import { apiGetMyCommunities, apiListCommunities } from '@/services/CommunitiesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
+import { RBAC } from '@/utils/rbac'
 import type {
   SignInCredential,
   AuthResult,
@@ -116,8 +117,8 @@ function AuthProvider({ children }: AuthProviderProps) {
   const prefetchedRef = useRef2(false)
 
   const resetPerUserState = async () => {
-    try { resetCommunities() } catch {}
-    try { (cache as unknown as { clear?: () => void })?.clear?.() } catch {}
+    try { resetCommunities() } catch { }
+    try { (cache as unknown as { clear?: () => void })?.clear?.() } catch { }
     await mutate(
       (key) =>
         Array.isArray(key) &&
@@ -140,23 +141,37 @@ function AuthProvider({ children }: AuthProviderProps) {
     prefetchedRef.current = true
     try {
       const superAdmin = isSuperAdminUser(uLike)
-      let list = await apiGetMyCommunities()
-      if (superAdmin && list.length === 0) {
+      let list = []
+
+      if (superAdmin) {
+        // SUPERADMIN siempre carga TODAS las comunidades del sistema
         try {
-          list = await apiListCommunities({ pageIndex: 1, pageSize: 200 })
-        } catch {}
+          list = await apiListCommunities({ pageIndex: 1, pageSize: 10000 })
+        } catch {
+          // Fallback: intentar con mis comunidades
+          list = await apiGetMyCommunities()
+        }
+      } else {
+        // ADMIN/SUBADMIN solo ven sus comunidades asignadas
+        list = await apiGetMyCommunities()
       }
+
       setCommunities(list, superAdmin ? 'all' : 'mine', { autoSelectIfSingle: true })
-    } catch {}
+    } catch { }
   }
 
   const handleSignIn = (tokens: Token, u?: AppUser) => {
     setToken(tokens.accessToken)
     setSessionSignedIn(true)
     if (u) {
-      const n = normalizeUser(u as unknown)
-      setUser(n as AppUser)
-      void prefetchCommunitiesOnce(n)
+      // Normalizar usuario con datos del backend
+      const normalized = normalizeUser(u as any)
+
+      // Convertir a usuario RBAC con roles y permisos
+      const rbacUser = RBAC.createAuthUser(normalized)
+
+      setUser(rbacUser as AppUser)
+      void prefetchCommunitiesOnce(rbacUser)
     } else {
       const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
       setUser(emptyUser)
@@ -178,8 +193,12 @@ function AuthProvider({ children }: AuthProviderProps) {
     try {
       const me = await apiGetMe()
       const normalized = normalizeUser(me)
-      setUser(normalized as unknown as AppUser)
-      void prefetchCommunitiesOnce(normalized)
+
+      // Convertir a usuario RBAC con roles y permisos
+      const rbacUser = RBAC.createAuthUser(normalized)
+
+      setUser(rbacUser as unknown as AppUser)
+      void prefetchCommunitiesOnce(rbacUser)
     } finally {
       hydratingRef.current = false
     }
@@ -206,7 +225,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         setToken(headerToken)
         try {
           userLike = await apiGetMe()
-        } catch {}
+        } catch { }
       }
       if (!hasDashboardAccess(userLike)) {
         setToken('')

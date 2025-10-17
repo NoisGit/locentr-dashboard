@@ -95,7 +95,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
 
   const { data: communities, isLoading: loadingCommunities } = useSWR<Community[]>(
     superAdmin ? ['communities:all'] : ['communities:mine'],
-    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 1000 }) : apiGetMyCommunities()),
+    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 10000 }) : apiGetMyCommunities()),
     { revalidateOnFocus: false }
   )
 

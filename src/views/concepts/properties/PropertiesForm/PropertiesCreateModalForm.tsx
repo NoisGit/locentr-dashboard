@@ -73,10 +73,9 @@ export default function PropertiesCreateModalForm({
   const superAdmin = isSuperAdminUser(user)
   const { selectedId: headerCommunityId } = useCommunitiesStore()
 
-  const { data: communities, isLoading: loadingCommunities } = useSWR<Community[]>(
-    superAdmin ? ['communities:all'] : ['communities:mine'],
-    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 1000 }) : apiGetMyCommunities()),
-    { revalidateOnFocus: false },
+  const { data: communities = [], isLoading: isCommunitiesLoading } = useSWR(
+    'communities:select:create-modal',
+    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 10000 }) : apiGetMyCommunities()),
   )
 
   const communityOptions: Option[] = useMemo(
@@ -111,8 +110,8 @@ export default function PropertiesCreateModalForm({
                 <Select
                   options={communityOptions}
                   isSearchable={false}
-                  isLoading={loadingCommunities}
-                  isDisabled={loadingCommunities}
+                  isLoading={isCommunitiesLoading}
+                  isDisabled={isCommunitiesLoading}
                   value={communityOptions.find((o) => Number(o.value) === Number(field.value)) ?? null}
                   placeholder="Selecciona comunidad"
                   onChange={(opt) => field.onChange(opt ? Number((opt as Option).value) : 0)}
