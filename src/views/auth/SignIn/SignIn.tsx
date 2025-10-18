@@ -25,20 +25,24 @@ export const SignInBase = ({
                     type="streamline"
                     mode={mode}
                     imgClass="mx-auto"
-                    logoWidth={200} 
+                    logoWidth={200}
                 />
             </div>
-            <div className="mb-10">
+
+            {/* 👇 centrado del bloque de texto */}
+            <div className="mb-10 text-center">
                 <h2 className="mb-2">Welcome back!</h2>
                 <p className="font-semibold heading-text">
                     Please enter your credentials to sign in!
                 </p>
             </div>
+
             {message && (
                 <Alert showIcon className="mb-4" type="danger">
                     <span className="break-all">{message}</span>
                 </Alert>
             )}
+
             <SignInForm
                 disableSubmit={disableSubmit}
                 setMessage={setMessage}
@@ -54,7 +58,7 @@ export const SignInBase = ({
                     </div>
                 }
             />
-            {/* 
+            {/*
             <div className="mt-8">
                 <div className="flex items-center gap-2 mb-6">
                     <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
@@ -69,7 +73,7 @@ export const SignInBase = ({
                 />
             </div>
             */}
-            {/* 
+            {/*
             <div>
                 <div className="mt-6 text-center">
                     <span>{`Don't have an account yet?`} </span>

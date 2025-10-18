@@ -3,7 +3,6 @@ import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import Notification from '@/components/template/Notification'
 import HeaderLogo from '@/components/template/HeaderLogo'
-import Search from '@/components/template/Search'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components//template/LayoutBase'
@@ -17,7 +16,6 @@ import type { FooterPageContainerType } from '@/components/template/Footer'
 
 const ContentOverlay = ({ children }: CommonProps) => {
     const { isSticky } = useScrollTop()
-
     const { larger, smaller } = useResponsive()
 
     return (
@@ -52,8 +50,7 @@ const ContentOverlay = ({ children }: CommonProps) => {
                                     customeHeader={() => (
                                         <>
                                             {header?.title &&
-                                                typeof header?.title ===
-                                                    'string' && (
+                                                typeof header?.title === 'string' && (
                                                     <h2 className="mb-2">
                                                         {header.title}
                                                     </h2>
@@ -115,7 +112,6 @@ const ContentOverlay = ({ children }: CommonProps) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
-                                <Search />
                                 <LanguageSelector />
                                 <Notification />
                                 <ModeSwitcher />

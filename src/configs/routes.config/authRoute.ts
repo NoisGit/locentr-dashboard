@@ -26,6 +26,12 @@ const authRoute: Routes = [
         component: lazy(() => import('@/views/auth/OtpVerification')),
         authority: [],
     },
+    {
+        key: 'communitySelect',
+        path: '/auth/community-select',
+        component: lazy(() => import('@/views/auth/CommunitySelect')),
+        authority: [],
+    }
 ]
 
 export default authRoute

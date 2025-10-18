@@ -1,158 +1,113 @@
-import { useState } from 'react'
-import Container from '@/components/shared/Container'
-import Button from '@/components/ui/Button'
+// src/views/concepts/customers/CustomerEdit/CustomerEdit.tsx
+import { useState, useMemo } from 'react'
+import CustomerForm, { type CustomerFormSchema } from '../CustomerForm'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { apiGetCustomer } from '@/services/CustomersService'
-import CustomerForm from '../CustomerForm'
-import sleep from '@/utils/sleep'
-import NoUserFound from '@/assets/svg/NoUserFound'
-import { TbTrash, TbArrowNarrowLeft } from 'react-icons/tb'
 import { useParams, useNavigate } from 'react-router'
 import useSWR from 'swr'
-import type { CustomerFormSchema } from '../CustomerForm'
-import type { Customer } from '../CustomerList/types'
+import {
+  apiGetCustomerById,
+  apiUpdateCustomer,
+} from '@/services/CustomersService'
+
+type AnyUser = Record<string, any>
 
 const CustomerEdit = () => {
-    const { id } = useParams()
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const numericId = useMemo(() => (id ? String(id).replace(/\/+$/, '') : ''), [id])
 
-    const navigate = useNavigate()
+  const { data, isLoading, mutate } = useSWR(
+    numericId ? ['/api/users/:id', numericId] : null,
+    ([, theId]) => apiGetCustomerById(theId as string),
+    { revalidateOnFocus: false, revalidateIfStale: false }
+  )
 
-    const { data, isLoading } = useSWR(
-        [`/api/customers${id}`, { id: id as string }],
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ([_, params]) => apiGetCustomer<Customer, { id: string }>(params),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-        },
-    )
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
-    const [isSubmiting, setIsSubmiting] = useState(false)
-
-    const handleFormSubmit = async (values: CustomerFormSchema) => {
-        console.log('Submitted values', values)
-        setIsSubmiting(true)
-        await sleep(800)
-        setIsSubmiting(false)
-        toast.push(<Notification type="success">Changes Saved!</Notification>, {
-            placement: 'top-center',
-        })
-        navigate('/concepts/customers/customer-list')
+  const getDefaultValues = (): Partial<CustomerFormSchema> => {
+    const u = (data || {}) as AnyUser
+    const fullName =
+      u.full_name ||
+      u.name ||
+      [u.first_name, u.last_name].filter(Boolean).join(' ')
+    return {
+      fullName: fullName || '',
+      phone: u.phone || u.phone_number || '',
+      email: u.email || '',
+      roleId: (u.role_id ?? u.role?.id) ?? '',
+      oldPassword: '',
+      newPassword: '',
     }
+  }
 
-    const getDefaultValues = () => {
-        if (data) {
-            const { firstName, lastName, email, personalInfo, img } = data
+  const defaults = useMemo(() => getDefaultValues(), [data])
+  const formKey = useMemo(
+    () => `edit-${numericId}-${data?.id ?? 'none'}-${data?.email ?? ''}`,
+    [numericId, data?.id, data?.email]
+  )
 
-            return {
-                firstName,
-                lastName,
-                email,
-                img,
-                phoneNumber: personalInfo.phoneNumber,
-                dialCode: personalInfo.dialCode,
-                country: personalInfo.country,
-                address: personalInfo.address,
-                city: personalInfo.city,
-                postcode: personalInfo.postcode,
-                tags: [],
-            }
-        }
+  const handleFormSubmit = async (values: CustomerFormSchema) => {
+    if (!numericId) return
+    try {
+      setIsSubmitting(true)
 
-        return {}
+      const patch: Record<string, unknown> = {
+        full_name: values.fullName?.trim(),
+        phone: values.phone?.trim(),
+        email: values.email?.trim(),
+        role_id: values.roleId ? Number(values.roleId) : undefined,
+      }
+
+      if (values.newPassword && values.newPassword.trim().length >= 6) {
+        patch.password = values.newPassword
+      }
+
+      Object.keys(patch).forEach((k) => {
+        if (patch[k] === '' || patch[k] === undefined) delete patch[k]
+      })
+
+      await apiUpdateCustomer(numericId, patch)
+      toast.push(<Notification type="success">Changes saved!</Notification>, {
+        placement: 'top-center',
+      })
+      await mutate()
+      navigate('/concepts/users/users-list')
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.detail ||
+        'Could not save changes.'
+      toast.push(<Notification type="danger">{msg}</Notification>, {
+        placement: 'top-center',
+      })
+    } finally {
+      setIsSubmitting(false)
     }
+  }
 
-    const handleConfirmDelete = () => {
-        setDeleteConfirmationOpen(true)
-        toast.push(
-            <Notification type="success">Customer deleted!</Notification>,
-            { placement: 'top-center' },
-        )
-        navigate('/concepts/customers/customer-list')
-    }
+  const handleDiscard = () => {
+    toast.push(<Notification type="info">Changes discarded!</Notification>, {
+      placement: 'top-center',
+    })
+    navigate('/concepts/users/users-list')
+  }
 
-    const handleDelete = () => {
-        setDeleteConfirmationOpen(true)
-    }
+  if (!isLoading && !data) {
+    return null
+  }
 
-    const handleCancel = () => {
-        setDeleteConfirmationOpen(false)
-    }
-
-    const handleBack = () => {
-        history.back()
-    }
-
-    return (
-        <>
-            {!isLoading && !data && (
-                <div className="h-full flex flex-col items-center justify-center">
-                    <NoUserFound height={280} width={280} />
-                    <h3 className="mt-8">No user found!</h3>
-                </div>
-            )}
-            {!isLoading && data && (
-                <>
-                    <CustomerForm
-                        defaultValues={getDefaultValues() as CustomerFormSchema}
-                        newCustomer={false}
-                        onFormSubmit={handleFormSubmit}
-                    >
-                        <Container>
-                            <div className="flex items-center justify-between px-8">
-                                <Button
-                                    className="ltr:mr-3 rtl:ml-3"
-                                    type="button"
-                                    variant="plain"
-                                    icon={<TbArrowNarrowLeft />}
-                                    onClick={handleBack}
-                                >
-                                    Back
-                                </Button>
-                                <div className="flex items-center">
-                                    <Button
-                                        className="ltr:mr-3 rtl:ml-3"
-                                        type="button"
-                                        customColorClass={() =>
-                                            'border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent'
-                                        }
-                                        icon={<TbTrash />}
-                                        onClick={handleDelete}
-                                    >
-                                        Delete
-                                    </Button>
-                                    <Button
-                                        variant="solid"
-                                        type="submit"
-                                        loading={isSubmiting}
-                                    >
-                                        Save
-                                    </Button>
-                                </div>
-                            </div>
-                        </Container>
-                    </CustomerForm>
-                    <ConfirmDialog
-                        isOpen={deleteConfirmationOpen}
-                        type="danger"
-                        title="Remove customers"
-                        onClose={handleCancel}
-                        onRequestClose={handleCancel}
-                        onCancel={handleCancel}
-                        onConfirm={handleConfirmDelete}
-                    >
-                        <p>
-                            Are you sure you want to remove this customer? This
-                            action can&apos;t be undo.{' '}
-                        </p>
-                    </ConfirmDialog>
-                </>
-            )}
-        </>
-    )
+  return (
+    <CustomerForm
+      key={formKey}
+      mode="edit"
+      submitLabel="Edit"
+      submitting={isSubmitting}
+      defaultValues={defaults}
+      onFormSubmit={handleFormSubmit}
+      onDiscard={handleDiscard}
+    />
+  )
 }
 
 export default CustomerEdit

@@ -1,6 +1,6 @@
 import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
-import { NAV_ITEM_TYPE_ITEM, NAV_ITEM_TYPE_COLLAPSE } from '@/constants/navigation.constant'
-import { ADMIN, USER } from '@/constants/roles.constant'
+import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
+import { ADMIN, USER, SUBADMIN, SUPERADMIN } from '@/constants/roles.constant'
 import type { NavigationTree } from '@/@types/navigation'
 
 const dashboardsNavigationConfig: NavigationTree[] = [
@@ -11,7 +11,25 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.dashboard.dashboard',
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, USER],
+        // Oculto para admin y subadmin (solo lo ve SUPERADMIN)
+        authority: [SUPERADMIN],
+        subMenu: [],
+    },
+    {
+        key: 'concepts.ai',
+        path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
+        title: 'AI',
+        translateKey: 'nav.conceptsAi.ai',
+        icon: 'ai',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsAi.aiDesc',
+                label: 'AI tools and resources',
+            },
+        },
         subMenu: [],
     },
     {
@@ -21,7 +39,8 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsCustomers.customers',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, USER],
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.conceptsCustomers.customersDesc',
@@ -31,287 +50,102 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'concepts.products',
-        path: '',
-        title: 'Products',
-        translateKey: 'nav.conceptsProducts.products',
-        icon: 'products',
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, USER],
+        key: 'concepts.accesses',
+        path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
+        title: 'Accesos',
+        translateKey: 'nav.conceptsAccesses.accesses',
+        icon: 'signIn',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
         meta: {
             description: {
-                translateKey: 'nav.conceptsProducts.productsDesc',
-                label: 'Product inventory management',
+                translateKey: 'nav.conceptsAccesses.accessesDesc',
+                label: 'Gestión de accesos',
             },
         },
-        subMenu: [
-            {
-                key: 'concepts.products.productList',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
-                title: 'Product List',
-                translateKey: 'nav.conceptsProducts.productList',
-                icon: 'productList',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productListDesc',
-                        label: 'All products listed',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.products.productEdit',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-edit/12`,
-                title: 'Product Edit',
-                translateKey: 'nav.conceptsProducts.productEdit',
-                icon: 'productEdit',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productEditDesc',
-                        label: 'Edit product details',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.products.productCreate',
-                path: `${CONCEPTS_PREFIX_PATH}/products/product-create`,
-                title: 'Product Create',
-                translateKey: 'nav.conceptsProducts.productCreate',
-                icon: 'productCreate',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProducts.productCreateDesc',
-                        label: 'Add new product',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
+        subMenu: [],
     },
     {
         key: 'concepts.news',
-        path: '',
+        path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
         title: 'Noticias',
         translateKey: 'nav.conceptsHelpCenter.helpCenter',
-        icon: 'helpCenter',
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, USER],
+        icon: 'helpCeterArticle',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.conceptsHelpCenter.helpCenterDesc',
                 label: 'Support and articles',
             },
         },
-        subMenu: [
-            {
-                key: 'concepts.news.supportHub',
-                path: `${CONCEPTS_PREFIX_PATH}/news/support-hub`,
-                title: 'Support Hub',
-                translateKey: 'nav.conceptsHelpCenter.supportHub',
-                icon: 'helpCeterSupportHub',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.supportHubDesc',
-                        label: 'Central support hub',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.article',
-                path: `${CONCEPTS_PREFIX_PATH}/news/article/pWBKE_0UiQ`,
-                title: 'Article',
-                translateKey: 'nav.conceptsHelpCenter.article',
-                icon: 'helpCeterArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.articleDesc',
-                        label: 'Read support articles',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.editArticle',
-                path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/pWBKE_0UiQ`,
-                title: 'Edit Article',
-                translateKey: 'nav.conceptsHelpCenter.editArticle',
-                icon: 'helpCeterEditArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.editArticleDesc',
-                        label: 'Modify article content',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.helpCenter.manageArticle',
-                path: `${CONCEPTS_PREFIX_PATH}/news/manage-article`,
-                title: 'Manage Article',
-                translateKey: 'nav.conceptsHelpCenter.manageArticle',
-                icon: 'helpCeterManageArticle',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsHelpCenter.manageArticleDesc',
-                        label: 'Article management',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
+        subMenu: [],
     },
     {
-        key: 'concepts.ai',
-        path: '',
-        title: 'AI',
-        translateKey: 'nav.conceptsAi.ai',
-        icon: 'ai',
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, USER],
-        meta: {
-            description: {
-                translateKey: 'nav.conceptsAi.aiDesc',
-                label: 'AI tools and resources',
-            },
-        },
-        subMenu: [
-            {
-                key: 'concepts.ai.chat',
-                path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
-                title: 'Chat',
-                translateKey: 'nav.conceptsAi.chat',
-                icon: 'aiChat',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey: 'nav.conceptsAi.chatDesc',
-                        label: 'AI-powered chat systems',
-                    },
-                },
-                subMenu: [],
-            },
-        ],
-    },
-    {
-        key: 'concepts.projects',
-        path: '',
+        key: 'concepts.incidents.list',
+        path: `${CONCEPTS_PREFIX_PATH}/incidents`,
         title: 'Reporte de problemas',
         translateKey: 'nav.conceptsProjects.projects',
-        icon: 'projects',
-        type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [ADMIN, USER],
+        icon: 'uiFeedbackAlert',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
-                translateKey: 'nav.conceptsProjects.projectsDesc',
-                label: 'Manage and track projects',
+                translateKey: 'nav.conceptsProjects.projectTasksDesc',
+                label: 'Manage project tasks',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.entries',
+        path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
+        title: 'Entradas(Pronto) ',
+        translateKey: 'nav.entries',
+        icon: 'uiFormsFormControl',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.entriesDesc',
+                label: 'Entry control and management at the gate',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.mailbox',
+        path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-list`,
+        title: 'Casilla',
+        translateKey: 'nav.mailbox',
+        icon: 'products',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.mailboxDesc',
+                label: 'Incoming parcels and mail',
             },
         },
         subMenu: [
             {
-                key: 'concepts.projects.scrumBoard',
-                path: `${CONCEPTS_PREFIX_PATH}/projects/scrum-board`,
-                title: 'Scrum Board',
-                translateKey: 'nav.conceptsProjects.scrumBoard',
-                icon: 'projectScrumBoard',
+                key: 'concepts.mailbox.details',
+                path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-details/:id`,
+                title: 'Mailbox Details',
+                translateKey: 'nav.mailboxDetails',
+                icon: 'orders',
                 type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
+                // Visible para todos
+                authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
                 meta: {
                     description: {
-                        translateKey:
-                            'nav.conceptsProjects.scrumBoardDesc',
-                        label: 'Manage your scrum workflow',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.projects.projectList',
-                path: `${CONCEPTS_PREFIX_PATH}/projects/project-list`,
-                title: 'Project List',
-                translateKey: 'nav.conceptsProjects.projectList',
-                icon: 'projectList',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectListDesc',
-                        label: 'Organize all projects',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.projects.projectDetails',
-                path: `${CONCEPTS_PREFIX_PATH}/projects/project-details/27`,
-                title: 'Details',
-                translateKey: 'nav.conceptsProjects.projectDetails',
-                icon: 'projectDetails',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectDetailsDesc',
-                        label: 'Project detailed information',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.projects.projectTasks',
-                path: `${CONCEPTS_PREFIX_PATH}/projects/tasks`,
-                title: 'Tasks',
-                translateKey: 'nav.conceptsProjects.projectTasks',
-                icon: 'projectTask',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectTasksDesc',
-                        label: 'Manage project tasks',
-                    },
-                },
-                subMenu: [],
-            },
-            {
-                key: 'concepts.projects.projectIssue',
-                path: `${CONCEPTS_PREFIX_PATH}/projects/tasks/1`,
-                title: 'Issue',
-                translateKey: 'nav.conceptsProjects.projectIssue',
-                icon: 'projectIssue',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [ADMIN, USER],
-                meta: {
-                    description: {
-                        translateKey:
-                            'nav.conceptsProjects.projectIssueDesc',
-                        label: 'Resolve project issues',
+                        translateKey: 'nav.mailboxDetailsDesc',
+                        label: 'Mailbox entry details',
                     },
                 },
                 subMenu: [],
@@ -319,15 +153,209 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         ],
     },
     {
-        key: 'dashboard.project',
-        path: `${DASHBOARDS_PREFIX_PATH}/project`,
-        title: 'Project',
-        translateKey: 'nav.dashboard.project',
-        icon: 'dashboardProject',
+        key: 'concepts.invitations',
+        path: `${CONCEPTS_PREFIX_PATH}/invitations/invitations-list`,
+        title: 'Invitaciones',
+        translateKey: 'nav.invitations',
+        icon: 'invitations',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, USER],
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.invitationsDesc',
+                label: 'Gestión de invitaciones',
+            },
+        },
         subMenu: [],
-    }
+    },
+    {
+        key: 'concepts.perks',
+        path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
+        title: 'Perks',
+        translateKey: 'nav.perks',
+        icon: 'uiDataDisplayTag',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.perksDesc',
+                label: 'Manage company perks',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.logbook',
+        path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
+        title: 'Libro de Novedades',
+        translateKey: 'nav.logbook',
+        icon: 'documentation',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.logbookDesc',
+                label: 'Registro de novedades y eventos',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.condos',
+        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
+        title: 'Condos',
+        translateKey: 'nav.conceptsCondos.condos',
+        icon: 'building',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos (además quieres que sea la landing para admin/subadmin)
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsCondos.condosDesc',
+                label: 'Gestión de condominios',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.properties',
+        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
+        title: 'Propiedades',
+        translateKey: 'nav.properties',
+        icon: 'landing',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.propertiesDesc',
+                label: 'Gestión de propiedades',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.residents',
+        path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
+        title: 'Residentes',
+        translateKey: 'nav.residents',
+        icon: 'residentsIcon',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.residentsDesc',
+                label: 'Gestiona residentes y sus unidades',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.products',
+        path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
+        title: 'Products',
+        translateKey: 'nav.conceptsProducts.products',
+        icon: 'calendar',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Visible para todos
+        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.conceptsProducts.productsDesc',
+                label: 'Product inventory management',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.marketplace',
+        path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
+        title: 'Marketplace',
+        translateKey: 'nav.marketplace',
+        icon: 'marketplaceIcon',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.marketplaceDesc',
+                label: 'View and manage marketplace items',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.condosAdmin',
+        path: `${CONCEPTS_PREFIX_PATH}/account/roles-permissions`,
+        title: 'Condos Admin',
+        translateKey: 'nav.condosAdmin',
+        icon: 'accountRoleAndPermission',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.condosAdminDesc',
+                label: 'Manage roles and condominium administration',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.plan',
+        path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
+        title: 'Plan',
+        translateKey: 'nav.plan',
+        icon: 'accountPricing',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.planDesc',
+                label: 'View and manage your subscription plan',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.chat',
+        path: `${CONCEPTS_PREFIX_PATH}/chat`,
+        title: 'Chat',
+        translateKey: 'nav.chat',
+        icon: 'chat',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.chatDesc',
+                label: 'Chat with friends',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'concepts.calendar',
+        path: `${CONCEPTS_PREFIX_PATH}/calendar`,
+        title: 'Calendar',
+        translateKey: 'nav.calendar',
+        icon: 'calendar',
+        type: NAV_ITEM_TYPE_ITEM,
+        // Oculto para admin y subadmin (solo SUPERADMIN)
+        authority: [SUPERADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.calendarDesc',
+                label: 'Schedule and events',
+            },
+        },
+        subMenu: [],
+    },
 ]
 
 export default dashboardsNavigationConfig

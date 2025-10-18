@@ -1,112 +1,65 @@
+// src/views/concepts/customers/CustomerCreate.tsx
 import { useState } from 'react'
-import Container from '@/components/shared/Container'
-import Button from '@/components/ui/Button'
+import CustomerForm, { type CustomerFormSchema } from '../CustomerForm'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import CustomerForm from '../CustomerForm'
-import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import sleep from '@/utils/sleep'
-import { TbTrash } from 'react-icons/tb'
 import { useNavigate } from 'react-router'
-import type { CustomerFormSchema } from '../CustomerForm'
+import ApiService from '@/services/ApiService'
 
-const CustomerEdit = () => {
-    const navigate = useNavigate()
+const CustomerCreate = () => {
+  const navigate = useNavigate()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const [discardConfirmationOpen, setDiscardConfirmationOpen] =
-        useState(false)
-    const [isSubmiting, setIsSubmiting] = useState(false)
+  const handleFormSubmit = async (values: CustomerFormSchema) => {
+    try {
+      setIsSubmitting(true)
 
-    const handleFormSubmit = async (values: CustomerFormSchema) => {
-        console.log('Submitted values', values)
-        setIsSubmiting(true)
-        await sleep(800)
-        setIsSubmiting(false)
-        toast.push(
-            <Notification type="success">Customer created!</Notification>,
-            { placement: 'top-center' },
-        )
-        navigate('/concepts/customers/customer-list')
+      await ApiService.fetchDataWithAxios({
+        url: '/api/v1/users/',
+        method: 'post',
+        data: {
+          full_name: values.fullName?.trim(),
+          phone: values.phone?.trim(),
+          email: values.email?.trim(),
+          password: values.password,
+          role_id: Number(values.roleId),
+        },
+      })
+
+      toast.push(<Notification type="success">User created!</Notification>, {
+        placement: 'top-center',
+      })
+      navigate('/concepts/users/users-list')
+    } catch (err: unknown) {
+      const anyErr = err as any
+      const msg =
+        anyErr?.response?.data?.message ||
+        anyErr?.response?.data?.detail ||
+        'Could not create the user.'
+      toast.push(<Notification type="danger">{msg}</Notification>, {
+        placement: 'top-center',
+      })
+    } finally {
+      setIsSubmitting(false)
     }
+  }
 
-    const handleConfirmDiscard = () => {
-        setDiscardConfirmationOpen(true)
-        toast.push(
-            <Notification type="success">Customer discardd!</Notification>,
-            { placement: 'top-center' },
-        )
-        navigate('/concepts/customers/customer-list')
-    }
+  const handleDiscard = () => {
+    toast.push(<Notification type="info">Creation discarded!</Notification>, {
+      placement: 'top-center',
+    })
+    navigate('/concepts/users/users-list')
+  }
 
-    const handleDiscard = () => {
-        setDiscardConfirmationOpen(true)
-    }
-
-    const handleCancel = () => {
-        setDiscardConfirmationOpen(false)
-    }
-
-    return (
-        <>
-            <CustomerForm
-                newCustomer
-                defaultValues={{
-                    firstName: '',
-                    lastName: '',
-                    email: '',
-                    img: '',
-                    phoneNumber: '',
-                    dialCode: '',
-                    country: '',
-                    address: '',
-                    city: '',
-                    postcode: '',
-                    tags: [],
-                }}
-                onFormSubmit={handleFormSubmit}
-            >
-                <Container>
-                    <div className="flex items-center justify-between px-8">
-                        <span></span>
-                        <div className="flex items-center">
-                            <Button
-                                className="ltr:mr-3 rtl:ml-3"
-                                type="button"
-                                customColorClass={() =>
-                                    'border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent'
-                                }
-                                icon={<TbTrash />}
-                                onClick={handleDiscard}
-                            >
-                                Discard
-                            </Button>
-                            <Button
-                                variant="solid"
-                                type="submit"
-                                loading={isSubmiting}
-                            >
-                                Create
-                            </Button>
-                        </div>
-                    </div>
-                </Container>
-            </CustomerForm>
-            <ConfirmDialog
-                isOpen={discardConfirmationOpen}
-                type="danger"
-                title="Discard changes"
-                onClose={handleCancel}
-                onRequestClose={handleCancel}
-                onCancel={handleCancel}
-                onConfirm={handleConfirmDiscard}
-            >
-                <p>
-                    Are you sure you want discard this? This action can&apos;t
-                    be undo.{' '}
-                </p>
-            </ConfirmDialog>
-        </>
-    )
+  return (
+    <CustomerForm
+      mode="create"
+      submitting={isSubmitting}
+      defaultValues={{ fullName: '', phone: '', email: '', password: '', roleId: '' }}
+      onFormSubmit={handleFormSubmit}
+      onDiscard={handleDiscard}
+    />
+  )
 }
 
-export default CustomerEdit
+export default CustomerCreate

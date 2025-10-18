@@ -89,6 +89,11 @@ import {
     PiDotsThreeCircleDuotone,
     PiCircleHalfTiltDuotone,
     PiHouseLineDuotone,
+    PiBuildingOfficeDuotone,
+    PiUsersThreeDuotone,
+    PiStorefrontDuotone,
+    PiQrCodeDuotone,
+
 } from 'react-icons/pi'
 import type { JSX } from 'react'
 
@@ -143,8 +148,10 @@ const navigationIcon: NavigationIcons = {
     customers: <PiUsersDuotone />,
     customerList: <PiUserListDuotone />,
     customerEdit: <PiPencilSimpleLineDuotone />,
-    // customerCreate: <PiUserPlusDuotone />, // ELIMINADA
-    customerDetails: <PiUserCircleDuotone />,
+    // customerCreate: <PiUserPlusDuotone />, //
+    invitations: <PiQrCodeDuotone />,
+    building: <PiBuildingOfficeDuotone/>, 
+    customerDetails: <PiUserCircleDuotone />, 
     products: <PiPackageDuotone />,
     productList: <PiListStarDuotone />,
     productEdit: <PiNotePencilDuotone />,
@@ -162,6 +169,8 @@ const navigationIcon: NavigationIcons = {
     orderCreate: <PiStackPlusDuotone />,
     calendar: <PiCalendarDuotone />,
     fileManager: <PiFolderOpenDuotone />,
+    residentsIcon: <PiUsersThreeDuotone />,
+    marketplaceIcon: <PiStorefrontDuotone />,
     mail: <PiEnvelopeDuotone />,
     account: <PiUserCircleDuotone />,
     accountSettings: <PiGearDuotone />,

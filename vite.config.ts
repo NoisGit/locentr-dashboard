@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://dev-api-residencial-dvhndhdqh8eeazgy.brazilsouth-01.azurewebsites.net',
         changeOrigin: true,
         secure: false
       }

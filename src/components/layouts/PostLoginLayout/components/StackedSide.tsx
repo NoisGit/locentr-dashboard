@@ -1,7 +1,6 @@
 import StackedSideNav from '@/components/template/StackedSideNav'
 import Header from '@/components/template/Header'
 import MobileNav from '@/components/template/MobileNav'
-import Search from '@/components/template/Search'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import Notification from '@/components/template/Notification'
 import UserProfileDropdown from '@/components//template/UserProfileDropdown'
@@ -27,7 +26,7 @@ const StackedSide = ({ children }: CommonProps) => {
                         headerStart={
                             <>
                                 {smaller.lg && <MobileNav />}
-                                <Search />
+                                {} {}
                             </>
                         }
                         headerEnd={
