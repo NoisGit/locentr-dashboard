@@ -262,7 +262,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         icon: 'calendar',
         type: NAV_ITEM_TYPE_ITEM,
         // Visible para todos
-        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        authority: [SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.conceptsProducts.productsDesc',

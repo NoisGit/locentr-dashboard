@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react'
+import { useState, Suspense, lazy, useMemo } from 'react'
 import classNames from 'classnames'
 import Drawer from '@/components/ui/Drawer'
 import NavToggle from '@/components/shared/NavToggle'
@@ -8,7 +8,9 @@ import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
 import { useThemeStore } from '@/store/themeStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
-import { useSessionUser } from '@/store/authStore'
+import { useAuth } from '@/auth'
+import { RBAC } from '@/utils/rbac/rbacCore'
+import type { NavigationTree } from '@/@types/navigation'
 import Logo from '@/components/template/Logo'
 
 // Marca de agua
@@ -18,34 +20,63 @@ const VerticalMenuContent = lazy(
     () => import('@/components/template/VerticalMenuContent'),
 )
 
-type MobileNavToggleProps = {
-    toggled?: boolean
-}
-
-type MobileNavProps = {
-    translationSetup?: boolean
-}
+type MobileNavToggleProps = { toggled?: boolean }
+type MobileNavProps = { translationSetup?: boolean }
 
 const MobileNavToggle = withHeaderItem<
     MobileNavToggleProps & WithHeaderItemProps
 >(NavToggle)
 
+/** Claves permitidas para SUPERADMIN (whitelist) */
+const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
+    'concepts.news',
+    'concepts.incidents.list',
+    'concepts.entries',
+    'concepts.mailbox',
+    'concepts.invitations',
+    'concepts.logbook',
+    'concepts.condos',
+    'concepts.properties',
+    'concepts.residents',
+    'concepts.customers', // Usuarios ✅
+])
+
+function filterNavForSuperAdmin(tree: NavigationTree[]): NavigationTree[] {
+    const walk = (nodes: NavigationTree[]): NavigationTree[] =>
+        nodes
+            .map((n) => {
+                const sub = n.subMenu ? walk(n.subMenu) : []
+                const keep = SUPERADMIN_ALLOWED_KEYS.has(n.key) || sub.length > 0
+                return keep ? { ...n, subMenu: sub } : null
+            })
+            .filter(Boolean) as NavigationTree[]
+    return walk(tree)
+}
+
 const MobileNav = ({
     translationSetup = appConfig.activeNavTranslation,
 }: MobileNavProps) => {
     const [isOpen, setIsOpen] = useState(false)
+    const handleOpenDrawer = () => setIsOpen(true)
+    const handleDrawerClose = () => setIsOpen(false)
 
-    const handleOpenDrawer = () => {
-        setIsOpen(true)
-    }
+    const direction = useThemeStore((s) => s.direction)
+    const currentRouteKey = useRouteKeyStore((s) => s.currentRouteKey)
 
-    const handleDrawerClose = () => {
-        setIsOpen(false)
-    }
+    const { user } = useAuth()
+    const role = RBAC.extractUserRole(user) // 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
 
-    const direction = useThemeStore((state) => state.direction)
-    const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-    const userAuthority = useSessionUser((state) => state.user.authority)
+    // Autoridad que usa AuthorityCheck legacy
+    const userAuthority: string[] = role ? [role] : []
+
+    // Filtrar menú SOLO para SUPERADMIN
+    const navTree = useMemo(
+        () =>
+            role === 'SUPERADMIN'
+                ? filterNavForSuperAdmin(navigationConfig)
+                : navigationConfig,
+        [role],
+    )
 
     return (
         <>
@@ -66,9 +97,9 @@ const MobileNav = ({
                         <div className="flex flex-col justify-between h-full">
                             <VerticalMenuContent
                                 collapsed={false}
-                                navigationTree={navigationConfig}
+                                navigationTree={navTree}
                                 routeKey={currentRouteKey}
-                                userAuthority={userAuthority as string[]}
+                                userAuthority={userAuthority}
                                 direction={direction}
                                 translationSetup={translationSetup}
                                 onMenuItemClick={handleDrawerClose}

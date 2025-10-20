@@ -20,6 +20,10 @@ import {
 } from '@/constants/theme.constant'
 import { useMemo } from 'react'
 
+// ✅ NUEVO: usar RBAC para extraer el rol real del usuario
+import { useAuth } from '@/auth'
+import { RBAC } from '@/utils/rbac/rbacCore'
+
 type SideNavProps = {
   translationSetup?: boolean
   background?: boolean
@@ -37,10 +41,11 @@ const sideNavCollapseStyle = {
   minWidth: SIDE_NAV_COLLAPSED_WIDTH,
 }
 
+/** Ocultos para ADMIN/SUBADMIN */
 const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'dashboard',
   'concepts.ai',
-  'concepts.customers',
+  'concepts.customers', // ADMIN/SUBADMIN no ven Usuarios
   'concepts.accesses',
   'concepts.perks',
   'concepts.marketplace',
@@ -48,7 +53,21 @@ const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'concepts.plan',
   'concepts.chat',
   'concepts.calendar',
-  'concepts.products',
+  'concepts.products', // Amenidades
+])
+
+/** Whitelist para SUPERADMIN (las 9 vistas + Usuarios) */
+const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
+  'concepts.customers',            // Usuarios
+  'concepts.news',                 // Noticias
+  'concepts.incidents.list',       // Reporte de problemas
+  'concepts.entries',              // Entradas(Pronto)
+  'concepts.mailbox',              // Casilla
+  'concepts.invitations',          // Invitaciones
+  'concepts.logbook',              // Libro de Novedades
+  'concepts.condos',               // Condos
+  'concepts.properties',           // Propiedades
+  'concepts.residents',            // Residentes
 ])
 
 type NavNode = (typeof navigationConfig)[number]
@@ -62,6 +81,19 @@ function filterTreeByKeys(nodes: NavNode[], hideKeys: Set<string>): NavNode[] {
       subMenu = filterTreeByKeys(subMenu as NavNode[], hideKeys)
     }
     out.push({ ...n, subMenu } as NavNode)
+  }
+  return out
+}
+
+function filterTreeByWhitelist(nodes: NavNode[], allow: Set<string>): NavNode[] {
+  const out: NavNode[] = []
+  for (const n of nodes) {
+    const filteredChildren = n.subMenu
+      ? filterTreeByWhitelist(n.subMenu as NavNode[], allow)
+      : []
+    const keep = allow.has(n.key) || filteredChildren.length > 0
+    if (!keep) continue
+    out.push({ ...n, subMenu: filteredChildren } as NavNode)
   }
   return out
 }
@@ -109,28 +141,30 @@ const SideNav = ({
   const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
   const rawAuthority = useSessionUser((state) => state.user.authority)
 
+  // ✅ NUEVO: rol real desde RBAC
+  const { user } = useAuth()
+  const effectiveRole = RBAC.extractUserRole(user) // 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
+
   const roles = useMemo(() => {
     const s = normalizeAuthority(rawAuthority)
+    // Si el authority del store no trae el rol correcto, lo forzamos con RBAC
+    if (effectiveRole) s.add(effectiveRole.toUpperCase())
     if (s.size === 0) s.add('USER')
     return s
-  }, [rawAuthority])
+  }, [rawAuthority, effectiveRole])
 
   const isSuperAdmin = roles.has('SUPERADMIN')
   const isSubAdmin = roles.has('SUBADMIN')
   const isAdmin = roles.has('ADMIN') || roles.has('USER')
 
   const navigationFiltered = useMemo(() => {
-    if (isSuperAdmin) return navigationConfig
-    if (isAdmin || isSubAdmin) {
-      return filterTreeByKeys(
-        navigationConfig as NavNode[],
-        HIDE_KEYS_FOR_ADMIN_GROUP,
-      )
+    if (isSuperAdmin) {
+      return filterTreeByWhitelist(navigationConfig as NavNode[], SUPERADMIN_ALLOWED_KEYS)
     }
-    return filterTreeByKeys(
-      navigationConfig as NavNode[],
-      HIDE_KEYS_FOR_ADMIN_GROUP,
-    )
+    if (isAdmin || isSubAdmin) {
+      return filterTreeByKeys(navigationConfig as NavNode[], HIDE_KEYS_FOR_ADMIN_GROUP)
+    }
+    return filterTreeByKeys(navigationConfig as NavNode[], HIDE_KEYS_FOR_ADMIN_GROUP)
   }, [isSuperAdmin, isAdmin, isSubAdmin])
 
   let logoSrc = themeMode === 'dark' ? porteriaWhite : porteriaBlack
@@ -174,7 +208,7 @@ const SideNav = ({
             routeKey={currentRouteKey}
             direction={direction}
             translationSetup={translationSetup}
-            userAuthority={[...roles]}
+            userAuthority={[...roles]} // ahora incluye SUPERADMIN real
           />
         </ScrollBar>
       </div>

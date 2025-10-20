@@ -113,13 +113,13 @@ const dashboardsRoute: Routes = [
     key: 'concepts.products.productList',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
     component: lazy(() => import('@/views/concepts/products/ProductList')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
   },
   {
     key: 'concepts.products.productEdit',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-edit/:id`,
     component: lazy(() => import('@/views/concepts/products/ProductEdit')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
     meta: {
       header: {
         title: 'Edit product',
@@ -133,7 +133,7 @@ const dashboardsRoute: Routes = [
     key: 'concepts.products.productCreate',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-create`,
     component: lazy(() => import('@/views/concepts/products/ProductCreate')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
     meta: {
       header: {
         title: 'Create product',
