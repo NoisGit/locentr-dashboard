@@ -6,6 +6,9 @@ import {
   REQUEST_HEADER_AUTH_KEY,
   TOKEN_NAME_IN_STORAGE,
 } from '@/constants/api.constant'
+import { useSessionUser } from '@/store/authStore'
+import { RBAC } from '@/utils/rbac'
+import { Role } from '@/utils/rbac/types'
 import type { InternalAxiosRequestConfig } from 'axios'
 
 const AUTH_PREFIX = '/auth'
@@ -42,6 +45,16 @@ function getSelectedCommunityIdFromStorage(): string | number | undefined {
   return undefined
 }
 
+function isSuperAdmin(): boolean {
+  try {
+    const user = useSessionUser.getState().user
+    const role = RBAC.extractUserRole(user)
+    return role === Role.SUPERADMIN
+  } catch {
+    return false
+  }
+}
+
 export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
   config: InternalAxiosRequestConfig<T>,
 ) {
@@ -68,6 +81,12 @@ export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
 
   const pathname = getPathname(typeof config.url === 'string' ? config.url : undefined)
   const method = String(config.method || 'get').toLowerCase()
+  
+  // SUPERADMIN no necesita communityId en las peticiones
+  if (isSuperAdmin()) {
+    return config
+  }
+
   const communityId = getSelectedCommunityIdFromStorage()
 
   if (communityId !== undefined && shouldAttachCommunity(pathname)) {

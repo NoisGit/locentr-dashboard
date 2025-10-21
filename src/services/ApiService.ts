@@ -1,7 +1,10 @@
 // src/services/ApiService.ts
 import AxiosBase from './axios/AxiosBase'
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { useCommunitiesStore, isVirtualCommunityId } from '@/store/communities/CommunitiesStore'
+import { useSessionUser } from '@/store/authStore'
+import { RBAC } from '@/utils/rbac'
+import { Role } from '@/utils/rbac/types'
 
 function normalizeUsersUrl(rawUrl: string) {
   try {
@@ -58,11 +61,22 @@ function withCommunityContext<Request = Record<string, unknown>>(
     return cfg
   }
 
+  // SUPERADMIN no necesita communityId
+  try {
+    const user = useSessionUser.getState().user
+    const role = RBAC.extractUserRole(user)
+    if (role === Role.SUPERADMIN) {
+      return cfg
+    }
+  } catch {
+    // Si hay error al obtener el usuario, continuar con la lógica normal
+  }
+
   let communityId: string | number | null = null
   try {
     const s = useCommunitiesStore.getState()
     const id = s.selectedId
-    if (id !== undefined && id !== null && String(id) !== '') {
+    if (id !== undefined && id !== null && String(id) !== '' && !isVirtualCommunityId(id)) {
       communityId = id
     }
   } catch {

@@ -130,6 +130,17 @@ const SecureRoutes = ({
             ) : (
                 <>{publicRoutes.map(renderPublicRoute)}</>
             )}
+
+            {/* Ruta catch-all: redirigir a login si no está autenticado, o a la ruta autenticada si lo está */}
+            <Route
+                path="*"
+                element={
+                    <Navigate
+                        replace
+                        to={authenticated ? authenticatedEntryPath : appConfig.unAuthenticatedEntryPath}
+                    />
+                }
+            />
         </Routes>
     )
 }
