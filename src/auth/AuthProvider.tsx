@@ -146,7 +146,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       if (superAdmin) {
         // SUPERADMIN siempre carga TODAS las comunidades del sistema
         try {
-          list = await apiListCommunities({ pageIndex: 1, pageSize: 10000 })
+          list = await apiListCommunities({ pageIndex: 1, pageSize: 200 })
         } catch {
           // Fallback: intentar con mis comunidades
           list = await apiGetMyCommunities()
