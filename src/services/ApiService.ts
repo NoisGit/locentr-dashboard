@@ -87,8 +87,8 @@ function withCommunityContext<Request = Record<string, unknown>>(
     return cfg
   }
 
-  const nextHeaders: Record<string, unknown> = {
-    ...(cfg.headers as Record<string, unknown> | undefined),
+  const nextHeaders: AxiosRequestConfig['headers'] = {
+    ...(cfg.headers as AxiosRequestConfig['headers']),
     'X-Community-Id': String(communityId),
   }
 
@@ -109,7 +109,7 @@ function withCommunityContext<Request = Record<string, unknown>>(
   }
 
   if (cfg.data && typeof cfg.data === 'object' && !(cfg.data as Record<string, unknown>).communityId) {
-    ;(cfg.data as Record<string, unknown>).communityId = communityId
+    ; (cfg.data as Record<string, unknown>).communityId = communityId
   }
 
   return { ...cfg, headers: nextHeaders }
