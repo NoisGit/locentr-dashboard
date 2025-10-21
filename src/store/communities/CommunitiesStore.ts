@@ -71,15 +71,9 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
     const { selectedId } = get()
     const autoSelectIfSingle = opts?.autoSelectIfSingle ?? true
 
-    // Mantener selección virtual independientemente de la lista entrante
-    if (isVirtualCommunityId(selectedId)) {
-      set({
-        communities: list,
-        source: source ?? get().source,
-        autoSelected: false,
-      })
-      return
-    }
+    // No mantener selecciones virtuales al recibir nueva lista
+    // Las selecciones virtuales deben ser manejadas por SecureRoutesWithCommunities
+    const hasVirtual = isVirtualCommunityId(selectedId)
 
     if (list.length === 0) {
       set({
@@ -87,12 +81,18 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
         source: source ?? get().source,
         autoSelected: false,
       })
+      // Limpiar selección virtual si existe
+      if (hasVirtual) {
+        persistSelected(undefined, undefined)
+        set({ selectedId: undefined, selectedName: undefined })
+      }
       return
     }
 
     const stillExists =
       selectedId !== undefined &&
       selectedId !== null &&
+      !hasVirtual &&
       list.some((c) => String(c.id) === String(selectedId))
 
     if (!stillExists && autoSelectIfSingle && list.length === 1) {
@@ -145,7 +145,7 @@ export const useCommunitiesStore = create<CommunitiesState & CommunitiesActions>
   ensureSelectionFromList: () => {
     const { selectedId, communities } = get()
 
-    // Si hay selección virtual, no auto-seleccionar ni tocarla
+    // No auto-seleccionar si hay una selección virtual
     if (isVirtualCommunityId(selectedId)) {
       set({ autoSelected: false })
       return false

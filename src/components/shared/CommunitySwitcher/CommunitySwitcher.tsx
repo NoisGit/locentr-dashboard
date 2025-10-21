@@ -77,7 +77,7 @@ const CommunitySwitcher = ({ className, onChange }: Props) => {
     setError(null)
     try {
       let list: Community[] = []
-      if (superAdmin) list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 10000 })
+      if (superAdmin) list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 })
       else list = await apiGetMyCommunities<Community[]>()
       list = uniqById(list)
       setCommunities(list, superAdmin ? 'all' : 'mine', { autoSelectIfSingle: mode === 'eager' })

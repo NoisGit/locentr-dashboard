@@ -72,27 +72,9 @@ function ProtectedWrapper() {
     const { selectedId, selectCommunity } = useCommunitiesStore()
     const { pathname } = useLocation()
 
-    // Hidratar selección desde localStorage
-    useEffect(() => {
-        if (selectedId === undefined || selectedId === null || String(selectedId) === '') {
-            const stored = readStoredSelection()
-            if (stored?.id != null) {
-                selectCommunity({ id: stored.id, name: stored.name ?? '' })
-            }
-        }
-    }, [selectedId, selectCommunity])
+    // ========== TODOS LOS HOOKS PRIMERO (antes de cualquier return) ==========
 
-    // No autenticado → redirigir a login (con URL de retorno)
-    if (!authenticated) {
-        const redirectQuery =
-            pathname === '/' ? '' : `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}`
-        return <Navigate replace to={`${unAuthenticatedEntryPath}${redirectQuery}`} />
-    }
-
-    // Usuario aún no cargado → esperar
-    if (!userLoaded(user)) return null
-
-    // Extraer rol usando RBAC
+    // Extraer rol usando RBAC (debe ejecutarse siempre)
     const userRole = RBAC.extractUserRole(user)
     const isSuperAdmin = userRole === Role.SUPERADMIN
 
@@ -105,26 +87,37 @@ function ProtectedWrapper() {
         return readStoredSelection() !== null
     }, [selectedId])
 
-    // ========== SUPERADMIN: Lógica especial ==========
-    useLayoutEffect(() => {
-        if (!isSuperAdmin) return
-        const missing = selectedId === undefined || selectedId === null || String(selectedId) === ''
-        if (missing) {
-            // Crear selección virtual "__SUPER__"
-            const virtual = { id: '__SUPER__', name: 'Comunidades' }
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(virtual))
-            } catch {
-                // Ignorar errores de localStorage
+    // Hidratar selección desde localStorage (solo para ADMIN/SUBADMIN)
+    useEffect(() => {
+        if (isSuperAdmin) return // SUPERADMIN no necesita comunidad seleccionada
+        if (selectedId === undefined || selectedId === null || String(selectedId) === '') {
+            const stored = readStoredSelection()
+            if (stored?.id != null) {
+                selectCommunity({ id: stored.id, name: stored.name ?? '' })
             }
-            selectCommunity(virtual)
         }
     }, [isSuperAdmin, selectedId, selectCommunity])
 
-    if (isSuperAdmin) {
-        const missing = selectedId === undefined || selectedId === null || String(selectedId) === ''
-        if (missing) return null // Esperar a que se cree __SUPER__
+    // ========== VALIDACIONES CONDICIONALES (después de todos los hooks) ==========
 
+    // No autenticado → redirigir a login (con URL de retorno)
+    if (!authenticated) {
+        // No guardar redirect si estamos haciendo logout explícito
+        let isLoggingOut = false
+        try {
+            isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+        } catch { }
+
+        const redirectQuery =
+            !isLoggingOut && pathname !== '/' ? `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}` : ''
+        return <Navigate replace to={`${unAuthenticatedEntryPath}${redirectQuery}`} />
+    }
+
+    // Usuario aún no cargado → esperar
+    if (!userLoaded(user)) return null
+
+    // SUPERADMIN: no necesita selección de comunidad
+    if (isSuperAdmin) {
         // Ruta raíz → Dashboard
         if (pathname === '/') return <Navigate replace to={DASHBOARD_HOME} />
 
@@ -171,12 +164,16 @@ function PublicWrapper() {
     const { authenticated, user } = useAuth()
     const { pathname } = useLocation()
 
-    // No autenticado → permitir acceso
-    if (!authenticated) return <Outlet />
+    // ========== TODOS LOS HOOKS PRIMERO (antes de cualquier return) ==========
 
-    // Extraer rol usando RBAC
+    // Extraer rol usando RBAC (debe ejecutarse siempre)
     const userRole = RBAC.extractUserRole(user)
     const isSuper = userRole === Role.SUPERADMIN
+
+    // ========== VALIDACIONES CONDICIONALES (después de todos los hooks) ==========
+
+    // No autenticado → permitir acceso
+    if (!authenticated) return <Outlet />
 
     // Bajo /auth/*
     if (isOnAuthPath(pathname)) {
@@ -210,8 +207,13 @@ function PublicWrapper() {
  * Características:
  * - Validación RBAC (roles y permisos)
  * - Gestión de comunidades (ADMIN/SUBADMIN)
- * - Selección virtual __SUPER__ para SUPERADMIN
+ * - SUPERADMIN no requiere ni usa communityId en las peticiones API
  * - Redirecciones inteligentes según rol
+ * 
+ * Nota importante:
+ * El SUPERADMIN NO tiene selectedId en el store de comunidades.
+ * Los interceptores de Axios detectan cuando el usuario es SUPERADMIN
+ * y NO añaden communityId a las peticiones API, evitando errores 422.
  * 
  * @example
  * ```tsx

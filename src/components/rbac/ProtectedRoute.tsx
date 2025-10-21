@@ -81,7 +81,14 @@ const ProtectedRoute = ({
         if (isAccessDeniedPage) {
             return <>{children}</>
         }
-        const currentPath = location.pathname !== '/' ? `?${REDIRECT_URL_KEY}=${location.pathname}` : ''
+
+        // No guardar redirect si estamos haciendo logout explícito
+        let isLoggingOut = false
+        try {
+            isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+        } catch { }
+
+        const currentPath = !isLoggingOut && location.pathname !== '/' ? `?${REDIRECT_URL_KEY}=${location.pathname}` : ''
         return <Navigate to={`${appConfig.unAuthenticatedEntryPath}${currentPath}`} replace />
     }
 
