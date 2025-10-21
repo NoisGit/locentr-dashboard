@@ -179,6 +179,11 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const handleSignOut = () => {
+    // Marcar que estamos haciendo logout para evitar guardar redirectUrl
+    try {
+      sessionStorage.setItem('__isLoggingOut', 'true')
+    } catch { }
+
     setToken('')
     const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
     setUser(emptyUser)
@@ -253,7 +258,18 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     handleSignOut()
+    // Limpiar cualquier URL de redirección pendiente antes de navegar
+    const url = new URL(window.location.href)
+    url.searchParams.delete(REDIRECT_URL_KEY)
+    window.history.replaceState({}, '', url.pathname)
     navigatorRef.current?.navigate(appConfig.unAuthenticatedEntryPath, { replace: true })
+
+    // Limpiar el flag de logout después de navegar
+    setTimeout(() => {
+      try {
+        sessionStorage.removeItem('__isLoggingOut')
+      } catch { }
+    }, 100)
   }
 
   const oAuthSignIn = (callback: (payload: OauthSignInCallbackPayload) => void) => {

@@ -102,8 +102,14 @@ function ProtectedWrapper() {
 
     // No autenticado → redirigir a login (con URL de retorno)
     if (!authenticated) {
+        // No guardar redirect si estamos haciendo logout explícito
+        let isLoggingOut = false
+        try {
+            isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+        } catch { }
+
         const redirectQuery =
-            pathname === '/' ? '' : `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}`
+            !isLoggingOut && pathname !== '/' ? `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}` : ''
         return <Navigate replace to={`${unAuthenticatedEntryPath}${redirectQuery}`} />
     }
 

@@ -39,7 +39,7 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
     try {
       const { clearToken } = useToken()
       clearToken?.()
-    } catch {}
+    } catch { }
 
     try {
       useSessionUser.getState().resetAuth()
@@ -52,15 +52,21 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
           authority: [],
         })
         useSessionUser.getState().setSessionSignedIn(false)
-      } catch {}
+      } catch { }
     }
 
     // limpiar comunidad también (evita arrastrar una selección vieja)
     try {
       useCommunitiesStore.getState().clearCommunity()
-    } catch {}
+    } catch { }
 
-    if (!onAuthPath(pathname) && !isRedirecting) {
+    // No redirigir si estamos en proceso de logout explícito
+    let isLoggingOut = false
+    try {
+      isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+    } catch { }
+
+    if (!onAuthPath(pathname) && !isRedirecting && !isLoggingOut) {
       isRedirecting = true
       const redirect = encodeURIComponent(`${pathname}${window.location.search}`)
       const dest = `${appConfig.unAuthenticatedEntryPath}?${REDIRECT_URL_KEY}=${redirect}`
@@ -76,7 +82,7 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
     if (hadCommunityHeader) {
       try {
         useCommunitiesStore.getState().clearCommunity()
-      } catch {}
+      } catch { }
 
       const onAuth = onAuthPath(pathname)
       if (!onAuth && !isRedirecting) {

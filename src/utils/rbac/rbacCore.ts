@@ -74,6 +74,15 @@ export function extractUserRole(user: unknown): Role | null {
 
     const u = user as Record<string, unknown>
 
+    // Detectar usuario vacío (después de logout) y retornar silenciosamente
+    const isEmpty =
+        Object.keys(u).length === 0 ||
+        (Object.keys(u).length <= 3 &&
+            (!u.email || u.email === '') &&
+            (!u.id && !u.user_id && !u.uid))
+
+    if (isEmpty) return null
+
     // DEBUG: Ver estructura del usuario
     console.log('🔍 extractUserRole - user object:', u)
 

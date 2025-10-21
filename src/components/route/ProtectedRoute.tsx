@@ -69,7 +69,16 @@ export default function ProtectedRoute() {
   // No autenticado → permitir /auth/*, bloquear el resto
   if (!authenticated) {
     if (isOnAuthPath(pathname)) return <Outlet />
-    const redirectQuery = pathname === '/' ? '' : `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}`
+
+    // No guardar redirect si estamos haciendo logout explícito
+    let isLoggingOut = false
+    try {
+      isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+    } catch { }
+
+    // Solo guardar redirect si es una ruta válida y NO estamos haciendo logout
+    const shouldRedirect = !isLoggingOut && pathname !== '/' && !pathname.includes('/auth/')
+    const redirectQuery = shouldRedirect ? `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname)}` : ''
     return <Navigate replace to={`${unAuthenticatedEntryPath}${redirectQuery}`} />
   }
 
@@ -97,7 +106,7 @@ export default function ProtectedRoute() {
       const virtual = { id: '__SUPER__', name: 'Comunidades' }
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(virtual))
-      } catch {}
+      } catch { }
       selectCommunity(virtual)
     }
   }, [isSuperAdmin, selectedId, selectCommunity])
