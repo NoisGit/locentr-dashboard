@@ -1,6 +1,6 @@
-// src/views/concepts/incidents/IncidentList/store/IncidentListStore.ts
 import { create } from 'zustand'
 import type { TableQueries } from '../types'
+import type { IncidentRow } from '@/services/IncidentsService'
 
 type CommunityId = string | number | null | ''
 
@@ -20,16 +20,19 @@ export const initialFilterData: { communityId: CommunityId } = {
 
 type Updater<T> = T | ((prev: T) => T)
 
+/** Permitimos description opcional porque viene en el listado del backend */
+export type IncidentRowWithDesc = IncidentRow & { description?: string }
+
 type IncidentListState = {
   query: string
   communityId: CommunityId
   activeTable: {
-    data: any[]
+    data: IncidentRowWithDesc[]
     total: number
     tableData: TableQueries
   }
   resolvedTable: {
-    data: any[]
+    data: IncidentRowWithDesc[]
     total: number
     tableData: TableQueries
   }
@@ -38,8 +41,8 @@ type IncidentListState = {
 type IncidentListActions = {
   setQuery: (q: string) => void
   setCommunityId: (id: CommunityId) => void
-  setActiveData: (rows: any[], total: number) => void
-  setResolvedData: (rows: any[], total: number) => void
+  setActiveData: (rows: IncidentRowWithDesc[], total: number) => void
+  setResolvedData: (rows: IncidentRowWithDesc[], total: number) => void
   setActiveTableData: (payload: Updater<Partial<TableQueries>>) => void
   setResolvedTableData: (payload: Updater<Partial<TableQueries>>) => void
 }
