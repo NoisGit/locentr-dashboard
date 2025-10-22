@@ -15,6 +15,7 @@ import toast from '@/components/ui/toast'
 
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import { apiGetNewsById, apiUpdateNews, type NewsDetail } from '@/services/NewsService'
+import { apiGetMyCommunities, apiListCommunities, type Community } from '@/services/CommunitiesService'
 import { useAuth } from '@/auth'
 
 type EditFormValues = {
@@ -36,6 +37,8 @@ function errMsg(e: unknown): string {
   }
   return 'Ocurrió un error'
 }
+
+/* -------- permisos -------- */
 function readRoleTokens(user: unknown): string[] {
   if (!isRecord(user)) return []
   const u = user as Record<string, unknown>
@@ -98,6 +101,55 @@ function getUserIdFromAuth(user: unknown): number | string | undefined {
   return undefined
 }
 
+/* -------- fetcher “smart” por ID --------
+   - Si hay communityId: usa ese.
+   - Si NO hay, lista comunidades del usuario (o todas) y busca la noticia por ID. */
+async function getAllCommunityIds(): Promise<Array<string | number>> {
+  let list: Community[] = []
+  try {
+    list = await apiGetMyCommunities<Community[]>()
+  } catch {
+    /* ignore */
+  }
+  if (!list.length) {
+    try {
+      list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 })
+    } catch {
+      /* ignore */
+    }
+  }
+  return Array.from(
+    new Set(
+      list
+        .map((c) => c?.id)
+        .filter((id): id is string | number => id !== undefined && id !== null)
+        .map((x) => String(x)),
+    ),
+  ).map((x) => (/^\d+$/.test(x) ? Number(x) : x))
+}
+
+async function smartGetNewsById(
+  newsId: string | number,
+  communityId?: string | number
+): Promise<NewsDetail> {
+  if (communityId !== undefined && String(communityId) !== '') {
+    return apiGetNewsById(String(communityId), String(newsId))
+  }
+  const ids = await getAllCommunityIds()
+  for (const cid of ids) {
+    try {
+      const detail = await apiGetNewsById(String(cid), String(newsId))
+      // si no lanza error, la encontramos
+      return detail
+    } catch {
+      // probar siguiente comunidad
+    }
+  }
+  // si no se encontró en ninguna, forzamos un error legible
+  throw new Error('No se encontró la noticia en tus comunidades.')
+}
+
+/* ====================== Component ====================== */
 const EditArticle = () => {
   const { id: idParam } = useParams()
   const id = idParam ?? ''
@@ -106,14 +158,13 @@ const EditArticle = () => {
   const { user } = useAuth()
   const { mutate: mutateGlobal } = useSWRConfig()
 
+  // clave estable: depende del id y del communityId (aunque esté vacío)
   const swrKey =
-    id && communityId != null && String(communityId) !== ''
-      ? (['news:detail', String(communityId), String(id)] as const)
-      : null
+    id ? (['news:detail-smart', String(id), String(communityId ?? '')] as const) : null
 
   const { data, isLoading } = useSWR<NewsDetail>(
     swrKey,
-    ([, cid, nid]) => apiGetNewsById<NewsDetail>(cid as string | number, nid as string | number),
+    ([, nid, cid]) => smartGetNewsById(nid, cid || undefined),
     { revalidateOnFocus: false, revalidateIfStale: true, revalidateOnMount: true }
   )
 
@@ -121,7 +172,7 @@ const EditArticle = () => {
     () => ({
       title: data?.title ?? '',
       content: data?.content ?? '',
-      authors: data?.created_by ?? '',
+      authors: (data as any)?.created_by ?? '',
     }),
     [data]
   )
@@ -175,7 +226,25 @@ const EditArticle = () => {
   const [saving, setSaving] = useState(false)
 
   const onSubmit = async (values: EditFormValues) => {
-    if (!communityId || !id) return
+    if (!id) return
+    // si no hay communityId (vista “todas”), intentamos detectar la comunidad correcta
+    let targetCommunityId: string | number | undefined = communityId ?? undefined
+    if (!targetCommunityId) {
+      try {
+        const ids = await getAllCommunityIds()
+        for (const cid of ids) {
+          try {
+            await apiGetNewsById(String(cid), String(id))
+            targetCommunityId = cid
+            break
+          } catch { /* probar siguiente */ }
+        }
+      } catch { /* noop */ }
+    }
+    if (!targetCommunityId) {
+      toast.push(<Notification type="danger">No se pudo determinar la comunidad de la noticia.</Notification>, { placement: 'top-center' })
+      return
+    }
     if (!canEdit) {
       toast.push(<Notification type="warning">No tienes permiso para editar esta noticia.</Notification>, {
         placement: 'top-center',
@@ -184,7 +253,7 @@ const EditArticle = () => {
     }
     setSaving(true)
     try {
-      await apiUpdateNews(String(communityId), String(id), {
+      await apiUpdateNews(String(targetCommunityId), String(id), {
         title: values.title,
         content: liveHtml,
         ...(currentUserId != null ? { created_by_user_id: currentUserId } : {}),
@@ -193,7 +262,7 @@ const EditArticle = () => {
         (key) =>
           Array.isArray(key) &&
           key[0] === 'news:list' &&
-          String(key[1]) === String(communityId)
+          String(key[1]) === String(targetCommunityId)
       )
       toast.push(<Notification type="success">Noticia actualizada</Notification>, {
         placement: 'top-center',
@@ -222,9 +291,7 @@ const EditArticle = () => {
         range.collapse(false)
         sel?.removeAllRanges()
         sel?.addRange(range)
-      } catch {
-        void 0
-      }
+      } catch { /* noop */ }
     }
   }
 
@@ -268,7 +335,7 @@ const EditArticle = () => {
                     <RichTextEditor
                       key={editorKey}
                       content={defaults.content}
-                      editorContentClass="min-h-[320px] px-3 py-3"
+                      editorContentClass="min-h=[320px] px-3 py-3"
                       placeholder="Escribe el contenido aquí…"
                       onChange={({ html }: RTEOnChangePayload) => {
                         setLiveHtml(html)
@@ -282,7 +349,7 @@ const EditArticle = () => {
                   <div className="text-[13px] text-gray-600 dark:text-gray-400">Autor</div>
                   <p className="text-sm leading-relaxed select-text">
                     <strong>{defaults.authors || '—'}</strong>
-                    {!canEdit && !superAdmin ? (
+                    {!canEdit && !isSuperAdminUser(user) ? (
                       <span className="ml-2 text-xs text-gray-500">(solo el autor puede editar)</span>
                     ) : null}
                   </p>
