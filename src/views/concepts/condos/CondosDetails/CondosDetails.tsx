@@ -1,3 +1,4 @@
+// src/views/concepts/condos/CondosDetails/index.tsx
 import { useEffect, useMemo, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -15,6 +16,9 @@ import Input from '@/components/ui/Input'
 import Checkbox from '@/components/ui/Checkbox'
 import type { Condo } from '../CondosList/types'
 import useSyncCommunityFromCondo from '../CondosList/hooks/useSyncCommunityFromCondo'
+
+/*   Tabs de detalles */
+import CondoTabs from './components/CondoTabs'
 
 type RoleKey = 'ADMIN' | 'SUB_ADMIN' | 'CONCIERGE' | 'GUARD' | 'RESIDENT'
 type RoleRecord = { id: string | number; name: string }
@@ -115,7 +119,7 @@ function matchRoleId(roles: RoleRecord[], key: RoleKey): string | number | undef
     SUB_ADMIN: [
       'SUB_ADMIN', 'SUBADMIN', 'SUB-ADMIN', 'SUB ADMIN',
       'SUB_ADMINISTRADOR', 'SUBADMINISTRADOR', 'SUB-ADMINISTRADOR',
-      'SUB ADMINISTRADOR', 'SUB-ADMINISTRATOR', 'SUBADMINISTRATOR'
+      'SUB ADMINISTRADOR', 'SUB-ADMINISTRATOR', 'SUBADMINISTRATOR',
     ],
     CONCIERGE: ['CONCIERGE', 'CONSERJE'],
     GUARD: ['GUARD', 'GUARDIA', 'SECURITY', 'SEGURIDAD', 'VIGILANTE'],
@@ -303,38 +307,45 @@ const CondosDetails = () => {
 
   const modalTitle = useMemo(() => (activeModal ? roleTitle[activeModal] : ''), [activeModal])
 
+  // ✅ ÚNICA validación previa a crear usuarios/residentes
+  const validateBeforeCreate = (isResidentFlow: boolean): boolean => {
+    const missingBasics =
+      !communityIdNum ||
+      !formIdNumber.trim() ||
+      !formName.trim() ||
+      !formEmail.trim() ||
+      !formPassword.trim()
+
+    const missingResidentBits = isResidentFlow && (!residentPropertyId || !homeRole)
+
+    if (missingBasics || missingResidentBits) {
+      setFormError(
+        isResidentFlow
+          ? 'Completa los campos obligatorios y selecciona comunidad, propiedad y rol en el hogar.'
+          : 'Completa los campos obligatorios y selecciona una comunidad.'
+      )
+      return false
+    }
+    return true
+  }
+
   const handleConfirm = async () => {
     if (!activeModal) return
-    if (!formIdNumber.trim() || !formName.trim() || !formEmail.trim() || !formPassword.trim()) {
-      setFormError('Completa RUT, nombre completo, correo y contraseña. El teléfono es opcional.')
-      return
-    }
-    if (!communityIdNum) {
-      setFormError('Selecciona una comunidad en el header para crear aquí.')
-      return
-    }
+    const isResidentFlow = activeModal === 'RESIDENT'
+    if (!validateBeforeCreate(isResidentFlow)) return
+
     setSubmitting(true)
     setFormError(null)
     setFormOk(null)
     try {
-      if (activeModal === 'RESIDENT') {
-        if (!residentPropertyId) {
-          setSubmitting(false)
-          setFormError('Selecciona la propiedad del residente.')
-          return
-        }
-        if (!homeRole) {
-          setSubmitting(false)
-          setFormError('Selecciona el rol en el hogar.')
-          return
-        }
+      if (isResidentFlow) {
         const payload: CreateResidentAssignPayload = {
           full_name: formName.trim(),
           id_number: formIdNumber.trim(),
           email: formEmail.trim(),
           password: formPassword,
           role_id: RESIDENT_ROLE_ID,
-          property_id: residentPropertyId,
+          property_id: Number(residentPropertyId),
           is_owner: isOwner,
           home_role: homeRole,
           start_date: new Date().toISOString(),
@@ -343,11 +354,7 @@ const CondosDetails = () => {
         await createResidentAndAssign(payload)
       } else {
         const rid = rolesLoaded ? matchRoleId(roles, activeModal) : undefined
-        if (rid == null) {
-          setSubmitting(false)
-          setFormError('No se pudo determinar el role_id para este tipo de usuario.')
-          return
-        }
+        if (rid == null) throw new Error('No se pudo determinar el role_id para este tipo de usuario.')
         const payload: CreateUserAssignPayload = {
           full_name: formName.trim(),
           id_number: formIdNumber.trim(),
@@ -389,7 +396,13 @@ const CondosDetails = () => {
         floor: values.floor,
         block: values.block ?? '',
       })
+
+      // Refresca opciones locales usadas por el modal
       await mutateProps?.()
+
+      // ✅ Notifica a la pestaña Propiedades para que haga mutate() y se vea sin F5
+      window.dispatchEvent(new CustomEvent('properties:changed', { detail: { type: 'created', communityId: cid } }))
+
       setPropMsg('Propiedad creada correctamente.')
       setTimeout(() => setPropertyModalOpen(false), 700)
     } catch (e) {
@@ -416,6 +429,7 @@ const CondosDetails = () => {
     <Loading loading={isLoading}>
       {isDataReady ? (
         <>
+          {/* Card superior con cabecera de la comunidad y acciones */}
           <Card className="w-full">
             <div className="p-6 flex flex-col gap-6">
               <div className="flex items-center gap-4">
@@ -460,6 +474,13 @@ const CondosDetails = () => {
             </div>
           </Card>
 
+          {/* Tabs dentro de Card (Propiedades / Residentes / Colaboradores) */}
+          <CondoTabs
+            communityId={(currentCommunityId && String(currentCommunityId) !== '' ? Number(currentCommunityId) : undefined)}
+            condoId={Number(id)}
+          />
+
+          {/* Modales */}
           <ModalBase
             open={activeModal !== null}
             title={modalTitle}
