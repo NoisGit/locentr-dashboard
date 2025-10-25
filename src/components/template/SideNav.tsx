@@ -1,4 +1,3 @@
-// src/components/template/SideNav.tsx
 import classNames from 'classnames'
 import porteriaBlack from '@/assets/porteria-black.svg'
 import porteriaWhite from '@/assets/porteria-white.svg'
@@ -42,6 +41,7 @@ const sideNavCollapseStyle = {
 }
 
 /** Ocultos para ADMIN/SUBADMIN */
+// ⛏️ Agregamos 'concepts.properties' y 'concepts.residents'
 const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'dashboard',
   'concepts.ai',
@@ -54,9 +54,12 @@ const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'concepts.chat',
   'concepts.calendar',
   'concepts.products', // Amenidades
+  'concepts.properties',
+  'concepts.residents',
 ])
 
-/** Whitelist para SUPERADMIN (las 9 vistas + Usuarios) */
+/** Whitelist para SUPERADMIN (las vistas + Usuarios) */
+// ⛏️ Quitamos 'concepts.properties' y 'concepts.residents'
 const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
   'concepts.customers',            // Usuarios
   'concepts.news',                 // Noticias
@@ -66,8 +69,6 @@ const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
   'concepts.invitations',          // Invitaciones
   'concepts.logbook',              // Libro de Novedades
   'concepts.condos',               // Condos
-  'concepts.properties',           // Propiedades
-  'concepts.residents',            // Residentes
 ])
 
 type NavNode = (typeof navigationConfig)[number]

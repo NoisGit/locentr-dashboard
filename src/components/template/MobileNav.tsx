@@ -28,6 +28,7 @@ const MobileNavToggle = withHeaderItem<
 >(NavToggle)
 
 /** Claves permitidas para SUPERADMIN (whitelist) */
+// ⛏️ Quitamos 'concepts.properties' y 'concepts.residents'
 const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
     'concepts.news',
     'concepts.incidents.list',
@@ -36,8 +37,6 @@ const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
     'concepts.invitations',
     'concepts.logbook',
     'concepts.condos',
-    'concepts.properties',
-    'concepts.residents',
     'concepts.customers', // Usuarios ✅
 ])
 
@@ -51,6 +50,20 @@ function filterNavForSuperAdmin(tree: NavigationTree[]): NavigationTree[] {
             })
             .filter(Boolean) as NavigationTree[]
     return walk(tree)
+}
+
+/** Remueve un conjunto de claves del árbol (aplicado a todos los roles) */
+function removeKeysFromTree(
+    nodes: NavigationTree[],
+    keysToRemove: Set<string>,
+): NavigationTree[] {
+    const out: NavigationTree[] = []
+    for (const n of nodes) {
+        if (keysToRemove.has(n.key)) continue
+        const children = n.subMenu ? removeKeysFromTree(n.subMenu, keysToRemove) : []
+        out.push({ ...n, subMenu: children })
+    }
+    return out
 }
 
 const MobileNav = ({
@@ -69,14 +82,21 @@ const MobileNav = ({
     // Autoridad que usa AuthorityCheck legacy
     const userAuthority: string[] = role ? [role] : []
 
-    // Filtrar menú SOLO para SUPERADMIN
-    const navTree = useMemo(
-        () =>
+    // 🔒 claves que SIEMPRE ocultamos en mobile (todas las cuentas)
+    const ALWAYS_HIDE = useMemo(
+        () => new Set<string>(['concepts.properties', 'concepts.residents']),
+        [],
+    )
+
+    // Filtrar menú: SUPERADMIN con whitelist; otros, full config
+    // y luego SIEMPRE removemos properties/residents
+    const navTree = useMemo(() => {
+        const base =
             role === 'SUPERADMIN'
                 ? filterNavForSuperAdmin(navigationConfig)
-                : navigationConfig,
-        [role],
-    )
+                : navigationConfig
+        return removeKeysFromTree(base, ALWAYS_HIDE)
+    }, [role, ALWAYS_HIDE])
 
     return (
         <>
