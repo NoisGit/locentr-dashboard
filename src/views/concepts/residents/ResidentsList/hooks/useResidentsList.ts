@@ -9,9 +9,7 @@ import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 
 type Rec = Record<string, unknown>
 
-function isRec(v: unknown): v is Rec {
-  return typeof v === 'object' && v !== null
-}
+function isRec(v: unknown): v is Rec { return typeof v === 'object' && v !== null }
 function toStr(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
@@ -27,30 +25,7 @@ function toBool(v: unknown): boolean {
   return false
 }
 
-/** Lee la 1ª clave no vacía; soporta rutas anidadas: ["property","floor"] */
-function pickDeep(obj: Rec | undefined, candidates: Array<string | string[]>): unknown {
-  if (!obj) return undefined
-  for (const c of candidates) {
-    if (Array.isArray(c)) {
-      let cur: unknown = obj
-      let ok = true
-      for (const k of c) {
-        if (!isRec(cur) || !(k in (cur as Rec))) {
-          ok = false
-          break
-        }
-        cur = (cur as Rec)[k]
-      }
-      if (ok && cur !== undefined && cur !== null && String(cur) !== '') return cur
-    } else {
-      const v = obj[c]
-      if (v !== undefined && v !== null && String(v) !== '') return v
-    }
-  }
-  return undefined
-}
-
-/** Devuelve el array de items desde múltiples formatos conocidos */
+/** Lee items desde varias formas conocidas (fallback) */
 function readItems(raw: unknown): unknown[] {
   if (!raw) return []
   const r = raw as Rec
@@ -63,6 +38,51 @@ function readItems(raw: unknown): unknown[] {
     }
   }
   return []
+}
+
+/** Firma determinística para SWR (evita “volver” a la pág. 1) */
+function buildKeySig(params: ResidentsTableQueries, communityId: number | string | undefined): string {
+  const { pageIndex, pageSize, query, sort } = params
+  const r: Rec = params as unknown as Rec
+  const pid = r.propertyId ?? ''
+  const uid = r.userId ?? ''
+  const own = r.isOwner ?? ''
+  const sd = r.startDateFrom ?? ''
+  const ed = r.endDateTo ?? ''
+  const cid = communityId ?? (r.communityId ?? '')
+  return [
+    pageIndex ?? 1,
+    pageSize ?? 10,
+    query ?? '',
+    sort?.key ?? '',
+    sort?.order ?? '',
+    pid ?? '',
+    uid ?? '',
+    own ?? '',
+    sd ?? '',
+    ed ?? '',
+    cid ?? '',
+  ].join('|')
+}
+
+/** Lee la 1ª clave no vacía; soporta rutas anidadas: ["property","floor"] */
+function pickDeep(obj: Rec | undefined, candidates: Array<string | string[]>): unknown {
+  if (!obj) return undefined
+  for (const c of candidates) {
+    if (Array.isArray(c)) {
+      let cur: unknown = obj
+      let ok = true
+      for (const k of c) {
+        if (!isRec(cur) || !(k in (cur as Rec))) { ok = false; break }
+        cur = (cur as Rec)[k]
+      }
+      if (ok && cur !== undefined && cur !== null && String(cur) !== '') return cur
+    } else {
+      const v = obj[c]
+      if (v !== undefined && v !== null && String(v) !== '') return v
+    }
+  }
+  return undefined
 }
 
 export default function useResidentsList() {
@@ -86,19 +106,22 @@ export default function useResidentsList() {
     communityId: communityId ?? '',
   }
 
-  const swrKey = ['residents:list', effectiveParams, String(communityId ?? '')] as const
+  // Key determinística (mismo patrón que en Properties/AccessPoints)
+  const keySig = buildKeySig(effectiveParams, communityId)
+  const swrKey = ['residents:list', keySig, effectiveParams] as const
 
   const { data, error, isLoading, mutate } = useSWR<GetResidentsListResponse>(
     swrKey,
-    ([, params]) =>
+    ([, , params]) =>
       apiGetResidentsList<GetResidentsListResponse, ResidentsTableQueries>(
         params as ResidentsTableQueries,
       ),
     { revalidateOnFocus: false },
   )
 
-  const items = readItems(data)
-  const residentsList = items.map((row) => {
+  // ✅ ITEMS: preferimos data.list (viene del service) y usamos readItems sólo de respaldo
+  const itemsRaw = Array.isArray(data?.list) ? (data!.list as unknown[]) : readItems(data)
+  const residentsList = itemsRaw.map((row) => {
     const r = isRec(row) ? row : {}
     const user = isRec(r.user) ? (r.user as Rec) : undefined
     const prop = isRec(r.property) ? (r.property as Rec) : undefined
@@ -116,7 +139,7 @@ export default function useResidentsList() {
     const isOwner = toBool(pickDeep(r, ['isOwner', 'is_owner', 'owner']))
 
     const startDate = toStr(
-      pickDeep(r, [
+      (pickDeep(r, [
         'startDate',
         'start_date',
         'start',
@@ -124,7 +147,7 @@ export default function useResidentsList() {
         'created_at',
         'createdAt',
         ['assignment', 'start_date'],
-      ]) ?? pickDeep(prop, ['created_at', 'createdAt']),
+      ]) ?? pickDeep(prop, ['created_at', 'createdAt'])),
     )
 
     const endDate = toStr(
@@ -171,18 +194,17 @@ export default function useResidentsList() {
       block,
       property: {
         ...(prop ?? {}),
-        id: prop?.id ?? propertyId,
-        number: (prop?.number as string | undefined) ?? property_number,
-        floor: (prop?.floor as string | number | undefined) ?? floor,
-        block: (prop?.block as string | undefined) ?? block,
+        id: (prop as Rec | undefined)?.['id'] ?? propertyId,
+        number: ((prop as Rec | undefined)?.['number'] as string | undefined) ?? property_number,
+        floor: ((prop as Rec | undefined)?.['floor'] as string | number | undefined) ?? floor,
+        block: ((prop as Rec | undefined)?.['block'] as string | undefined) ?? block,
       },
     } as Rec
   })
 
+  // ✅ TOTAL: usamos SIEMPRE el total del service
   const residentsListTotal =
-    typeof (data as { total?: number } | undefined)?.total === 'number'
-      ? (data as { total: number }).total
-      : residentsList.length
+    typeof data?.total === 'number' ? data.total : residentsList.length
 
   return {
     residents: residentsList,

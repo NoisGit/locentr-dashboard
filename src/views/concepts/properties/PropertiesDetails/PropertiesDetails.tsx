@@ -1,4 +1,3 @@
-// src/views/concepts/properties/PropertiesDetails/index.tsx
 import Card from '@/components/ui/Card'
 import Loading from '@/components/shared/Loading'
 import { apiGetPropertyById } from '@/services/PropertiesService'
@@ -93,13 +92,6 @@ const PropertiesDetails = () => {
                 <div className="text-base">
                   {community || '—'}
                 </div>
-              </div>
-
-              <div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">
-                  ID
-                </div>
-                <div className="text-base">{String((data as any)?.id ?? '—')}</div>
               </div>
             </div>
           </div>

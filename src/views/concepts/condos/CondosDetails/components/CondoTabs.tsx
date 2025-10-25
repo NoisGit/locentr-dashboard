@@ -3,6 +3,7 @@ import Card from '@/components/ui/Card'
 import TabProperties from './TabProperties'
 import TabResidents from './TabResidents'
 import TabCollaborators from './TabCollaborators'
+import TabAccessPoints from './TabAccessPoints' // ⬅️ nuevo import
 
 type Props = {
   communityId?: number
@@ -13,6 +14,7 @@ const tabs = [
   { key: 'properties', label: 'Propiedades' },
   { key: 'residents', label: 'Residentes' },
   { key: 'collaborators', label: 'Colaboradores' }, // conserjes + guardias
+  { key: 'access', label: 'Accesos' },              // ⬅️ NUEVA pestaña al final
 ] as const
 
 type TabKey = typeof tabs[number]['key']
@@ -49,6 +51,7 @@ export default function CondoTabs({ communityId, condoId }: Props) {
         {active === 'properties' && <TabProperties communityId={communityId} condoId={condoId} />}
         {active === 'residents' && <TabResidents communityId={communityId} condoId={condoId} />}
         {active === 'collaborators' && <TabCollaborators communityId={communityId} condoId={condoId} />}
+        {active === 'access' && <TabAccessPoints communityId={communityId} condoId={condoId} />}{/* ⬅️ nuevo render */}
       </div>
     </Card>
   )

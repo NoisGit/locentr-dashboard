@@ -1,5 +1,5 @@
 // src/views/concepts/properties/PropertiesList/components/PropertiesListTable.tsx
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import usePropertiesList from '../hooks/usePropertiesList'
@@ -50,12 +50,21 @@ const PropertiesListTable = () => {
     propertiesList,
     propertiesListTotal,
     tableData,
+    filterData,
     isLoading,
     setTableData,
     setSelectAllProperties,
     setSelectedProperties,
     selectedProperties,
+    mutate,
   } = usePropertiesList()
+
+  // 🔁 Refresca la tabla cuando ocurra un cambio externo (crear/eliminar) sin F5
+  useEffect(() => {
+    const handler = () => { void mutate() }
+    window.addEventListener('properties:changed', handler as EventListener)
+    return () => window.removeEventListener('properties:changed', handler as EventListener)
+  }, [mutate])
 
   const selectedIdSet = useMemo(
     () => new Set(selectedProperties.map((p) => String(p.id))),
@@ -166,6 +175,8 @@ const PropertiesListTable = () => {
 
   return (
     <DataTable
+      /*  Forzamos re-montaje cuando cambian paginación/filtros para que el salto de página sea inmediato */
+      key={`${tableData.pageIndex}-${tableData.pageSize}-${tableData.sort?.key ?? ''}-${tableData.sort?.order ?? ''}-${tableData.query ?? ''}-${filterData.communityId ?? ''}`}
       selectable
       columns={columns}
       data={propertiesList}
