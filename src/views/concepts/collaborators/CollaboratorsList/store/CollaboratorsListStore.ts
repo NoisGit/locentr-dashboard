@@ -1,3 +1,4 @@
+// src/views/concepts/collaborators/CollaboratorsList/store/CollaboratorsListStore.ts
 import { create } from 'zustand'
 import type { TableQueries } from '@/@types/common'
 
@@ -37,16 +38,30 @@ export const initialFilterData: Filter = {
   active: '',
 }
 
+/* ========== Utils ========== */
+
+function shallowEqual<T extends Record<string, unknown>>(a: T, b: T) {
+  if (a === b) return true
+  const ak = Object.keys(a)
+  const bk = Object.keys(b)
+  if (ak.length !== bk.length) return false
+  for (const k of ak) {
+    // @ts-expect-error index
+    if (a[k] !== b[k]) return false
+  }
+  return true
+}
+
+type Updater<T> = T | ((prev: T) => T)
+
 /* ========== Estado + Acciones ========== */
 
 export type CollaboratorsListState = {
   tableData: TableQueries
   filterData: Filter
-  selectedCollaborator: Partial<Collaborator>[]   // para detalle/edición rápida
-  selectedCollaborators: Collaborator[]           // selección múltiple (borrar en lote)
+  selectedCollaborator: Partial<Collaborator>[]
+  selectedCollaborators: Collaborator[]
 }
-
-type Updater<T> = T | ((prev: T) => T)
 
 export type CollaboratorsListAction = {
   setFilterData: (payload: Updater<Filter>) => void
@@ -54,6 +69,8 @@ export type CollaboratorsListAction = {
   setSelectedCollaborator: (checked: boolean, row: Collaborator) => void
   setSelectAllCollaborators: (rows: Collaborator[]) => void
   setSelectedCollaborators: (rows: Collaborator[]) => void
+  /** Útil para hacer un solo set cuando cambia la comunidad */
+  resetForCommunity: () => void
 }
 
 const initialState: CollaboratorsListState = {
@@ -67,7 +84,7 @@ const initialState: CollaboratorsListState = {
 
 export const useCollaboratorsListStore = create<
   CollaboratorsListState & CollaboratorsListAction
->((set) => ({
+>((set, get) => ({
   ...initialState,
 
   setFilterData: (payload) =>
@@ -76,7 +93,9 @@ export const useCollaboratorsListStore = create<
         typeof payload === 'function'
           ? (payload as (p: Filter) => Filter)(state.filterData)
           : payload
-      return { filterData: { ...state.filterData, ...next } }
+      const merged = { ...state.filterData, ...next }
+      if (shallowEqual(merged, state.filterData)) return state
+      return { filterData: merged }
     }),
 
   setTableData: (payload) =>
@@ -85,7 +104,21 @@ export const useCollaboratorsListStore = create<
         typeof payload === 'function'
           ? (payload as (p: TableQueries) => TableQueries)(state.tableData)
           : payload
-      return { tableData: { ...state.tableData, ...next } }
+
+      // normalización simple
+      const pageIndex = Math.max(1, Number(next.pageIndex ?? state.tableData.pageIndex))
+      const pageSize  = Math.max(1, Number(next.pageSize  ?? state.tableData.pageSize))
+      const merged: TableQueries = {
+        ...state.tableData,
+        ...next,
+        pageIndex,
+        pageSize,
+      }
+
+      if (shallowEqual(merged as Record<string, unknown>, state.tableData as Record<string, unknown>)) {
+        return state
+      }
+      return { tableData: merged }
     }),
 
   setSelectedCollaborator: (checked, row) =>
@@ -95,10 +128,10 @@ export const useCollaboratorsListStore = create<
         : []
       const exists = current.some((r) => r.id === row.id)
       const next = checked
-        ? exists
-          ? current
-          : [...current, row]
+        ? (exists ? current : [...current, row])
         : current.filter((r) => r.id !== row.id)
+
+      if (next === state.selectedCollaborators) return state
       return {
         selectedCollaborators: next,
         selectedCollaborator: next,
@@ -106,14 +139,38 @@ export const useCollaboratorsListStore = create<
     }),
 
   setSelectAllCollaborators: (rows) =>
-    set(() => ({
-      selectedCollaborators: rows,
-      selectedCollaborator: rows,
-    })),
+    set((state) => {
+      // evita sets iguales
+      if (rows === state.selectedCollaborators) return state
+      return {
+        selectedCollaborators: rows,
+        selectedCollaborator: rows,
+      }
+    }),
 
   setSelectedCollaborators: (rows) =>
-    set(() => ({
-      selectedCollaborators: rows,
-      selectedCollaborator: rows,
-    })),
+    set((state) => {
+      if (rows === state.selectedCollaborators) return state
+      return {
+        selectedCollaborators: rows,
+        selectedCollaborator: rows,
+      }
+    }),
+
+  resetForCommunity: () =>
+    set((state) => {
+      const nextTable = { ...state.tableData, pageIndex: 1 }
+      if (
+        shallowEqual(nextTable as Record<string, unknown>, state.tableData as Record<string, unknown>) &&
+        state.selectedCollaborators.length === 0 &&
+        state.selectedCollaborator.length === 0
+      ) {
+        return state
+      }
+      return {
+        tableData: nextTable,
+        selectedCollaborators: [],
+        selectedCollaborator: [],
+      }
+    }),
 }))

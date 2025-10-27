@@ -8,6 +8,7 @@ import CollaboratorsListTableTools from '@/views/concepts/collaborators/Collabor
 import CollaboratorsListActionTools from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListActionTools'
 import CollaboratorsListSelected from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListSelected'
 import useCollaboratorsList from '@/views/concepts/collaborators/CollaboratorsList/hooks/useCollaboratorsList'
+import { useCollaboratorsListStore } from '@/views/concepts/collaborators/CollaboratorsList/store/CollaboratorsListStore'
 
 type Props = {
   communityId?: number
@@ -19,22 +20,24 @@ export default function TabCollaborators({ communityId }: Props) {
     tableData,
     filterData,
     setFilterData,
-    setTableData,
     mutate,
   } = useCollaboratorsList()
 
-  // Cuando cambia el communityId: aplicamos filtro, volvemos a page 1 y refrescamos
-  useEffect(() => {
-    setFilterData(prev => ({
-      ...prev,
-      communityId: communityId == null ? '' : Number(communityId),
-    }))
-    setTableData(prev => ({ ...prev, pageIndex: 1 }))
-    void mutate()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [communityId])
+  // Acción atómica para volver a página 1 y limpiar selección (debe existir en el store)
+  const resetForCommunity = useCollaboratorsListStore(s => s.resetForCommunity)
 
-  // Refrescar automáticamente ante cambios externos (crear/editar/eliminar)
+  // Ajustar el filtro solo si realmente cambió la comunidad.
+  // Nada de mutate(): SWR refetchea al cambiar su clave.
+  useEffect(() => {
+    const nextCid = communityId == null ? '' : Number(communityId)
+    const prevCid = (filterData?.communityId ?? '') as number | ''
+    if (prevCid !== nextCid) {
+      setFilterData(prev => ({ ...prev, communityId: nextCid }))
+      resetForCommunity()
+    }
+  }, [communityId, filterData?.communityId, setFilterData, resetForCommunity])
+
+  // Refrescar ante cambios externos (crear/editar/eliminar)
   useEffect(() => {
     const handler = () => { void mutate() }
     window.addEventListener('collaborators:changed', handler as EventListener)
@@ -43,17 +46,16 @@ export default function TabCollaborators({ communityId }: Props) {
 
   // Clave estable para re-montar la tabla (evita quedarse en páginas vacías)
   const tableKey = useMemo(() => {
-    const sKey = tableData?.sort?.key ?? ''
-    const sOrd = tableData?.sort?.order ?? ''
-    const q    = tableData?.query ?? ''
-    const f: Record<string, unknown> = (filterData ?? {}) as any
-    const role   = f['role'] ?? ''
-    const active = f['active'] ?? ''
+    const sKey   = tableData?.sort?.key ?? ''
+    const sOrd   = tableData?.sort?.order ?? ''
+    const q      = tableData?.query ?? ''
+    const role   = (filterData?.role ?? '') as string
+    const active = (filterData?.active ?? '') as string | boolean
     return [
       tableData?.pageIndex,
       tableData?.pageSize,
       sKey, sOrd,
-      q, role, active,
+      q, role, String(active),
       communityId ?? '',
     ].join('|')
   }, [tableData, filterData, communityId])

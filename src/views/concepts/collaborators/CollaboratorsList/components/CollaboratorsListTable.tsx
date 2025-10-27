@@ -1,10 +1,10 @@
+// src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTable.tsx
 import { useMemo } from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import { Link, useNavigate } from 'react-router-dom'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
-import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import useCollaboratorsList from '../hooks/useCollaboratorsList'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
@@ -51,9 +51,13 @@ const CollaboratorsListTable = () => {
     selectedCollaborators,
   } = useCollaboratorsList()
 
-  const { selectedId: communityId } = useCommunitiesStore()
+  /* UI defensivo: nunca mostrar SUPERADMIN */
+  const safeList = useMemo(
+    () => list.filter(r => (r.role || '').toUpperCase() !== 'SUPERADMIN'),
+    [list],
+  )
 
-  /* columnas: Nombre, Correo, Teléfono, Rol, Comunidad, Acción */
+  /* columnas: Nombre, Correo, Teléfono, Rol, Acción */
   const columns: ColumnDef<Collaborator>[] = useMemo(
     () => [
       {
@@ -74,38 +78,15 @@ const CollaboratorsListTable = () => {
           )
         },
       },
-      {
-        header: 'Correo',
-        accessorKey: 'email',
-        cell: (p) => <span>{dash(p.row.original.email)}</span>,
-      },
-      {
-        header: 'Teléfono',
-        accessorKey: 'phone',
-        cell: (p) => <span>{dash(p.row.original.phone)}</span>,
-      },
-      {
-        header: 'Rol',
-        accessorKey: 'role',
-        cell: (p) => <span>{dash(p.row.original.role)}</span>,
-      },
-      {
-        header: 'Comunidad',
-        accessorKey: 'community',
-        cell: (p) => <span>{dash(p.row.original.community)}</span>,
-      },
+      { header: 'Correo',   accessorKey: 'email', cell: (p) => <span>{dash(p.row.original.email)}</span> },
+      { header: 'Teléfono', accessorKey: 'phone', cell: (p) => <span>{dash(p.row.original.phone)}</span> },
+      { header: 'Rol',      accessorKey: 'role',  cell: (p) => <span>{dash(p.row.original.role)}</span> },
       {
         header: '',
         id: 'action',
         cell: (props) => (
           <ActionColumn
-            onEdit={() =>
-              navigate(
-                `/concepts/collaborators/collaborators-edit/${String(
-                  props.row.original.id,
-                )}`,
-              )
-            }
+            onEdit={() => navigate(`/concepts/collaborators/collaborators-edit/${String(props.row.original.id)}`)}
           />
         ),
       },
@@ -113,7 +94,7 @@ const CollaboratorsListTable = () => {
     [navigate],
   )
 
-  /* helpers de tabla (idéntico patrón de Residents/Properties) */
+  /* helpers de tabla (patrón Residents/Properties) */
   const handleSetTableData = (data: TableQueries) => {
     setTableData(data)
     setSelectAllCollaborators([])
@@ -148,24 +129,24 @@ const CollaboratorsListTable = () => {
     else setSelectAllCollaborators([])
   }
 
-  /* clave de remonte (incluye comunidad para forzar refresh al cambiar selector) */
+  /* clave de remonte (incluye communityId del filtro que sincroniza el Tab) */
   const tableKey = useMemo(() => {
     const sKey = tableData?.sort?.key ?? ''
     const sOrd = tableData?.sort?.order ?? ''
     const q = tableData?.query ?? ''
-    const cid = String(communityId ?? '')
+    const cid = String(filterData?.communityId ?? '')
     const role = (filterData as Record<string, unknown>)?.['role'] ?? ''
     const act = (filterData as Record<string, unknown>)?.['active'] ?? ''
     return `${tableData.pageIndex}-${tableData.pageSize}-${sKey}-${sOrd}-${q}-${cid}-${role}-${act}`
-  }, [tableData, filterData, communityId])
+  }, [tableData, filterData])
 
   return (
     <DataTable
       key={tableKey}
       columns={columns}
-      data={list}
+      data={safeList}
       loading={isLoading}
-      noData={!isLoading && list.length === 0}
+      noData={!isLoading && safeList.length === 0}
       pagingData={{
         total: Number(total) || 0,
         pageIndex: tableData.pageIndex as number,

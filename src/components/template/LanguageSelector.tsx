@@ -1,3 +1,4 @@
+// src/components/.../LanguageSelector.tsx
 import { useMemo } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
@@ -8,16 +9,18 @@ import { HiCheck } from 'react-icons/hi'
 import type { CommonProps } from '@/@types/common'
 
 const languageList = [
-    { label: 'English', value: 'en', flag: 'US' },
+    // { label: 'English', value: 'en', flag: 'US' },
     { label: 'Espanol', value: 'es', flag: 'ES' },
-    { label: 'Português', value: 'pt', flag: 'BR' },
+    // { label: 'Português', value: 'pt', flag: 'BR' },
 ]
 
 const _LanguageSelector = ({ className }: CommonProps) => {
     const { currentLang: locale, setLang } = useLocaleStore((state) => state)
 
+    // Fallback a ES si el locale actual no está en la lista visible
     const selectLangFlag = useMemo(() => {
-        return languageList.find((lang) => lang.value === locale)?.flag
+        const found = languageList.find((lang) => lang.value === locale)
+        return found?.flag ?? 'ES'
     }, [locale])
 
     const selectedLanguage = (

@@ -2,14 +2,11 @@
 import useSWR from 'swr'
 import { useMemo, useEffect } from 'react'
 import { useCommunitiesStore, isVirtualCommunityId } from '@/store/communities/CommunitiesStore'
-import { useAuth } from '@/auth'
-import { RBAC } from '@/utils/rbac/rbacCore'
 import {
   apiGetCollaboratorsList,
   type GetCollaboratorsListResponse,
   type CollaboratorTableQueries,
 } from '@/services/CollaboratorsService'
-
 import { useCollaboratorsListStore } from '../store/CollaboratorsListStore'
 
 type Rec = Record<string, unknown>
@@ -18,7 +15,6 @@ const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null
 function buildKeySig(
   params: Record<string, unknown>,
   communityId?: number | string,
-  viewerRole?: string,
 ) {
   const p = params as Rec
   return [
@@ -28,8 +24,19 @@ function buildKeySig(
     (isRec(p.sort) ? (p.sort as Rec).key : '') ?? '',
     (isRec(p.sort) ? (p.sort as Rec).order : '') ?? '',
     communityId ?? '',
-    viewerRole ?? '',
   ].join('|')
+}
+
+/* Dedupe a nivel de fetcher: 1 request por keySig */
+const inFlight = new Map<string, Promise<GetCollaboratorsListResponse>>()
+function fetchOnce(keySig: string, params: CollaboratorTableQueries) {
+  const existing = inFlight.get(keySig)
+  if (existing) return existing
+  const p = apiGetCollaboratorsList(params).finally(() => {
+    inFlight.delete(keySig)
+  })
+  inFlight.set(keySig, p)
+  return p
 }
 
 export default function useCollaboratorsList() {
@@ -60,54 +67,55 @@ export default function useCollaboratorsList() {
       ? selectedForFilter
       : (filterData.communityId as number | undefined)
 
-  // Rol del viewer (controla visibilidad de SUPERADMIN)
-  const { user } = useAuth()
-  const viewerRole = RBAC.extractUserRole(user) as 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
+  const hasCid =
+    communityId !== '' &&
+    communityId != null &&
+    !Number.isNaN(Number(communityId))
 
-  // Params efectivos que viajan al service (memo para estabilidad)
+  // Params efectivos (solo deps que cambian realmente)
   const effectiveParams = useMemo<CollaboratorTableQueries>(() => {
     return {
       pageIndex : (tableData.pageIndex as number) ?? 1,
       pageSize  : (tableData.pageSize as number) ?? 10,
       query     : (tableData.query as string) ?? '',
       sort      : tableData.sort as CollaboratorTableQueries['sort'],
-      communityId: communityId ?? '', // '' => sin filtro
-      viewerRole,
+      communityId: hasCid ? Number(communityId) : '', // el servicio exige communityId válido
     }
-    // OJO: dependencias solo cuando realmente cambian
-  }, [tableData.pageIndex, tableData.pageSize, tableData.query, tableData.sort, communityId, viewerRole])
+  }, [tableData.pageIndex, tableData.pageSize, tableData.query, tableData.sort, communityId, hasCid])
 
-  // Clave estable SOLO con primitivos (evita múltiples requests por cambios de referencia)
-  const keySig = buildKeySig(effectiveParams as unknown as Rec, communityId ?? '', viewerRole)
-  const swrKey = ['collaborators:list', keySig] as const
+  // Clave estable SOLO con primitivos
+  const keySig = buildKeySig(effectiveParams as unknown as Rec, hasCid ? Number(communityId) : '')
+  const swrKey = hasCid ? (['collaborators:list', keySig] as const) : null // pausa si no hay comunidad válida
 
-  // SWR: sin sobre-revalidación; mantener datos previos entre páginas
   const { data, error, isLoading, mutate } = useSWR<GetCollaboratorsListResponse>(
     swrKey,
-    () => apiGetCollaboratorsList(effectiveParams),
+    () => fetchOnce(keySig, effectiveParams),
     {
       keepPreviousData: true,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-      dedupingInterval: 800,
+      refreshWhenHidden: false,
+      refreshWhenOffline: false,
+      dedupingInterval: 1500,
     },
   )
 
   const list  = data?.list ?? []
   const total = typeof data?.total === 'number' ? data.total : list.length
 
-  /* ---------- efectos de UX ---------- */
+  /* ---------- UX ---------- */
 
-  // 1) Si cambia la comunidad, volvemos a página 1 y limpiamos selección
+  // Si cambia comunidad: page 1 + limpiar selección
   useEffect(() => {
+    if (!hasCid) return
     setTableData((prev) => ({ ...prev, pageIndex: 1 }))
     setSelectAllCollaborators([])
     setSelectedCollaborators([])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [communityId])
+  }, [communityId, hasCid])
 
-  // 2) Si quedamos en una página vacía, saltamos a la última válida
+  // Si quedamos en página vacía, saltar a última válida
   useEffect(() => {
     const pageIndex = Number(tableData.pageIndex ?? 1)
     const pageSize  = Number(tableData.pageSize ?? 10)
@@ -130,7 +138,7 @@ export default function useCollaboratorsList() {
     selectedCollaborator,
     selectedCollaborators,
 
-    mutate, // para refresh manual cuando TÚ lo decidas (no automático)
+    mutate, // refresco manual cuando lo necesites
     setTableData,
     setFilterData,
     setSelectedCollaborator,
