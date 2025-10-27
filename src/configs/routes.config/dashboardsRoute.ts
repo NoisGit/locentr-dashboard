@@ -480,6 +480,22 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
+
+  /* ----------------------- COLLABORATORS ------------------------------------------------ */
+  {
+    key: 'concepts.collaborators.collaboratorsEdit',
+    path: `${CONCEPTS_PREFIX_PATH}/collaborators/collaborators-edit/:id`,
+    component: lazy(() => import('@/views/concepts/collaborators/CollaboratorsEdit')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: {
+      header: {
+        title: 'Editar colaborador',
+        description: 'Edita nombre, teléfono y contraseña (correo y rol son solo lectura).',
+        contained: true,
+      },
+      footer: false,
+    },
+  },
 ]
 
 export default dashboardsRoute
