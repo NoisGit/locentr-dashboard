@@ -1,3 +1,4 @@
+// src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTableFilter.tsx
 import { useState, useMemo } from 'react'
 import Button from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'

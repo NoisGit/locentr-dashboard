@@ -2,13 +2,11 @@
 import { useEffect, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 
-// Reutilizamos TODO del módulo de colaboradores
 import CollaboratorsListTable from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTable'
 import CollaboratorsListTableTools from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTableTools'
 import CollaboratorsListActionTools from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListActionTools'
 import CollaboratorsListSelected from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListSelected'
 import useCollaboratorsList from '@/views/concepts/collaborators/CollaboratorsList/hooks/useCollaboratorsList'
-import { useCollaboratorsListStore } from '@/views/concepts/collaborators/CollaboratorsList/store/CollaboratorsListStore'
 
 type Props = {
   communityId?: number
@@ -19,23 +17,14 @@ export default function TabCollaborators({ communityId }: Props) {
   const {
     tableData,
     filterData,
-    setFilterData,
+    setTableData,
     mutate,
   } = useCollaboratorsList()
 
-  // Acción atómica para volver a página 1 y limpiar selección (debe existir en el store)
-  const resetForCommunity = useCollaboratorsListStore(s => s.resetForCommunity)
-
-  // Ajustar el filtro solo si realmente cambió la comunidad.
-  // Nada de mutate(): SWR refetchea al cambiar su clave.
+  // Al cambiar la comunidad: reset a pág. 1 (el hook ya toma communityId desde el store global)
   useEffect(() => {
-    const nextCid = communityId == null ? '' : Number(communityId)
-    const prevCid = (filterData?.communityId ?? '') as number | ''
-    if (prevCid !== nextCid) {
-      setFilterData(prev => ({ ...prev, communityId: nextCid }))
-      resetForCommunity()
-    }
-  }, [communityId, filterData?.communityId, setFilterData, resetForCommunity])
+    setTableData(prev => ({ ...prev, pageIndex: 1 }))
+  }, [communityId, setTableData])
 
   // Refrescar ante cambios externos (crear/editar/eliminar)
   useEffect(() => {
@@ -44,7 +33,7 @@ export default function TabCollaborators({ communityId }: Props) {
     return () => window.removeEventListener('collaborators:changed', handler as EventListener)
   }, [mutate])
 
-  // Clave estable para re-montar la tabla (evita quedarse en páginas vacías)
+  // Clave estable para forzar re-montaje del DataTable cuando cambian filtros/paginación/comunidad
   const tableKey = useMemo(() => {
     const sKey   = tableData?.sort?.key ?? ''
     const sOrd   = tableData?.sort?.order ?? ''
@@ -62,16 +51,13 @@ export default function TabCollaborators({ communityId }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Header: título + acciones (Download) */}
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Colaboradores</h3>
         <CollaboratorsListActionTools />
       </div>
 
-      {/* Buscador + Filtros */}
       <CollaboratorsListTableTools />
 
-      {/* Tabla */}
       <Card className="w-full">
         <div className="p-0">
           <div key={tableKey}>
@@ -80,7 +66,6 @@ export default function TabCollaborators({ communityId }: Props) {
         </div>
       </Card>
 
-      {/* Footer de selección */}
       <CollaboratorsListSelected />
     </div>
   )

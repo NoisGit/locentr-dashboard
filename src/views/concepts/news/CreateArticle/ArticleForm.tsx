@@ -1,8 +1,8 @@
-import { useRef } from 'react'
+// src/views/concepts/news/ManageArticle/components/ArticleForm.tsx
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import Input from '@/components/ui/Input'
 import { FormContainer, FormItem } from '@/components/ui/Form'
-import RichTextEditor from '@/components/shared/RichTextEditor'
 
 type ArticleCreate = {
   title: string
@@ -15,22 +15,27 @@ type Props = {
   children?: React.ReactNode
 }
 
+// Quita todas las etiquetas HTML simples (<p>, <strong>, etc.)
+function stripHtml(input: string | undefined | null): string {
+  if (!input) return ''
+  return String(input).replace(/<[^>]*>/g, '').trim()
+}
+
 const ArticleForm = ({ defaultValues, onFormSubmit, children }: Props) => {
+  // Sanitizamos el contenido inicial por si viene con <p> u otras etiquetas
+  const sanitizedDefaults = useMemo(
+    () => ({
+      ...defaultValues,
+      content: stripHtml(defaultValues?.content),
+    }),
+    [defaultValues],
+  )
+
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
-  } = useForm<ArticleCreate>({ defaultValues })
-
-  const editorShellRef = useRef<HTMLDivElement | null>(null)
-
-  const focusEditor = () => {
-    const root = editorShellRef.current
-    if (!root) return
-    const editable = root.querySelector('[contenteditable="true"]') as HTMLElement | null
-    if (editable) editable.focus()
-  }
+  } = useForm<ArticleCreate>({ defaultValues: sanitizedDefaults })
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="w-full">
@@ -45,25 +50,14 @@ const ArticleForm = ({ defaultValues, onFormSubmit, children }: Props) => {
         </FormItem>
 
         <FormItem label="Contenido">
-          {/* --- contenedor completo clickeable --- */}
-          <div
-            ref={editorShellRef}
-            className="cursor-text rounded-xl border border-gray-300 dark:border-gray-700 hover:border-sky-400 transition-colors"
-            onMouseDown={(e) => {
-              const target = e.target as HTMLElement
-              if (!target.closest('[contenteditable="true"]')) {
-                e.preventDefault()
-                focusEditor()
-              }
-            }}
-          >
-            <RichTextEditor
-              content={defaultValues.content}
-              onChange={({ html }) => setValue('content', html)}
-              editorContentClass="min-h-[220px] px-3 py-3"
-              placeholder="Escribe el contenido aquí..."
-            />
-          </div>
+          <textarea
+            className="w-full min-h-[220px] rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-3 outline-none focus:border-sky-400 transition-colors resize-y"
+            placeholder="Escribe el contenido aquí..."
+            {...register('content', {
+              setValueAs: (v) => stripHtml(v), // por si pega HTML accidentalmente
+            })}
+            defaultValue={sanitizedDefaults.content}
+          />
         </FormItem>
 
         <div className="flex justify-end gap-4 mt-10">{children}</div>

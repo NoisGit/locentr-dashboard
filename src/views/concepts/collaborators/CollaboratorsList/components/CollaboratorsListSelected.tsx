@@ -1,3 +1,4 @@
+// src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListSelected.tsx
 import { useState } from 'react'
 import StickyFooter from '@/components/shared/StickyFooter'
 import Button from '@/components/ui/Button'

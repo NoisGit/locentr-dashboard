@@ -1,10 +1,11 @@
+// src/views/concepts/condos/CondosDetails/CondosDetails.tsx
 import { useEffect, useMemo, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
 import { apiGetCondoById } from '@/services/CondosService'
 import ApiService from '@/services/ApiService'
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
@@ -307,7 +308,7 @@ const CondosDetails = () => {
           setRolesLoaded(true)
         }
       } catch {
-        if (!ignore) setRolesLoaded=true
+        if (!ignore) setRolesLoaded = true
       }
     }
     load()
@@ -345,7 +346,7 @@ const CondosDetails = () => {
       setFormError(
         isResidentFlow
           ? 'Completa los campos obligatorios y selecciona comunidad, propiedad y rol en el hogar.'
-          : 'Completa los campos obligatorios y selecciona una comunidad.'
+          : 'Completa los campos obligatorios y selecciona una comunidad.',
       )
       return false
     }
@@ -391,6 +392,14 @@ const CondosDetails = () => {
           community_id: communityIdNum,
         }
         await createUserAndAssign(payload)
+
+        // 🔄 Refresco inmediato de la(s) lista(s) de colaboradores
+        await globalMutate((key: unknown) => Array.isArray(key) && key[0] === 'collaborators:list')
+        window.dispatchEvent(
+          new CustomEvent('collaborators:changed', {
+            detail: { type: 'created', communityId: communityIdNum },
+          }),
+        )
       }
 
       setFormOk('Creación realizada correctamente.')

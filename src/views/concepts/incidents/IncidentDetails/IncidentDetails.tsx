@@ -1,3 +1,4 @@
+// src/views/concepts/incidents/IncidentDetails/IncidentDetails.tsx
 import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from 'react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
@@ -35,10 +36,10 @@ const formatTime = (iso?: string): string => {
   return `${hh}:${mi}`
 }
 
-/* runtime guards (sin any) */
+/* runtime guards */
 type Dict = Record<string, unknown>
 const isObject = (v: unknown): v is Dict => typeof v === 'object' && v !== null
-const get = (o: unknown, k: string): unknown => (isObject(o) ? o[k] : undefined)
+const get = (o: unknown, k: string): unknown => (isObject(o) ? (o as Dict)[k] : undefined)
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
 const toStr = (v: unknown): string | undefined =>
   typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : undefined
@@ -51,7 +52,54 @@ const pickString = (obj: unknown, keys: string[]): string | undefined => {
   return undefined
 }
 
-/* Field con label mejorado (negrita + un poco más grande) */
+/* ---------------- Imagenes del incidente ---------------- */
+function extractImageUrls(src: unknown): string[] {
+  if (!src) return []
+  const urls: string[] = []
+  const pushUrl = (u?: string) => {
+    if (!u) return
+    const s = String(u).trim()
+    if (!s) return
+    urls.push(s)
+  }
+
+  const bagKeys = ['files', 'images', 'attachments', 'photos', 'pictures']
+  for (const key of bagKeys) {
+    const v = get(src, key)
+    if (!v) continue
+    const arr = Array.isArray(v)
+      ? (v as unknown[])
+      : (isObject(v) && Array.isArray(get(v, 'data')))
+      ? (get(v, 'data') as unknown[])
+      : typeof v === 'string'
+      ? [v]
+      : []
+
+    for (const it of arr) {
+      if (typeof it === 'string') {
+        pushUrl(it)
+      } else if (isObject(it)) {
+        const cand =
+          toStr(get(it, 'image_url')) ||
+          toStr(get(it, 'imageUrl')) ||
+          toStr(get(it, 'url')) ||
+          toStr(get(it, 'src')) ||
+          toStr(get(it, 'path')) ||
+          toStr(get(it, 'download_url')) ||
+          toStr(get(it, 'file_url')) ||
+          toStr(get(it, 'file')) ||
+          toStr(get(it, 'preview'))
+        pushUrl(cand)
+      }
+    }
+    if (typeof v === 'string') pushUrl(v)
+  }
+
+  pushUrl(toStr(get(src, 'image_url')) || toStr(get(src, 'imageUrl')) || toStr(get(src, 'thumbnail')))
+  return Array.from(new Set(urls.filter(Boolean)))
+}
+
+/* Field con label mejorado */
 const FieldCard = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <Card className="w-full">
     <div className="p-3">
@@ -63,7 +111,7 @@ const FieldCard = ({ label, children }: { label: string; children: React.ReactNo
   </Card>
 )
 
-/* Pills fijas */
+/* Pills */
 const StatusPill = ({ value }: { value?: IncidentRow['status'] }) => {
   const { bg, text, label } = useMemo(() => {
     const v = (value ?? '').toString().toUpperCase()
@@ -94,7 +142,6 @@ type LocalComment = {
   my_comment?: boolean
 }
 
-/* burbuja de comentario */
 const CommentItem = ({ c }: { c: LocalComment }) => {
   const isMine = !!c.my_comment
   const timeStr = formatTime(c.created_at)
@@ -124,7 +171,7 @@ const CommentItem = ({ c }: { c: LocalComment }) => {
   )
 }
 
-/* fetcher ordenado ASC — así la UI siempre va de arriba a abajo */
+/* fetcher ordenado ASC */
 async function apiGetUpdatesArray(incidentId: string | number): Promise<LocalComment[]> {
   const body: unknown = await ApiService.fetchDataWithAxios({
     url: `/api/v1/incidents/${encodeURIComponent(String(incidentId))}/updates`,
@@ -145,7 +192,7 @@ async function apiGetUpdatesArray(incidentId: string | number): Promise<LocalCom
   return [...mapped].sort((a, b) => Date.parse(a.created_at ?? '') - Date.parse(b.created_at ?? ''))
 }
 
-/* POST correcto -> evita 422 */
+/* POST correcto */
 async function apiPostUpdate(incidentId: string | number, comment: string) {
   return ApiService.fetchDataWithAxios({
     url: `/api/v1/incidents/${encodeURIComponent(String(incidentId))}/updates`,
@@ -154,8 +201,15 @@ async function apiPostUpdate(incidentId: string | number, comment: string) {
   })
 }
 
-/* busca el incidente dentro de la comunidad seleccionada (trae description) */
-type CommunityIncident = { id?: string | number; description?: string; title?: string }
+/* busca el incidente dentro de la comunidad seleccionada (trae description + files) */
+type CommunityIncident = {
+  id?: string | number
+  description?: string
+  title?: string
+  files?: unknown
+  images?: unknown
+  attachments?: unknown
+}
 async function apiFindIncidentInCommunity(
   communityId: string | number,
   incidentId: string | number,
@@ -173,11 +227,14 @@ async function apiFindIncidentInCommunity(
       id: (get(it, 'id') as string | number | undefined) ?? toStr(get(it, 'incident_id')),
       description: toStr(get(it, 'description')),
       title: toStr(get(it, 'title')),
+      files: get(it, 'files') ?? get(it, 'images') ?? get(it, 'attachments'),
+      images: get(it, 'images'),
+      attachments: get(it, 'attachments'),
     }))
     .find((x) => String(x.id ?? '') === String(incidentId))
 }
 
-/* Sonido doble-pop estilo WhatsApp/IG, discreto */
+/* Sonido doble-pop */
 const playSendSound = () => {
   try {
     const AC: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext
@@ -201,6 +258,100 @@ const playSendSound = () => {
   } catch { /* noop */ }
 }
 
+/* ---------------- Lightbox sencillo (en la misma página) ---------------- */
+function Lightbox({
+  urls,
+  index,
+  onClose,
+  setIndex,
+}: {
+  urls: string[]
+  index: number
+  onClose: () => void
+  setIndex: (i: number) => void
+}) {
+  // bloquear scroll del body mientras está abierto
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
+
+  // navegación por teclado
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight') setIndex((index + 1) % urls.length)
+      if (e.key === 'ArrowLeft') setIndex((index - 1 + urls.length) % urls.length)
+    }
+    window.addEventListener('keydown', onKey as any)
+    return () => window.removeEventListener('keydown', onKey as any)
+  }, [index, urls.length, onClose, setIndex])
+
+  const goPrev = () => setIndex((index - 1 + urls.length) % urls.length)
+  const goNext = () => setIndex((index + 1) % urls.length)
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-[92vw] max-h-[86vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Imagen grande */}
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <img
+          src={urls[index]}
+          alt={`Imagen ${index + 1}`}
+          className="block max-w-[92vw] max-h-[86vh] object-contain rounded-xl shadow-2xl"
+          referrerPolicy="no-referrer"
+        />
+
+        {/* Cerrar */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-3 -right-3 h-9 w-9 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+          title="Cerrar"
+        >
+          ✕
+        </button>
+
+        {/* Controles */}
+        {urls.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={goPrev}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+              title="Anterior"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+              title="Siguiente"
+            >
+              ›
+            </button>
+
+            {/* Indicador */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-white/90">
+              {index + 1} / {urls.length}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ---------------- Component ---------------- */
 const IncidentDetails = () => {
   const { id, incidentId } = useParams() as { id?: string; incidentId?: string }
@@ -208,11 +359,11 @@ const IncidentDetails = () => {
 
   const selectedCommunityId = useCommunitiesStore((s) => s.selectedId)
 
-  // De la lista en memoria (fallback de description)
+  // De la lista en memoria (fallbacks)
   const activeRows = useIncidentListStore((s) => s.activeTable.data)
   const resolvedRows = useIncidentListStore((s) => s.resolvedTable.data)
 
-  /* Datos base del incidente */
+  /* Detalle base */
   const {
     data: incident,
     isLoading,
@@ -223,7 +374,7 @@ const IncidentDetails = () => {
     { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
-  /* fallback para description con el endpoint de comunidad */
+  /* fallback comunidad (ahora con files) */
   const communityIdForFallback =
     selectedCommunityId ?? (incident as unknown as Dict)?.['community_id']
 
@@ -235,7 +386,7 @@ const IncidentDetails = () => {
     { revalidateOnFocus: false, shouldRetryOnError: false },
   )
 
-  /* Comentarios de la API (ASC) */
+  /* Comentarios */
   const {
     data: updatesApi,
     isLoading: isLoadingUpdates,
@@ -246,7 +397,7 @@ const IncidentDetails = () => {
     { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
-  /* ---- Lista mostrada (evita el “salto”: control local + append inmediato) ---- */
+  /* Lista mostrada */
   const [displayUpdates, setDisplayUpdates] = useState<LocalComment[]>([])
   useEffect(() => {
     if (updatesApi) setDisplayUpdates(updatesApi)
@@ -260,7 +411,7 @@ const IncidentDetails = () => {
     requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior }))
   }
 
-  /* ---- Header / fields ---- */
+  /* Header / fields */
   const isReady = !!incident && !isEmpty(incident) && !error
   const title = incident?.title ?? 'Detalle del Reporte'
   const propertyCode =
@@ -271,12 +422,17 @@ const IncidentDetails = () => {
       : '—'
   const dateStr = formatDate(incident?.created_at)
 
-  // 3 fuentes para descripción: detalle → comunidad → lista en memoria
-  const descriptionFromStore = useMemo(() => {
+  /* fila del store (para desc + files si hace falta) */
+  const rowFromStore = useMemo(() => {
     const all = [...(activeRows ?? []), ...(resolvedRows ?? [])] as Array<Dict>
-    const found = all.find((r) => String(r['id']) === String(effectiveId))
-    return pickString(found, ['description', 'desc', 'details', 'detail'])
+    return all.find((r) => String(r['id']) === String(effectiveId))
   }, [activeRows, resolvedRows, effectiveId])
+
+  const descriptionFromStore = useMemo(() => {
+    return rowFromStore
+      ? pickString(rowFromStore, ['description', 'desc', 'details', 'detail'])
+      : undefined
+  }, [rowFromStore])
 
   const description =
     pickString(incident as unknown as Dict, ['description']) ??
@@ -284,7 +440,25 @@ const IncidentDetails = () => {
     descriptionFromStore ??
     '—'
 
-  /* ---- input ---- */
+  /* imágenes */
+  const imageUrls = useMemo(() => {
+    const fromDetail = extractImageUrls(incident as unknown as Dict)
+    const fromCommunity = extractImageUrls(incidentFromCommunity as unknown as Dict)
+    const fromStore = extractImageUrls(rowFromStore as unknown as Dict)
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const u of [...fromDetail, ...fromCommunity, ...fromStore]) {
+      if (u && !seen.has(u)) { seen.add(u); out.push(u) }
+    }
+    return out
+  }, [incident, incidentFromCommunity, rowFromStore])
+
+  /* lightbox state */
+  const [lbOpen, setLbOpen] = useState(false)
+  const [lbIndex, setLbIndex] = useState(0)
+  const openLightbox = (i: number) => { setLbIndex(i); setLbOpen(true) }
+
+  /* input */
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
   const taRef = useRef<HTMLTextAreaElement | null>(null)
@@ -340,11 +514,10 @@ const IncidentDetails = () => {
                 <div className="text-base font-semibold text-gray-700">Título</div>
                 <div className="mt-1 text-lg font-semibold">{title}</div>
               </div>
-              {/* se quita la pill de prioridad aquí */}
             </div>
           </Card>
 
-          {/* Grid principal 4 columnas en el orden solicitado */}
+          {/* Grid principal */}
           <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
             <FieldCard label="Prioridad">
               <PriorityPill value={incident?.priority} />
@@ -363,9 +536,43 @@ const IncidentDetails = () => {
                 {description && description.trim().length > 0 ? description : '—'}
               </FieldCard>
             </div>
+
+            {/* Card CONDICIONAL de imágenes */}
+            {imageUrls.length > 0 && (
+              <div className="md:col-span-4">
+                <Card className="w-full">
+                  <div className="p-3">
+                    <div className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-gray-600">
+                      Imagen{imageUrls.length > 1 ? 'es' : ''} adjunta{imageUrls.length > 1 ? 's' : ''}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {imageUrls.map((src, i) => (
+                        <button
+                          key={`${src}-${i}`}
+                          type="button"
+                          onClick={() => openLightbox(i)}
+                          className="group block text-left"
+                          title="Ver imagen"
+                        >
+                          <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                            <img
+                              src={src}
+                              alt={`Incidente imagen ${i + 1}`}
+                              className="block h-40 w-full object-cover transition-transform group-hover:scale-[1.02] group-active:scale-[0.99]"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
           </div>
 
-          {/* Comentarios dentro de una Card */}
+          {/* Comentarios */}
           <Card className="mb-6 w-full">
             <div className="p-4">
               <div className="mb-3 text-xl font-bold">Comentarios</div>
@@ -402,6 +609,16 @@ const IncidentDetails = () => {
               </div>
             </form>
           </Card>
+
+          {/* Lightbox */}
+          {lbOpen && (
+            <Lightbox
+              urls={imageUrls}
+              index={lbIndex}
+              onClose={() => setLbOpen(false)}
+              setIndex={setLbIndex}
+            />
+          )}
         </div>
       ) : (
         <div className="p-4 text-center text-gray-500">No se pudo cargar la información del reporte.</div>

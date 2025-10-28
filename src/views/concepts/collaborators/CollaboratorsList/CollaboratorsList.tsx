@@ -7,6 +7,7 @@ import CollaboratorsListActionTools from './components/CollaboratorsListActionTo
 import CollaboratorsListTableTools from './components/CollaboratorsListTableTools'
 import CollaboratorsListSelected from './components/CollaboratorsListSelected'
 import useCollaboratorsList from './hooks/useCollaboratorsList'
+import { useEffect } from 'react'
 
 type Rec = Record<string, unknown>
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null
@@ -16,7 +17,6 @@ function extractServerMessage(err: unknown): string {
   if (typeof err === 'string') return err
 
   if (isRec(err)) {
-    // axios: err.response?.data?.message | detail | msg | error
     const response = isRec(err.response) ? (err.response as Rec) : undefined
     const data = response && isRec(response.data) ? (response.data as Rec) : undefined
     const candidates = [
@@ -24,7 +24,7 @@ function extractServerMessage(err: unknown): string {
       data?.detail,
       data?.msg,
       data?.error,
-      err.message,
+      (err as any)?.message,
     ]
     for (const c of candidates) {
       if (typeof c === 'string' && c.trim()) return c
@@ -35,13 +35,19 @@ function extractServerMessage(err: unknown): string {
 }
 
 const CollaboratorsList = () => {
-  // El hook expone { list, total, ... } → lo renombramos a collaboratorsList para usarlo igual que Residents
   const {
     list: collaboratorsList = [],
     isLoading,
     error,
     mutate,
   } = useCollaboratorsList()
+
+  // 🔔 Escucha global: cuando alguien edite/cree/elim., revalida altiro
+  useEffect(() => {
+    const handler = () => { void mutate() }
+    window.addEventListener('collaborators:changed', handler as EventListener)
+    return () => window.removeEventListener('collaborators:changed', handler as EventListener)
+  }, [mutate])
 
   if (!isLoading && error) {
     const serverMsg = extractServerMessage(error)

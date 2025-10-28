@@ -1,3 +1,4 @@
+// src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListSearch.tsx
 import DebouceInput from '@/components/shared/DebouceInput'
 import { TbSearch } from 'react-icons/tb'
 import React, { Ref, KeyboardEvent } from 'react'

@@ -1,3 +1,4 @@
+// src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTableTools.tsx
 import { useCallback, useRef } from 'react'
 import useCollaboratorsList from '../hooks/useCollaboratorsList'
 import CollaboratorsListSearch from './CollaboratorsListSearch'

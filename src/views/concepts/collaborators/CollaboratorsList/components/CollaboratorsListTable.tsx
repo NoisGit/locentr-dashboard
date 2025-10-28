@@ -1,16 +1,16 @@
 // src/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTable.tsx
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
 import { Link, useNavigate } from 'react-router-dom'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import useCollaboratorsList from '../hooks/useCollaboratorsList'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
 import type { Collaborator } from '../store/CollaboratorsListStore'
 
-/* utils mínimos */
 function toText(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
@@ -21,7 +21,6 @@ function dash(v: unknown): string {
   return s ? s : '—'
 }
 
-/* acción editar */
 const ActionColumn = ({ onEdit }: { onEdit: () => void }) => (
   <div className="flex items-center gap-3">
     <Tooltip title="Editar">
@@ -49,15 +48,24 @@ const CollaboratorsListTable = () => {
     setSelectAllCollaborators,
     setSelectedCollaborators,
     selectedCollaborators,
+    mutate,
   } = useCollaboratorsList()
 
-  /* UI defensivo: nunca mostrar SUPERADMIN */
+  const { selectedId: communityId } = useCommunitiesStore()
+
+  // Refrescar lista cuando otros flujos disparen el evento (crear/editar/eliminar)
+  useEffect(() => {
+    const handler = () => { void mutate() }
+    window.addEventListener('collaborators:changed', handler as EventListener)
+    return () => window.removeEventListener('collaborators:changed', handler as EventListener)
+  }, [mutate])
+
+  // Ocultar SUPERADMIN en UI; no altera cómo se muestra el rol
   const safeList = useMemo(
     () => list.filter(r => (r.role || '').toUpperCase() !== 'SUPERADMIN'),
     [list],
   )
 
-  /* columnas: Nombre, Correo, Teléfono, Rol, Acción */
   const columns: ColumnDef<Collaborator>[] = useMemo(
     () => [
       {
@@ -80,6 +88,7 @@ const CollaboratorsListTable = () => {
       },
       { header: 'Correo',   accessorKey: 'email', cell: (p) => <span>{dash(p.row.original.email)}</span> },
       { header: 'Teléfono', accessorKey: 'phone', cell: (p) => <span>{dash(p.row.original.phone)}</span> },
+      // Rol se muestra EXACTO como viene del service (que ya respeta el JSON)
       { header: 'Rol',      accessorKey: 'role',  cell: (p) => <span>{dash(p.row.original.role)}</span> },
       {
         header: '',
@@ -94,7 +103,6 @@ const CollaboratorsListTable = () => {
     [navigate],
   )
 
-  /* helpers de tabla (patrón Residents/Properties) */
   const handleSetTableData = (data: TableQueries) => {
     setTableData(data)
     setSelectAllCollaborators([])
@@ -129,16 +137,16 @@ const CollaboratorsListTable = () => {
     else setSelectAllCollaborators([])
   }
 
-  /* clave de remonte (incluye communityId del filtro que sincroniza el Tab) */
+  // Clave de remonte (incluye comunidad y filtros) para que el salto de página sea inmediato
   const tableKey = useMemo(() => {
     const sKey = tableData?.sort?.key ?? ''
     const sOrd = tableData?.sort?.order ?? ''
     const q = tableData?.query ?? ''
-    const cid = String(filterData?.communityId ?? '')
     const role = (filterData as Record<string, unknown>)?.['role'] ?? ''
     const act = (filterData as Record<string, unknown>)?.['active'] ?? ''
+    const cid = String(communityId ?? '')
     return `${tableData.pageIndex}-${tableData.pageSize}-${sKey}-${sOrd}-${q}-${cid}-${role}-${act}`
-  }, [tableData, filterData])
+  }, [tableData, filterData, communityId])
 
   return (
     <DataTable

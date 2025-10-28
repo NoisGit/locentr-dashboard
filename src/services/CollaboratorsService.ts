@@ -7,7 +7,10 @@ export type CollaboratorTableQueries = {
   pageSize: number
   query?: string
   sort?: { key?: string; order?: 'asc' | 'desc' }
-  communityId?: number | string | ''          // requerido para el nuevo endpoint de lista
+  communityId?: number | string | ''
+  /** Puede venir en español o en inglés; el filtro es robusto a ambos */
+  role?: string | ''
+  active?: boolean | ''
   viewerRole?: 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
 }
 
@@ -16,6 +19,7 @@ export type CollaboratorRow = {
   name: string
   email?: string
   phone?: string
+  /** Mostrar EXACTO como viene del backend (JSON): "Administrador", "Sub Administrador", "Conserje", "Guardia" */
   role?: string
   community?: string
   active?: boolean
@@ -55,7 +59,7 @@ function extractList(raw: unknown): { items: unknown[]; total?: number } {
       }
     }
     const total =
-      typeof (r.total) === 'number'
+      typeof r.total === 'number'
         ? r.total
         : isRec(r.data) && typeof ((r.data as Rec).total) === 'number'
         ? Number((r.data as Rec).total)
@@ -65,7 +69,7 @@ function extractList(raw: unknown): { items: unknown[]; total?: number } {
   return { items: Array.isArray(raw) ? (raw as unknown[]) : [], total: undefined }
 }
 
-/* ---- roles ---- */
+/* ---- roles (canónico para comparar filtros) ---- */
 function normalizeUserRoleName(v: unknown): 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | 'CONCIERGE' | 'GUARD' | '' {
   const raw = typeof v === 'string' ? v : ''
   const n = raw.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z]/gi, '').toUpperCase()
@@ -76,11 +80,13 @@ function normalizeUserRoleName(v: unknown): 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' 
   if (n === 'GUARD' || n === 'GUARDIA' || n === 'SECURITY' || n === 'SEGURIDAD' || n === 'VIGILANTE') return 'GUARD'
   return ''
 }
+
+/** Lee nombre de rol ORIGINAL desde el objeto de backend */
 function roleNameOf(u: Rec): string {
-  const direct = u.role
+  const direct = (u as Rec).role
   if (typeof direct === 'string') return direct
   if (isRec(direct) && typeof (direct as Rec).name === 'string') return String((direct as Rec).name)
-  if (typeof u.role_name === 'string') return u.role_name
+  if (typeof (u as Rec).role_name === 'string') return String((u as Rec).role_name)
   const roles = (u as Rec).roles
   if (Array.isArray(roles)) {
     for (const rr of roles) {
@@ -91,7 +97,24 @@ function roleNameOf(u: Rec): string {
   return ''
 }
 
-/* ---- comunidad (marcadores disponibles si el payload los trae) ---- */
+/** Convierte cualquier variante (inglés/español) a las ETIQUETAS DEL JSON exactamente */
+function toDisplayRoleName(raw: unknown): string {
+  // Si ya viene como "Administrador", "Sub Administrador", "Conserje", "Guardia", lo respetamos tal cual
+  const asStr = typeof raw === 'string' ? raw.trim() : ''
+  const canon = normalizeUserRoleName(asStr)
+  if (!canon && asStr) return asStr // nombre desconocido: dejarlo tal cual
+
+  switch (canon) {
+    case 'ADMIN':      return 'Administrador'
+    case 'SUBADMIN':   return 'Sub Administrador'
+    case 'CONCIERGE':  return 'Conserje'
+    case 'GUARD':      return 'Guardia'
+    case 'SUPERADMIN': return 'SUPERADMIN' // si apareciera, lo mostramos literal
+    default:           return asStr
+  }
+}
+
+/* ---- comunidad ---- */
 function hasAnyCommunityField(u: Rec): boolean {
   if ((u as Rec).community_id != null) return true
   const c = (u as Rec).community
@@ -117,7 +140,7 @@ function inCommunity(u: Rec, communityId: number | string): boolean {
   return false
 }
 
-/* ---- map a fila ---- */
+/* ---- map a fila (rol EXACTO del JSON) ---- */
 function mapRow(u: unknown, forcedCommunityName?: string): CollaboratorRow {
   const r = isRec(u) ? u : {}
   const id = (r as Rec).id ?? (r as Rec)._id ?? (r as Rec).user_id ?? (r as Rec).uid ?? ''
@@ -128,20 +151,29 @@ function mapRow(u: unknown, forcedCommunityName?: string): CollaboratorRow {
   const active =
     Boolean((r as Rec).is_active ?? (r as Rec).active) ||
     (isRec((r as Rec).meta) && Boolean(((r as Rec).meta as Rec).active))
-  const canonical = normalizeUserRoleName(roleNameOf(r))
+
+  const roleRaw = roleNameOf(r)
+  const roleDisplay = toDisplayRoleName(roleRaw)
 
   return {
     id: s(id),
     name: full || s((r as Rec).email) || `ID ${s(id)}`,
     email: s((r as Rec).email) || undefined,
     phone: phone || undefined,
-    role: canonical || undefined,
-    community: forcedCommunityName, // normalmente undefined (esta lista ya viene por comunidad)
+    role: roleDisplay || undefined,
+    community: forcedCommunityName,
     active,
   }
 }
 
-/* ====================== GET by ID (robusto) ====================== */
+/* --- helper para notificar cambios y refrescar listas abiertas --- */
+function notifyCollaboratorsChanged() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('collaborators:changed'))
+  }
+}
+
+/* ====================== GET by ID ====================== */
 export async function apiGetCollaboratorById<T = CollaboratorRow>(id: string | number): Promise<T> {
   const sid = String(id)
 
@@ -188,29 +220,27 @@ export async function apiGetCollaboratorById<T = CollaboratorRow>(id: string | n
   return { id: sid, name: '' } as unknown as T
 }
 
-/* ====================== Listar (nuevo endpoint por comunidad) ====================== */
+/* ====================== Listar (fallback de paginación/orden/filtros en cliente) ====================== */
 export async function apiGetCollaboratorsList<T = GetCollaboratorsListResponse>(
   params: CollaboratorTableQueries,
 ): Promise<T> {
   const pageIndex = Math.max(1, Number(params.pageIndex ?? 1))
   const pageSize  = Math.max(1, Number(params.pageSize ?? 10))
 
-  // comunidad requerida para este endpoint
   const hasCid =
     params.communityId !== '' &&
     params.communityId != null &&
     !Number.isNaN(Number(params.communityId))
 
   if (!hasCid) {
-    // sin comunidad seleccionada, no listamos nada (evita llamadas ambiguas)
     return { list: [], total: 0 } as T
   }
   const cid = Number(params.communityId)
 
-  // payload limpio (igual patrón de properties/residents)
   const q = (params.query ?? '').toString().trim()
   const srt = params.sort
 
+  // Enviamos pageIndex/pageSize por si el backend los respeta; si no, igual paginamos en cliente
   const qp: Record<string, unknown> = {
     pageIndex,
     pageSize,
@@ -228,28 +258,66 @@ export async function apiGetCollaboratorsList<T = GetCollaboratorsListResponse>(
 
   const { items, total: serverTotal } = extractList(raw)
 
-  // Nunca mostrar SUPERADMIN (regla de negocio)
+  // Ocultar SUPERADMIN
   const filtered = (items as unknown[]).filter((u) => {
     const r = isRec(u) ? (u as Rec) : {}
-    const role = normalizeUserRoleName(roleNameOf(r))
-    return role !== 'SUPERADMIN'
+    const roleCanon = normalizeUserRoleName(roleNameOf(r))
+    return roleCanon !== 'SUPERADMIN'
   })
 
-  // Defensa extra: si el backend por alguna razón no aplicó comunidad
-  const ensureCommunity = filtered.filter((u) => {
+  // Defensa por si backend no filtró por comunidad
+  const inCid = filtered.filter((u) => {
     const r = isRec(u) ? (u as Rec) : {}
     return !hasAnyCommunityField(r) || inCommunity(r, cid)
   })
 
-  const mapped = ensureCommunity.map((u) => mapRow(u, undefined))
-  const total = typeof serverTotal === 'number' ? serverTotal : mapped.length
+  // Map → role EXACTO del JSON
+  let mapped = inCid.map((u) => mapRow(u, undefined))
 
-  return { list: mapped, total } as T
+  // Filtros de UI (robustos: español o inglés)
+  const wantCanon = normalizeUserRoleName(params.role ?? '')
+  if (wantCanon) {
+    mapped = mapped.filter((r) => normalizeUserRoleName(r.role) === wantCanon)
+  }
+  if (typeof params.active === 'boolean') {
+    mapped = mapped.filter((r) => r.active === params.active)
+  }
+  if (q) {
+    const qq = q.toLowerCase()
+    mapped = mapped.filter((r) =>
+      (r.name ?? '').toLowerCase().includes(qq) ||
+      (r.email ?? '').toLowerCase().includes(qq) ||
+      (r.phone ?? '').toLowerCase().includes(qq) ||
+      (r.role ?? '').toLowerCase().includes(qq),
+    )
+  }
+
+  // Orden (fallback en cliente para name/role; id lo dejamos al backend)
+  if (srt?.key === 'name') {
+    mapped = mapped.slice().sort((a, b) =>
+      (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' })
+    )
+    if (srt.order === 'desc') mapped.reverse()
+  } else if (srt?.key === 'role') {
+    mapped = mapped.slice().sort((a, b) =>
+      (a.role ?? '').localeCompare(b.role ?? '', undefined, { sensitivity: 'base' })
+    )
+    if (srt.order === 'desc') mapped.reverse()
+  }
+
+  // Paginación en cliente (como Residents)
+  const total = typeof serverTotal === 'number' ? serverTotal : mapped.length
+  const start = (pageIndex - 1) * pageSize
+  const end   = start + pageSize
+  const pageSlice = mapped.slice(start, end)
+
+  return { list: pageSlice, total: Number(total ?? mapped.length) } as T
 }
 
 /* ====================== Eliminar / Editar ====================== */
 export async function apiDeleteCollaborator(id: string | number): Promise<void> {
   await ApiService.fetchDataWithAxios({ url: `/api/v1/users/${id}`, method: 'delete' })
+  notifyCollaboratorsChanged()
 }
 
 export async function apiUpdateCollaborator(
@@ -273,23 +341,23 @@ export async function apiUpdateCollaborator(
     data: payload,
   })
 
-  if (raw && isRec(raw)) {
-    const maybeUser = (raw as Rec).data && isRec((raw as Rec).data) ? ((raw as Rec).data as Rec) : (raw as Rec)
-    return mapRow(maybeUser)
-  }
+  const mapped = (raw && isRec(raw))
+    ? mapRow(isRec((raw as Rec).data) ? ((raw as Rec).data as Rec) : (raw as Rec))
+    : {
+        id: String(id),
+        name: (data.name as string) ?? `ID ${String(id)}`,
+        email: data.email ?? undefined,
+        phone: data.phone ?? undefined,
+        role: data.role ?? undefined,
+        community:
+          data.communityId === null || data.communityId === '' || data.communityId === undefined
+            ? undefined
+            : String(data.communityId),
+        active: data.active ?? true,
+      }
 
-  return {
-    id: String(id),
-    name: (data.name as string) ?? `ID ${String(id)}`,
-    email: data.email ?? undefined,
-    phone: data.phone ?? undefined,
-    role: data.role ?? undefined,
-    community:
-      data.communityId === null || data.communityId === '' || data.communityId === undefined
-        ? undefined
-        : String(data.communityId),
-    active: data.active ?? true,
-  }
+  notifyCollaboratorsChanged()
+  return mapped
 }
 
 const CollaboratorsService = {

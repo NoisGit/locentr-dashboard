@@ -1,4 +1,4 @@
-// src/views/concepts/collaborators/CollaboratorsEdit.tsx
+// src/views/concepts/collaborators/CollaboratorsEdit/CollaboratorsEdit.tsx
 import { useLayoutEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import useSWR, { mutate as globalMutate } from 'swr'
@@ -52,17 +52,14 @@ const CollaboratorsEdit = () => {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<string>('')
 
-  // Hidratar *antes* de pintar cuando llega el detalle
   useLayoutEffect(() => {
     if (!data) return
     setName(data.name ?? '')
     setPhone(data.phone ?? '')
     setEmail(data.email ?? '')
     setRole(data.role ?? '')
-    // no seteamos password
   }, [data])
 
-  // Remontar el form cuando llega/ cambia el detalle
   const formKey = useMemo(() => {
     if (!data) return 'collab-loading'
     return `collab-${data.id}-${data.email ?? ''}-${data.name ?? ''}`
@@ -87,12 +84,19 @@ const CollaboratorsEdit = () => {
         password: password.trim() ? password.trim() : undefined,
       })
 
-      // sincroniza cache del detalle y de la lista
+      // Sincroniza caches SWR
       await globalMutate(['/api/users/id', id], updated, false)
       await globalMutate((key: unknown) => Array.isArray(key) && key[0] === 'collaborators:list')
 
       toast.push(<Notification type="success">¡Cambios guardados!</Notification>, { placement: 'top-center' })
+
+      // Volvemos a la lista y, ya montada, disparamos el evento para que haga re-fetch inmediato
       navigate(-1)
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('collaborators:changed', {
+          detail: { type: 'updated', id: String(id), ts: Date.now() },
+        }))
+      }, 0)
     } catch (err) {
       const msg = pickHttpMessage(err) || 'No se pudo guardar el colaborador.'
       toast.push(<Notification type="danger">{msg}</Notification>, { placement: 'top-center' })
