@@ -42,7 +42,6 @@ const CollaboratorsListTable = () => {
     list,
     total,
     tableData,
-    filterData,
     isLoading,
     setTableData,
     setSelectAllCollaborators,
@@ -53,14 +52,14 @@ const CollaboratorsListTable = () => {
 
   const { selectedId: communityId } = useCommunitiesStore()
 
-  // Refrescar lista cuando otros flujos disparen el evento (crear/editar/eliminar)
+  // Revalidar cuando se notifiquen cambios (crear/editar/eliminar)
   useEffect(() => {
     const handler = () => { void mutate() }
     window.addEventListener('collaborators:changed', handler as EventListener)
     return () => window.removeEventListener('collaborators:changed', handler as EventListener)
   }, [mutate])
 
-  // Ocultar SUPERADMIN en UI; no altera cómo se muestra el rol
+  // Ocultar SUPERADMIN en UI
   const safeList = useMemo(
     () => list.filter(r => (r.role || '').toUpperCase() !== 'SUPERADMIN'),
     [list],
@@ -88,7 +87,6 @@ const CollaboratorsListTable = () => {
       },
       { header: 'Correo',   accessorKey: 'email', cell: (p) => <span>{dash(p.row.original.email)}</span> },
       { header: 'Teléfono', accessorKey: 'phone', cell: (p) => <span>{dash(p.row.original.phone)}</span> },
-      // Rol se muestra EXACTO como viene del service (que ya respeta el JSON)
       { header: 'Rol',      accessorKey: 'role',  cell: (p) => <span>{dash(p.row.original.role)}</span> },
       {
         header: '',
@@ -108,9 +106,12 @@ const CollaboratorsListTable = () => {
     setSelectAllCollaborators([])
   }
 
+  // ✅ DataTable/Pagination trabajan 1-based aquí
   const handlePaginationChange = (page: number) => {
     const next = cloneDeep(tableData)
-    next.pageIndex = page
+    const target = Math.max(1, Number(page))
+    if (target === Number(next.pageIndex ?? 1)) return
+    next.pageIndex = target
     handleSetTableData(next)
   }
 
@@ -137,27 +138,15 @@ const CollaboratorsListTable = () => {
     else setSelectAllCollaborators([])
   }
 
-  // Clave de remonte (incluye comunidad y filtros) para que el salto de página sea inmediato
-  const tableKey = useMemo(() => {
-    const sKey = tableData?.sort?.key ?? ''
-    const sOrd = tableData?.sort?.order ?? ''
-    const q = tableData?.query ?? ''
-    const role = (filterData as Record<string, unknown>)?.['role'] ?? ''
-    const act = (filterData as Record<string, unknown>)?.['active'] ?? ''
-    const cid = String(communityId ?? '')
-    return `${tableData.pageIndex}-${tableData.pageSize}-${sKey}-${sOrd}-${q}-${cid}-${role}-${act}`
-  }, [tableData, filterData, communityId])
-
   return (
     <DataTable
-      key={tableKey}
       columns={columns}
       data={safeList}
       loading={isLoading}
       noData={!isLoading && safeList.length === 0}
       pagingData={{
         total: Number(total) || 0,
-        pageIndex: tableData.pageIndex as number,
+        pageIndex: tableData.pageIndex as number, // 1-based
         pageSize: tableData.pageSize as number,
       }}
       selectable

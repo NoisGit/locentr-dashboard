@@ -93,10 +93,10 @@ export default function useCollaboratorsList() {
     () => fetchOnce(keySig, effectiveParams),
     {
       keepPreviousData: true,
-      revalidateOnMount: true,        // 👈 fuerza fetch al montar / volver de Edit
+      revalidateOnMount: true,        // fuerza fetch al montar / volver de Edit
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateIfStale: false,       // mantenemos, pero compensamos con revalidateOnMount: true
+      revalidateIfStale: false,
       refreshWhenHidden: false,
       refreshWhenOffline: false,
       dedupingInterval: 1500,
@@ -129,7 +129,7 @@ export default function useCollaboratorsList() {
     }
   }, [isLoading, list.length, total, tableData.pageIndex, tableData.pageSize, setTableData])
 
-  // 🔔 Revalidar cuando alguien dispare "collaborators:changed" (create/edit/delete)
+  // Revalidar cuando alguien dispare "collaborators:changed" (create/edit/delete)
   useEffect(() => {
     const onChanged = () => { void mutate() }
     window.addEventListener('collaborators:changed', onChanged as EventListener)

@@ -108,6 +108,29 @@ const dashboardsRoute: Routes = [
     meta: { pageContainerType: 'contained' },
   },
 
+  /* ----------------------- ACCESS POINTS (HARDWARE) ------------------------------------ */
+  {
+    key: 'concepts.accesspoints.accesspointsList',
+    path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-list`,
+    component: lazy(() => import('@/views/concepts/accesspoints/AccessPointsList/AccessPointsList')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: { pageContainerType: 'contained' },
+  },
+  {
+    key: 'concepts.accesspoints.accesspointsEdit',
+    path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-edit/:id`,
+    component: lazy(() => import('@/views/concepts/accesspoints/AccessPointsEdit/AccessPointsEdit')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: {
+      header: {
+        title: 'Editar Access Point',
+        description: 'Edita el nombre y ubicación; otros campos informativos se muestran en solo lectura.',
+        contained: true,
+      },
+      footer: false,
+    },
+  },
+
   /* ----------------------- PRODUCTS/AMENITIES (visible para SUPERADMIN y grupo admin) ------------- */
   {
     key: 'concepts.products.productList',

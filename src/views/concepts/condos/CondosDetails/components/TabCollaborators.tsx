@@ -1,5 +1,5 @@
 // src/views/concepts/condos/CondosDetails/components/TabCollaborators.tsx
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import Card from '@/components/ui/Card'
 
 import CollaboratorsListTable from '@/views/concepts/collaborators/CollaboratorsList/components/CollaboratorsListTable'
@@ -14,40 +14,19 @@ type Props = {
 }
 
 export default function TabCollaborators({ communityId }: Props) {
-  const {
-    tableData,
-    filterData,
-    setTableData,
-    mutate,
-  } = useCollaboratorsList()
+  const { setTableData, mutate } = useCollaboratorsList()
 
-  // Al cambiar la comunidad: reset a pág. 1 (el hook ya toma communityId desde el store global)
+  // Al cambiar comunidad: ir a pág. 1 (no forzamos remounts)
   useEffect(() => {
     setTableData(prev => ({ ...prev, pageIndex: 1 }))
   }, [communityId, setTableData])
 
-  // Refrescar ante cambios externos (crear/editar/eliminar)
+  // Revalida cuando se disparen cambios externos
   useEffect(() => {
     const handler = () => { void mutate() }
     window.addEventListener('collaborators:changed', handler as EventListener)
     return () => window.removeEventListener('collaborators:changed', handler as EventListener)
   }, [mutate])
-
-  // Clave estable para forzar re-montaje del DataTable cuando cambian filtros/paginación/comunidad
-  const tableKey = useMemo(() => {
-    const sKey   = tableData?.sort?.key ?? ''
-    const sOrd   = tableData?.sort?.order ?? ''
-    const q      = tableData?.query ?? ''
-    const role   = (filterData?.role ?? '') as string
-    const active = (filterData?.active ?? '') as string | boolean
-    return [
-      tableData?.pageIndex,
-      tableData?.pageSize,
-      sKey, sOrd,
-      q, role, String(active),
-      communityId ?? '',
-    ].join('|')
-  }, [tableData, filterData, communityId])
 
   return (
     <div className="space-y-4">
@@ -60,9 +39,7 @@ export default function TabCollaborators({ communityId }: Props) {
 
       <Card className="w-full">
         <div className="p-0">
-          <div key={tableKey}>
-            <CollaboratorsListTable />
-          </div>
+          <CollaboratorsListTable />
         </div>
       </Card>
 
