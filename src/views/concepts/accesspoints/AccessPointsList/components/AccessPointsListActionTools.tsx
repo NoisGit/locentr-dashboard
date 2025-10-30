@@ -44,7 +44,7 @@ const AccessPointsListActionTools = () => {
         data={csvData}
       >
         <Button icon={<TbCloudDownload className="text-xl" />} className="w-full">
-          Exportar CSV
+          Download
         </Button>
       </CSVLink>
     </div>

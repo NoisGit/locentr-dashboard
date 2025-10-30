@@ -108,20 +108,6 @@ const PropertiesListTable = () => {
         },
       },
       {
-        header: 'Comunidad',
-        accessorKey: 'communityName',
-        cell: (props) => {
-          const r = props.row.original as unknown as Record<string, unknown>
-          const name =
-            props.row.original.communityName ??
-            (r.community && ((r.community as Record<string, unknown>).name as string | undefined)) ??
-            (r['community_name'] as string | undefined) ??
-            (r['tower'] as string | undefined) ??
-            ''
-          return <span>{String(name ?? '')}</span>
-        },
-      },
-      {
         header: '',
         id: 'action',
         cell: (props) => <ActionColumn onEdit={() => handleEdit(props.row.original)} />,
