@@ -19,9 +19,9 @@ const ResidentsListTableTools = () => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <ResidentsListSearch
-        onInputChange={handleInputChange}
-        inputRef={inputRef}
         defaultValue={tableData?.query ?? ''}
+        inputRef={inputRef}
+        onInputChange={handleInputChange}
       />
       <ResidentsListTableFilter />
     </div>

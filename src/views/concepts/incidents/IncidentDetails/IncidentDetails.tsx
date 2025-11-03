@@ -1,5 +1,5 @@
-// src/views/concepts/incidents/IncidentDetails/index.tsx
-import { useMemo, useState, FormEvent } from 'react'
+// src/views/concepts/incidents/IncidentDetails/IncidentDetails.tsx
+import { useEffect, useMemo, useRef, useState, FormEvent, KeyboardEvent } from 'react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
 import isEmpty from 'lodash/isEmpty'
@@ -12,10 +12,10 @@ import Textarea from '@/components/ui/Textarea'
 import ApiService from '@/services/ApiService'
 import {
   apiFindIncidentByIdAcrossCommunities,
-  apiGetIncidentUpdates,
   type IncidentRow,
-  type IncidentUpdateRow,
 } from '@/services/IncidentsService'
+import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { useIncidentListStore } from '@/views/concepts/incidents/IncidentList/store/IncidentListStore'
 
 /* ---------------- Utils ---------------- */
 const formatDate = (iso?: string): string => {
@@ -27,103 +27,343 @@ const formatDate = (iso?: string): string => {
   const yyyy = d.getFullYear()
   return `${dd}/${mm}/${yyyy}`
 }
+const formatTime = (iso?: string): string => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mi}`
+}
 
-const FieldCard = ({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) => (
+/* runtime guards */
+type Dict = Record<string, unknown>
+const isObject = (v: unknown): v is Dict => typeof v === 'object' && v !== null
+const get = (o: unknown, k: string): unknown => (isObject(o) ? (o as Dict)[k] : undefined)
+const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+const toStr = (v: unknown): string | undefined =>
+  typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : undefined
+
+const pickString = (obj: unknown, keys: string[]): string | undefined => {
+  for (const k of keys) {
+    const v = toStr(get(obj, k))
+    if (typeof v === 'string' && v.trim() !== '') return v
+  }
+  return undefined
+}
+
+/* ---------------- Imagenes del incidente ---------------- */
+function extractImageUrls(src: unknown): string[] {
+  if (!src) return []
+  const urls: string[] = []
+  const pushUrl = (u?: string) => {
+    if (!u) return
+    const s = String(u).trim()
+    if (!s) return
+    urls.push(s)
+  }
+
+  const bagKeys = ['files', 'images', 'attachments', 'photos', 'pictures']
+  for (const key of bagKeys) {
+    const v = get(src, key)
+    if (!v) continue
+    const arr = Array.isArray(v)
+      ? (v as unknown[])
+      : (isObject(v) && Array.isArray(get(v, 'data')))
+      ? (get(v, 'data') as unknown[])
+      : typeof v === 'string'
+      ? [v]
+      : []
+
+    for (const it of arr) {
+      if (typeof it === 'string') {
+        pushUrl(it)
+      } else if (isObject(it)) {
+        const cand =
+          toStr(get(it, 'image_url')) ||
+          toStr(get(it, 'imageUrl')) ||
+          toStr(get(it, 'url')) ||
+          toStr(get(it, 'src')) ||
+          toStr(get(it, 'path')) ||
+          toStr(get(it, 'download_url')) ||
+          toStr(get(it, 'file_url')) ||
+          toStr(get(it, 'file')) ||
+          toStr(get(it, 'preview'))
+        pushUrl(cand)
+      }
+    }
+    if (typeof v === 'string') pushUrl(v)
+  }
+
+  pushUrl(toStr(get(src, 'image_url')) || toStr(get(src, 'imageUrl')) || toStr(get(src, 'thumbnail')))
+  return Array.from(new Set(urls.filter(Boolean)))
+}
+
+/* Field con label mejorado */
+const FieldCard = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <Card className="w-full">
-    <div className="p-4">
-      <div className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+    <div className="p-3">
+      <div className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-gray-600">
         {label}
       </div>
-      <div className="text-base leading-relaxed">{children}</div>
+      <div className="text-[16px] leading-relaxed">{children}</div>
     </div>
   </Card>
 )
 
-/* Pills con clases fijas (evita tw purge dinámico) */
+/* Pills */
 const StatusPill = ({ value }: { value?: IncidentRow['status'] }) => {
   const { bg, text, label } = useMemo(() => {
-    const v = (value ?? '').toUpperCase()
-    if (v === 'PENDING' || v === 'OPEN') {
-      return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Pendiente' }
-    }
-    if (v === 'IN_PROGRESS') {
-      return { bg: 'bg-sky-100', text: 'text-sky-700', label: 'En proceso' }
-    }
-    if (v === 'RESOLVED' || v === 'CLOSED') {
-      return { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Resuelto' }
-    }
+    const v = (value ?? '').toString().toUpperCase()
+    if (v === 'PENDING' || v === 'OPEN') return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Pendiente' }
+    if (v === 'IN_PROGRESS') return { bg: 'bg-sky-100', text: 'text-sky-700', label: 'En proceso' }
+    if (v === 'RESOLVED' || v === 'CLOSED') return { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Resuelto' }
     return { bg: 'bg-gray-100', text: 'text-gray-700', label: value ?? '—' }
   }, [value])
-
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${bg} ${text}`}>
-      {label}
-    </span>
-  )
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${bg} ${text}`}>{label}</span>
 }
 
 const PriorityPill = ({ value }: { value?: IncidentRow['priority'] }) => {
   const { bg, text, label } = useMemo(() => {
-    const v = (value ?? '').toUpperCase()
-    if (v === 'HIGH' || v === 'ALTA' || v === 'ALTO') {
-      return { bg: 'bg-rose-100', text: 'text-rose-700', label: 'Alta' }
-    }
-    if (v === 'LOW' || v === 'BAJA' || v === 'BAJO') {
-      return { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Baja' }
-    }
+    const v = (value ?? '').toString().toUpperCase()
+    if (v === 'HIGH' || v === 'ALTA' || v === 'ALTO') return { bg: 'bg-rose-100', text: 'text-rose-700', label: 'Alta' }
+    if (v === 'LOW' || v === 'BAJA' || v === 'BAJO') return { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Baja' }
     return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Media' }
   }, [value])
-
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${bg} ${text}`}>
-      {label}
-    </span>
-  )
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${bg} ${text}`}>{label}</span>
 }
 
 /* ---------------- Comentarios ---------------- */
-const CommentItem = ({ c }: { c: IncidentUpdateRow }) => (
-  <div className="rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-800">
-    <div className="mb-1 text-sm text-gray-500">
-      {(c.author_name ?? 'Portería SpA')} • {formatDate(c.created_at)}
-    </div>
-    <div className="text-[15px] leading-6">{c.text}</div>
-  </div>
-)
+type LocalComment = {
+  id: string | number
+  author_name: string
+  text: string
+  created_at?: string
+  my_comment?: boolean
+}
 
-/* POST de comentario (se usa ApiService directo) */
-async function apiCreateIncidentUpdate(incidentId: string | number, payload: { text: string }) {
+const CommentItem = ({ c }: { c: LocalComment }) => {
+  const isMine = !!c.my_comment
+  const timeStr = formatTime(c.created_at)
+  return (
+    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={[
+          'relative max-w-[85%] rounded-2xl px-4 py-2 shadow-sm',
+          isMine
+            ? 'bg-sky-500 text-white rounded-br-md'
+            : 'bg-gray-100 text-gray-900 rounded-bl-md dark:bg-gray-800 dark:text-gray-100',
+        ].join(' ')}
+      >
+        <div className={`mb-1 text-xs ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+          {(c.author_name ?? '—')} • {formatDate(c.created_at)}
+        </div>
+        <div className="text-[15px] leading-6 whitespace-pre-wrap break-words pr-10">
+          {c.text}
+        </div>
+        {timeStr && (
+          <span className={`absolute bottom-1 right-2 text-[11px] ${isMine ? 'text-white/80' : 'text-gray-500'}`}>
+            {timeStr}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* fetcher ordenado ASC */
+async function apiGetUpdatesArray(incidentId: string | number): Promise<LocalComment[]> {
+  const body: unknown = await ApiService.fetchDataWithAxios({
+    url: `/api/v1/incidents/${encodeURIComponent(String(incidentId))}/updates`,
+    method: 'get',
+  })
+  const rawList = asArray(body)
+  const dataList = rawList.length ? rawList : asArray(get(body, 'data'))
+  const mapped = dataList.map((x): LocalComment => {
+    const o = x as Dict
+    return {
+      id: (get(o, 'id') as string | number) ?? String(Math.random()),
+      author_name: (toStr(get(o, 'user')) ?? toStr(get(o, 'author_name')) ?? '—') as string,
+      text: (toStr(get(o, 'comment')) ?? toStr(get(o, 'text')) ?? '') as string,
+      my_comment: Boolean(get(o, 'my_comment')),
+      created_at: toStr(get(o, 'created_at')),
+    }
+  })
+  return [...mapped].sort((a, b) => Date.parse(a.created_at ?? '') - Date.parse(b.created_at ?? ''))
+}
+
+/* POST correcto */
+async function apiPostUpdate(incidentId: string | number, comment: string) {
   return ApiService.fetchDataWithAxios({
     url: `/api/v1/incidents/${encodeURIComponent(String(incidentId))}/updates`,
     method: 'post',
-    data: payload,
+    data: { comment },
   })
 }
 
-/* Helper seguro para leer descripción si viniera en el objeto */
-const getDescription = (row?: IncidentRow | null): string => {
-  if (!row) return ''
-  const maybe: unknown = row as unknown
-  if (typeof maybe === 'object' && maybe !== null && 'description' in maybe) {
-    const v = (maybe as { description?: unknown }).description
-    return typeof v === 'string' ? v : ''
-  }
-  return ''
+/* busca el incidente dentro de la comunidad seleccionada (trae description + files) */
+type CommunityIncident = {
+  id?: string | number
+  description?: string
+  title?: string
+  files?: unknown
+  images?: unknown
+  attachments?: unknown
+}
+async function apiFindIncidentInCommunity(
+  communityId: string | number,
+  incidentId: string | number,
+): Promise<CommunityIncident | undefined> {
+  const body: unknown = await ApiService.fetchDataWithAxios({
+    url: `/api/v1/incidents/community/${encodeURIComponent(String(communityId))}`,
+    method: 'get',
+    params: { pageIndex: 1, pageSize: 1000 },
+  })
+  const list1 = asArray(get(get(body, 'data'), 'data'))
+  const list2 = list1.length ? list1 : asArray(get(body, 'data'))
+  const items = list2.length ? list2 : asArray(body)
+  return items
+    .map((it) => ({
+      id: (get(it, 'id') as string | number | undefined) ?? toStr(get(it, 'incident_id')),
+      description: toStr(get(it, 'description')),
+      title: toStr(get(it, 'title')),
+      files: get(it, 'files') ?? get(it, 'images') ?? get(it, 'attachments'),
+      images: get(it, 'images'),
+      attachments: get(it, 'attachments'),
+    }))
+    .find((x) => String(x.id ?? '') === String(incidentId))
+}
+
+/* Sonido doble-pop */
+const playSendSound = () => {
+  try {
+    const AC: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext
+    const ctx = new AC()
+    const now = ctx.currentTime
+    const pop = (t: number, f1: number, f2: number, dur = 0.085, gain = 0.08) => {
+      const o = ctx.createOscillator()
+      const g = ctx.createGain()
+      o.type = 'sine'
+      o.frequency.setValueAtTime(f1, now + t)
+      o.frequency.exponentialRampToValueAtTime(f2, now + t + dur)
+      g.gain.setValueAtTime(gain, now + t)
+      g.gain.exponentialRampToValueAtTime(0.0001, now + t + dur)
+      o.connect(g).connect(ctx.destination)
+      o.start(now + t)
+      o.stop(now + t + dur + 0.01)
+    }
+    pop(0.00, 420, 330, 0.09, 0.08)
+    pop(0.07, 800, 600, 0.08, 0.06)
+    setTimeout(() => { void ctx.close() }, 220)
+  } catch { /* noop */ }
+}
+
+/* ---------------- Lightbox sencillo (en la misma página) ---------------- */
+function Lightbox({
+  urls,
+  index,
+  onClose,
+  setIndex,
+}: {
+  urls: string[]
+  index: number
+  onClose: () => void
+  setIndex: (i: number) => void
+}) {
+  // bloquear scroll del body mientras está abierto
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
+
+  // navegación por teclado
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight') setIndex((index + 1) % urls.length)
+      if (e.key === 'ArrowLeft') setIndex((index - 1 + urls.length) % urls.length)
+    }
+    window.addEventListener('keydown', onKey as any)
+    return () => window.removeEventListener('keydown', onKey as any)
+  }, [index, urls.length, onClose, setIndex])
+
+  const goPrev = () => setIndex((index - 1 + urls.length) % urls.length)
+  const goNext = () => setIndex((index + 1) % urls.length)
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-[92vw] max-h-[86vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Imagen grande */}
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <img
+          src={urls[index]}
+          alt={`Imagen ${index + 1}`}
+          className="block max-w-[92vw] max-h-[86vh] object-contain rounded-xl shadow-2xl"
+          referrerPolicy="no-referrer"
+        />
+
+        {/* Cerrar */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -top-3 -right-3 h-9 w-9 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+          title="Cerrar"
+        >
+          ✕
+        </button>
+
+        {/* Controles */}
+        {urls.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={goPrev}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+              title="Anterior"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-white/90 text-black hover:bg-white shadow flex items-center justify-center"
+              title="Siguiente"
+            >
+              ›
+            </button>
+
+            {/* Indicador */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-white/90">
+              {index + 1} / {urls.length}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 /* ---------------- Component ---------------- */
 const IncidentDetails = () => {
-  // tu ruta es: /concepts/incidents/:incidentId
   const { id, incidentId } = useParams() as { id?: string; incidentId?: string }
   const effectiveId = incidentId ?? id
 
-  // Datos del incidente (como no existe GET /incidents/{id}, buscamos en comunidades)
+  const selectedCommunityId = useCommunitiesStore((s) => s.selectedId)
+
+  // De la lista en memoria (fallbacks)
+  const activeRows = useIncidentListStore((s) => s.activeTable.data)
+  const resolvedRows = useIncidentListStore((s) => s.resolvedTable.data)
+
+  /* Detalle base */
   const {
     data: incident,
     isLoading,
@@ -131,45 +371,132 @@ const IncidentDetails = () => {
   } = useSWR<IncidentRow | null>(
     effectiveId ? ['/api/v1/incidents/find-by-id', effectiveId] : null,
     ([, _id]) => apiFindIncidentByIdAcrossCommunities(String(_id)),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      shouldRetryOnError: false,
-    },
+    { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
-  // Actualizaciones / comentarios
+  /* fallback comunidad (ahora con files) */
+  const communityIdForFallback =
+    selectedCommunityId ?? (incident as unknown as Dict)?.['community_id']
+
+  const { data: incidentFromCommunity } = useSWR<CommunityIncident | undefined>(
+    effectiveId && communityIdForFallback
+      ? ['/api/v1/incidents/community/find-one', communityIdForFallback, effectiveId]
+      : null,
+    ([, communityId, incId]) => apiFindIncidentInCommunity(String(communityId), String(incId)),
+    { revalidateOnFocus: false, shouldRetryOnError: false },
+  )
+
+  /* Comentarios */
   const {
-    data: updates,
+    data: updatesApi,
     isLoading: isLoadingUpdates,
     mutate: mutateUpdates,
-  } = useSWR<IncidentUpdateRow[]>(
+  } = useSWR<LocalComment[]>(
     effectiveId ? ['/api/v1/incidents/updates', effectiveId] : null,
-    ([, _id]) => apiGetIncidentUpdates(String(_id)).then((res) => res.list),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      shouldRetryOnError: false,
-    },
+    ([, _id]) => apiGetUpdatesArray(String(_id)),
+    { revalidateOnFocus: false, revalidateIfStale: false, shouldRetryOnError: false },
   )
 
+  /* Lista mostrada */
+  const [displayUpdates, setDisplayUpdates] = useState<LocalComment[]>([])
+  useEffect(() => {
+    if (updatesApi) setDisplayUpdates(updatesApi)
+  }, [updatesApi])
+
+  const commentsWrapRef = useRef<HTMLDivElement | null>(null)
+  const scrollToBottom = (instant = false) => {
+    const el = commentsWrapRef.current
+    if (!el) return
+    const behavior: ScrollBehavior = instant ? 'auto' : 'smooth'
+    requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior }))
+  }
+
+  /* Header / fields */
   const isReady = !!incident && !isEmpty(incident) && !error
-
   const title = incident?.title ?? 'Detalle del Reporte'
-  const propertyCode = incident?.property_code !== undefined ? String(incident.property_code) : '—'
+  const propertyCode =
+    (incident as unknown as Dict)?.['property_number']
+      ? String((incident as unknown as Dict)['property_number'])
+      : incident?.property_code !== undefined
+      ? String(incident.property_code)
+      : '—'
   const dateStr = formatDate(incident?.created_at)
-  const description = getDescription(incident)
 
+  /* fila del store (para desc + files si hace falta) */
+  const rowFromStore = useMemo(() => {
+    const all = [...(activeRows ?? []), ...(resolvedRows ?? [])] as Array<Dict>
+    return all.find((r) => String(r['id']) === String(effectiveId))
+  }, [activeRows, resolvedRows, effectiveId])
+
+  const descriptionFromStore = useMemo(() => {
+    return rowFromStore
+      ? pickString(rowFromStore, ['description', 'desc', 'details', 'detail'])
+      : undefined
+  }, [rowFromStore])
+
+  const description =
+    pickString(incident as unknown as Dict, ['description']) ??
+    (incidentFromCommunity?.description ?? undefined) ??
+    descriptionFromStore ??
+    '—'
+
+  /* imágenes */
+  const imageUrls = useMemo(() => {
+    const fromDetail = extractImageUrls(incident as unknown as Dict)
+    const fromCommunity = extractImageUrls(incidentFromCommunity as unknown as Dict)
+    const fromStore = extractImageUrls(rowFromStore as unknown as Dict)
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const u of [...fromDetail, ...fromCommunity, ...fromStore]) {
+      if (u && !seen.has(u)) { seen.add(u); out.push(u) }
+    }
+    return out
+  }, [incident, incidentFromCommunity, rowFromStore])
+
+  /* lightbox state */
+  const [lbOpen, setLbOpen] = useState(false)
+  const [lbIndex, setLbIndex] = useState(0)
+  const openLightbox = (i: number) => { setLbIndex(i); setLbOpen(true) }
+
+  /* input */
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
+  const taRef = useRef<HTMLTextAreaElement | null>(null)
+  useEffect(() => {
+    const el = taRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }, [comment])
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      const form = (e.currentTarget as HTMLTextAreaElement).closest('form')
+      form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+    }
+  }
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!effectiveId || !comment.trim()) return
+    const text = comment.trim()
+    if (!effectiveId || !text) return
+
+    const optimistic: LocalComment = {
+      id: `tmp-${Date.now()}`,
+      author_name: 'Tú',
+      text,
+      my_comment: true,
+      created_at: new Date().toISOString(),
+    }
+    setDisplayUpdates((prev) => [...prev, optimistic])
+    setComment('')
+    playSendSound()
+    scrollToBottom(true)
+
     try {
       setSending(true)
-      await apiCreateIncidentUpdate(effectiveId, { text: comment.trim() })
-      setComment('')
+      await apiPostUpdate(effectiveId, text)
       await mutateUpdates()
     } finally {
       setSending(false)
@@ -181,23 +508,17 @@ const IncidentDetails = () => {
       {isReady ? (
         <div className="mx-auto w-full max-w-6xl">
           {/* Título principal */}
-          <div className="mb-6 text-center">
-            <h2 className="text-3xl font-extrabold md:text-4xl">Detalle del Reporte</h2>
-          </div>
-
-          {/* Encabezado con comunidad / título y prioridad visible */}
-          <Card className="mb-6 w-full">
-            <div className="flex items-start gap-4 p-6">
+          <Card className="mb-5 w-full">
+            <div className="flex items-start gap-4 p-5">
               <div className="flex-1">
-                <div className="text-sm text-gray-500">{incident?.community_name ?? 'Porteria Residencial'}</div>
+                <div className="text-base font-semibold text-gray-700">Título</div>
                 <div className="mt-1 text-lg font-semibold">{title}</div>
               </div>
-              <PriorityPill value={incident?.priority} />
             </div>
           </Card>
 
-          {/* Grid principal como el mock, con ESTADO incluido */}
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Grid principal */}
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
             <FieldCard label="Prioridad">
               <PriorityPill value={incident?.priority} />
             </FieldCard>
@@ -206,45 +527,98 @@ const IncidentDetails = () => {
               <StatusPill value={incident?.status} />
             </FieldCard>
 
-            <FieldCard label="Fecha">{dateStr}</FieldCard>
-
-            <FieldCard label="Título">{title}</FieldCard>
-
             <FieldCard label="Propiedad">{propertyCode}</FieldCard>
 
-            <div className="md:col-span-2">
+            <FieldCard label="Fecha de creación">{dateStr}</FieldCard>
+
+            <div className="md:col-span-4">
               <FieldCard label="Descripción">
                 {description && description.trim().length > 0 ? description : '—'}
               </FieldCard>
             </div>
-          </div>
 
-          {/* Comentarios */}
-          <div className="mb-3 text-lg font-semibold">Comentarios</div>
-          <div className="mb-6 flex flex-col gap-4">
-            {(updates ?? []).length === 0 ? (
-              <div className="text-gray-500">Aún no hay comentarios.</div>
-            ) : (
-              (updates ?? []).map((c) => <CommentItem key={String(c.id)} c={c} />)
+            {/* Card CONDICIONAL de imágenes */}
+            {imageUrls.length > 0 && (
+              <div className="md:col-span-4">
+                <Card className="w-full">
+                  <div className="p-3">
+                    <div className="mb-1 text-[13px] font-semibold uppercase tracking-wide text-gray-600">
+                      Imagen{imageUrls.length > 1 ? 'es' : ''} adjunta{imageUrls.length > 1 ? 's' : ''}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {imageUrls.map((src, i) => (
+                        <button
+                          key={`${src}-${i}`}
+                          type="button"
+                          onClick={() => openLightbox(i)}
+                          className="group block text-left"
+                          title="Ver imagen"
+                        >
+                          <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                            <img
+                              src={src}
+                              alt={`Incidente imagen ${i + 1}`}
+                              className="block h-40 w-full object-cover transition-transform group-hover:scale-[1.02] group-active:scale-[0.99]"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </div>
             )}
           </div>
 
-          {/* Form para agregar comentario */}
+          {/* Comentarios */}
+          <Card className="mb-6 w-full">
+            <div className="p-4">
+              <div className="mb-3 text-xl font-bold">Comentarios</div>
+              <div
+                ref={commentsWrapRef}
+                className="flex max-h-[55vh] flex-col gap-3 overflow-y-auto pr-1"
+              >
+                {displayUpdates.length === 0 ? (
+                  <div className="text-gray-500">Aún no hay comentarios.</div>
+                ) : (
+                  displayUpdates.map((c) => <CommentItem key={String(c.id)} c={c} />)
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Form comentario */}
           <Card className="w-full">
             <form className="flex flex-col gap-3 p-4" onSubmit={onSubmit}>
               <Textarea
+                ref={taRef as unknown as React.RefObject<HTMLTextAreaElement>}
                 value={comment}
                 placeholder="Escribe un comentario…"
-                rows={3}
+                rows={1}
+                className="resize-none rounded-2xl px-4 py-3 focus:ring-2 focus:ring-sky-300 overflow-hidden"
+                style={{ overflowY: 'hidden' }}
                 onChange={(e) => setComment(e.target.value)}
+                onKeyDown={handleKeyDown}
               />
               <div className="flex justify-end">
-                <Button disabled={sending || comment.trim().length === 0} loading={sending} variant="solid">
+                <Button variant="solid" disabled={sending || comment.trim().length === 0} loading={sending}>
                   Publicar
                 </Button>
               </div>
             </form>
           </Card>
+
+          {/* Lightbox */}
+          {lbOpen && (
+            <Lightbox
+              urls={imageUrls}
+              index={lbIndex}
+              onClose={() => setLbOpen(false)}
+              setIndex={setLbIndex}
+            />
+          )}
         </div>
       ) : (
         <div className="p-4 text-center text-gray-500">No se pudo cargar la información del reporte.</div>

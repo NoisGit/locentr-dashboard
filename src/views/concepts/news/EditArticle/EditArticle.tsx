@@ -1,5 +1,5 @@
 // src/views/concepts/news/EditArticle/EditArticle.tsx
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import useSWR, { useSWRConfig } from 'swr'
 import { useForm } from 'react-hook-form'
@@ -9,12 +9,12 @@ import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Button from '@/components/ui/Button'
 import { Form, FormItem } from '@/components/ui/Form'
 import Input from '@/components/ui/Input'
-import RichTextEditor from '@/components/shared/RichTextEditor'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
 import { apiGetNewsById, apiUpdateNews, type NewsDetail } from '@/services/NewsService'
+import { apiGetMyCommunities, apiListCommunities, type Community } from '@/services/CommunitiesService'
 import { useAuth } from '@/auth'
 
 type EditFormValues = {
@@ -22,8 +22,6 @@ type EditFormValues = {
   content: string
   authors: string
 }
-
-type RTEOnChangePayload = { html: string }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
@@ -36,6 +34,14 @@ function errMsg(e: unknown): string {
   }
   return 'Ocurrió un error'
 }
+
+/* -------- strip HTML -------- */
+function stripHtml(input: string | undefined | null): string {
+  if (!input) return ''
+  return String(input).replace(/<[^>]*>/g, '').trim()
+}
+
+/* -------- permisos -------- */
 function readRoleTokens(user: unknown): string[] {
   if (!isRecord(user)) return []
   const u = user as Record<string, unknown>
@@ -98,6 +104,45 @@ function getUserIdFromAuth(user: unknown): number | string | undefined {
   return undefined
 }
 
+/* -------- fetcher “smart” por ID -------- */
+async function getAllCommunityIds(): Promise<Array<string | number>> {
+  let list: Community[] = []
+  try {
+    list = await apiGetMyCommunities<Community[]>()
+  } catch {}
+  if (!list.length) {
+    try {
+      list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 })
+    } catch {}
+  }
+  return Array.from(
+    new Set(
+      list
+        .map((c) => c?.id)
+        .filter((id): id is string | number => id !== undefined && id !== null)
+        .map((x) => String(x)),
+    ),
+  ).map((x) => (/^\d+$/.test(x) ? Number(x) : x))
+}
+
+async function smartGetNewsById(
+  newsId: string | number,
+  communityId?: string | number
+): Promise<NewsDetail> {
+  if (communityId !== undefined && String(communityId) !== '') {
+    return apiGetNewsById(String(communityId), String(newsId))
+  }
+  const ids = await getAllCommunityIds()
+  for (const cid of ids) {
+    try {
+      const detail = await apiGetNewsById(String(cid), String(newsId))
+      return detail
+    } catch {}
+  }
+  throw new Error('No se encontró la noticia en tus comunidades.')
+}
+
+/* ====================== Component ====================== */
 const EditArticle = () => {
   const { id: idParam } = useParams()
   const id = idParam ?? ''
@@ -107,35 +152,28 @@ const EditArticle = () => {
   const { mutate: mutateGlobal } = useSWRConfig()
 
   const swrKey =
-    id && communityId != null && String(communityId) !== ''
-      ? (['news:detail', String(communityId), String(id)] as const)
-      : null
+    id ? (['news:detail-smart', String(id), String(communityId ?? '')] as const) : null
 
   const { data, isLoading } = useSWR<NewsDetail>(
     swrKey,
-    ([, cid, nid]) => apiGetNewsById<NewsDetail>(cid as string | number, nid as string | number),
+    ([, nid, cid]) => smartGetNewsById(nid, cid || undefined),
     { revalidateOnFocus: false, revalidateIfStale: true, revalidateOnMount: true }
   )
 
-  const defaults: EditFormValues = useMemo(
-    () => ({
+  const sanitizedDefaults = useMemo(() => {
+    return {
       title: data?.title ?? '',
-      content: data?.content ?? '',
-      authors: data?.created_by ?? '',
-    }),
-    [data]
-  )
+      content: stripHtml(data?.content ?? ''),
+      authors: (data as any)?.created_by ?? '',
+    }
+  }, [data])
 
-  const { register, handleSubmit, setValue, formState: { errors }, reset } =
-    useForm<EditFormValues>({ defaultValues: defaults })
-
-  const [liveHtml, setLiveHtml] = useState<string>('')
+  const { register, handleSubmit, formState: { errors }, reset } =
+    useForm<EditFormValues>({ defaultValues: sanitizedDefaults })
 
   useEffect(() => {
-    reset(defaults)
-    setLiveHtml(defaults.content)
-    setValue('content', defaults.content, { shouldDirty: false })
-  }, [defaults, reset, setValue])
+    reset(sanitizedDefaults)
+  }, [sanitizedDefaults, reset])
 
   const currentUserId = getUserIdFromAuth(user) ?? getCurrentUserIdFromStorage()
   const creatorId: number | string | undefined = useMemo(() => {
@@ -175,7 +213,24 @@ const EditArticle = () => {
   const [saving, setSaving] = useState(false)
 
   const onSubmit = async (values: EditFormValues) => {
-    if (!communityId || !id) return
+    if (!id) return
+    let targetCommunityId: string | number | undefined = communityId ?? undefined
+    if (!targetCommunityId) {
+      try {
+        const ids = await getAllCommunityIds()
+        for (const cid of ids) {
+          try {
+            await apiGetNewsById(String(cid), String(id))
+            targetCommunityId = cid
+            break
+          } catch {}
+        }
+      } catch {}
+    }
+    if (!targetCommunityId) {
+      toast.push(<Notification type="danger">No se pudo determinar la comunidad de la noticia.</Notification>, { placement: 'top-center' })
+      return
+    }
     if (!canEdit) {
       toast.push(<Notification type="warning">No tienes permiso para editar esta noticia.</Notification>, {
         placement: 'top-center',
@@ -184,16 +239,16 @@ const EditArticle = () => {
     }
     setSaving(true)
     try {
-      await apiUpdateNews(String(communityId), String(id), {
+      await apiUpdateNews(String(targetCommunityId), String(id), {
         title: values.title,
-        content: liveHtml,
+        content: stripHtml(values.content), // guardamos solo texto plano
         ...(currentUserId != null ? { created_by_user_id: currentUserId } : {}),
       })
       await mutateGlobal(
         (key) =>
           Array.isArray(key) &&
           key[0] === 'news:list' &&
-          String(key[1]) === String(communityId)
+          String(key[1]) === String(targetCommunityId)
       )
       toast.push(<Notification type="success">Noticia actualizada</Notification>, {
         placement: 'top-center',
@@ -207,31 +262,6 @@ const EditArticle = () => {
       setSaving(false)
     }
   }
-
-  const editorShellRef = useRef<HTMLDivElement | null>(null)
-  const focusInnerEditor = () => {
-    const root = editorShellRef.current
-    if (!root) return
-    const ce = root.querySelector('[contenteditable="true"]') as HTMLElement | null
-    if (ce) {
-      ce.focus()
-      try {
-        const sel = window.getSelection()
-        const range = document.createRange()
-        range.selectNodeContents(ce)
-        range.collapse(false)
-        sel?.removeAllRanges()
-        sel?.addRange(range)
-      } catch {
-        void 0
-      }
-    }
-  }
-
-  const editorKey = useMemo(() => {
-    const sig = (data?.updated_at && String(data.updated_at)) || String((defaults.content || '').length)
-    return `${String(id || 'new')}:${sig}`
-  }, [id, data?.updated_at, defaults.content])
 
   return (
     <div className="px-6 sm:px-8 lg:px-12">
@@ -253,36 +283,22 @@ const EditArticle = () => {
                 </FormItem>
 
                 <FormItem label="Contenido">
-                  <div
-                    ref={editorShellRef}
-                    className={canEdit ? 'cursor-text' : 'pointer-events-none opacity-70'}
-                    onMouseDown={(e) => {
-                      if (!canEdit) return
-                      const target = e.target as HTMLElement
-                      if (!target.closest('[contenteditable="true"]')) {
-                        e.preventDefault()
-                        focusInnerEditor()
-                      }
-                    }}
-                  >
-                    <RichTextEditor
-                      key={editorKey}
-                      content={defaults.content}
-                      editorContentClass="min-h-[320px] px-3 py-3"
-                      placeholder="Escribe el contenido aquí…"
-                      onChange={({ html }: RTEOnChangePayload) => {
-                        setLiveHtml(html)
-                        setValue('content', html, { shouldDirty: true })
-                      }}
-                    />
-                  </div>
+                  <textarea
+                    className={`w-full min-h-[320px] rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-3 outline-none transition-colors resize-y ${canEdit ? 'focus:border-sky-400' : 'opacity-70 pointer-events-none'}`}
+                    placeholder="Escribe el contenido aquí…"
+                    readOnly={!canEdit}
+                    {...register('content', {
+                      setValueAs: (v) => stripHtml(v), // limpia HTML si llega a pegarse
+                    })}
+                    defaultValue={sanitizedDefaults.content}
+                  />
                 </FormItem>
 
                 <div className="space-y-1">
                   <div className="text-[13px] text-gray-600 dark:text-gray-400">Autor</div>
                   <p className="text-sm leading-relaxed select-text">
-                    <strong>{defaults.authors || '—'}</strong>
-                    {!canEdit && !superAdmin ? (
+                    <strong>{sanitizedDefaults.authors || '—'}</strong>
+                    {!canEdit && !isSuperAdminUser(user) ? (
                       <span className="ml-2 text-xs text-gray-500">(solo el autor puede editar)</span>
                     ) : null}
                   </p>

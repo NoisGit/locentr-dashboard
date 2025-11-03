@@ -1,4 +1,3 @@
-// src/views/concepts/residents/ResidentsEdit/ResidentsEdit.tsx
 import { useState } from 'react'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
@@ -39,9 +38,12 @@ const ResidentsEdit = () => {
         is_owner: values.isOwner,
         start_date: values.startDate,
         end_date: endDate,
+        home_role: values.homeRole || '',
       })
 
-      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === '/api/residents')
+      // Revalida todas las listas de residentes y notifica por evento
+      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === 'residents:list')
+      window.dispatchEvent(new CustomEvent('residents:changed', { detail: { type: 'updated', id } }))
 
       toast.push(<Notification type="success">¡Cambios guardados!</Notification>, { placement: 'top-center' })
       navigate('/concepts/residents/residents-list')
@@ -60,7 +62,7 @@ const ResidentsEdit = () => {
       isOwner: Boolean(data.isOwner),
       startDate: data.startDate ?? '',
       endDate: data.endDate ?? '',
-      homeRole: (data as unknown as { homeRole?: string }).homeRole ?? '',
+      homeRole: (data as unknown as { homeRole?: string }).homeRole ?? (data as unknown as { home_role?: string })?.home_role ?? '',
     }
   }
 
@@ -69,7 +71,8 @@ const ResidentsEdit = () => {
     setIsDeleting(true)
     try {
       await apiDeleteResident(id)
-      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === '/api/residents')
+      await globalMutate((key: unknown) => Array.isArray(key) && key[0] === 'residents:list')
+      window.dispatchEvent(new CustomEvent('residents:changed', { detail: { type: 'deleted', id } }))
 
       toast.push(<Notification type="success">¡Residente eliminado!</Notification>, { placement: 'top-center' })
       navigate('/concepts/residents/residents-list')

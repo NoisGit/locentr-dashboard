@@ -1,4 +1,3 @@
-// src/views/concepts/residents/ResidentsCreate.tsx
 import { useState } from 'react'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
@@ -31,16 +30,22 @@ const ResidentsCreate = () => {
         property_id: values.propertyId,
         is_owner: values.isOwner,
         start_date: values.startDate,
-        end_date: endDate,
+        end_date: endDate ?? undefined,
+        home_role: values.homeRole || '',
       })
 
-      await mutate((key) => Array.isArray(key) && key[0] === '/api/residents')
+      // refresco correcto de todas las listas de residentes
+      await mutate((key) => Array.isArray(key) && key[0] === 'residents:list')
 
+      // para que el nuevo aparezca arriba
       setTableData((prev) => ({
         ...prev,
         pageIndex: 1,
         sort: { key: 'id', order: 'desc' },
       }))
+
+      // notificar a la tabla que se vuelva a pedir datos (pestaña abierta)
+      window.dispatchEvent(new CustomEvent('residents:changed', { detail: { type: 'created' } }))
 
       toast.push(<Notification type="success">Residente creado</Notification>, {
         placement: 'top-center',

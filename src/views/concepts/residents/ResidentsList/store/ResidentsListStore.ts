@@ -1,4 +1,3 @@
-// src/views/concepts/residents/ResidentsList/store/ResidentsListStore.ts
 import { create } from 'zustand'
 import type { TableQueries } from '@/@types/common'
 

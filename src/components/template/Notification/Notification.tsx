@@ -1,4 +1,21 @@
 // src/components/template/Header/Notification/Notification.tsx
+
+import withHeaderItem from '@/utils/hoc/withHeaderItem'
+
+/**
+ * 🔕 Notificaciones ocultas por ahora.
+ * - Dejamos el componente como un stub que no renderiza nada.
+ * - El contenido original queda abajo comentado para reactivarlo cuando quieras.
+ *   (solo descomenta y vuelve a exportar ese componente).
+ */
+
+const _Notification = (_props: { className?: string }) => null
+
+const Notification = withHeaderItem(_Notification)
+export default Notification
+
+/* ===================== CONTENIDO ORIGINAL (COMENTADO) =====================
+
 import { useState, useRef } from 'react'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
@@ -194,3 +211,5 @@ const _Notification = ({ className }: { className?: string }) => {
 
 const Notification = withHeaderItem(_Notification)
 export default Notification
+
+===================== FIN CONTENIDO ORIGINAL ===================== */

@@ -67,11 +67,31 @@ function boolOrUndef(v: unknown): boolean | undefined {
   if (s === 'false' || s === '0') return false
   return undefined
 }
-function pickItemsAndTotalDetailed(raw: unknown): { items: unknown[]; total: number } {
-  if (isRecord(raw) && Array.isArray(raw.data as unknown[])) {
-    const items = raw.data as unknown[]
-    const total = Number((raw.total as unknown) ?? items.length)
-    return { items, total }
+
+/** Soporta { data:[...], total }, { list:[...], total }, { results:[...], total } o array plano */
+function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
+  if (isRecord(raw)) {
+    const r = raw as Dict
+    const candidates = [r.list, r.items, r.results, r.data, raw]
+    let items: unknown[] = []
+    for (const c of candidates) {
+      if (Array.isArray(c)) { items = c; break }
+      if (isRecord(c)) {
+        const nested = (c as Dict).list ?? (c as Dict).items ?? (c as Dict).results
+        if (Array.isArray(nested)) { items = nested; break }
+      }
+    }
+    if (items.length) {
+      const total =
+        typeof r.total === 'number'
+          ? r.total
+          : typeof r.count === 'number'
+          ? Number(r.count)
+          : typeof (r.pagination as Dict | undefined)?.['total'] === 'number'
+          ? Number((r.pagination as Dict).total)
+          : items.length
+      return { items, total: Number(total ?? items.length) }
+    }
   }
   const items = Array.isArray(raw) ? (raw as unknown[]) : []
   return { items, total: items.length }
@@ -79,13 +99,13 @@ function pickItemsAndTotalDetailed(raw: unknown): { items: unknown[]; total: num
 
 function adaptResidentDetailed(u: unknown): ResidentRow {
   const r: Dict = isRecord(u) ? u : {}
-  const id = String(r.id ?? '')
-  const userId = String(r.user_id ?? '')
-  const propertyId = String(r.property_id ?? '')
-  const userName = str(r.user_name)
-  const propertyNumber = str(r.property_number)
+  const id = String(r.id ?? r._id ?? '')
+  const userId = String(r.user_id ?? r.userId ?? '')
+  const propertyId = String(r.property_id ?? r.propertyId ?? '')
+  const userName = str(r.user_name ?? r.userName)
+  const propertyNumber = str(r.property_number ?? r.propertyNumber)
 
-  const floorRaw = r.floor
+  const floorRaw = r.floor ?? r.level
   const floor: number | string | undefined =
     typeof floorRaw === 'number'
       ? floorRaw
@@ -93,14 +113,14 @@ function adaptResidentDetailed(u: unknown): ResidentRow {
       ? floorRaw
       : undefined
 
-  const block = str(r.block)
-  const homeRole = str(r.home_role)
-  const isOwner = Boolean(r.is_owner)
-  const startDate = toYMD(r.start_date)
-  const endDate = toYMD(r.end_date)
-  const idNumber = str(r.id_number)
-  const userEmail = str(r.user_email)
-  const communityName = str(r.community_name)
+  const block = str(r.block ?? r.block_tower ?? r.tower ?? r.building)
+  const homeRole = str(r.home_role ?? r.homeRole ?? r.role_name)
+  const isOwner = Boolean(r.is_owner ?? r.isOwner)
+  const startDate = toYMD(r.start_date ?? r.startDate ?? r.start ?? r.created_at ?? r.createdAt)
+  const endDate = toYMD(r.end_date ?? r.endDate ?? r.end ?? r.finish_date)
+  const idNumber = str(r.id_number ?? r.rut ?? r.dni)
+  const userEmail = str(r.user_email ?? r.email)
+  const communityName = str(r.community_name ?? r.communityName)
 
   return {
     id,
@@ -124,15 +144,21 @@ export async function apiGetResidentsList<
   T = GetResidentsListResponse,
   Q extends TableQueries = TableQueries
 >(params: Q): Promise<T> {
+  // 1-based como en el resto del app
   const pageIndex = Math.max(1, Number(params.pageIndex ?? 1))
-  const pageSize = Math.max(1, Number(params.pageSize ?? 10))
-  const skip = (pageIndex - 1) * pageSize
+  const pageSize  = Math.max(1, Number(params.pageSize ?? 10))
+
+  // ⛳ Igual que en Properties: pedimos un “bucket” grande y paginamos en cliente
+  const skip  = 0
+  const limit = 100
 
   const qp: Record<string, unknown> = {
+    // Server-side (bucket grande)
+    skip,
+    limit,
+    // Metadatos por si el backend los usa (no molestan)
     pageIndex,
     pageSize,
-    limit: pageSize,
-    skip,
   }
 
   const q = (params.query ?? '').toString().trim()
@@ -146,7 +172,8 @@ export async function apiGetResidentsList<
   const endTo = toYMD(params.endDateTo)
   if (endTo) qp.end_date_to = endTo
   if (params.communityId !== '' && params.communityId != null) qp.community_id = Number(params.communityId)
-  if (params.sort?.key) qp['sort[key]'] = params.sort.key
+
+  if (params.sort?.key)   qp['sort[key]'] = params.sort.key
   if (params.sort?.order) qp['sort[order]'] = params.sort.order
   if (!params.sort) {
     qp['sort[key]'] = 'id'
@@ -159,9 +186,17 @@ export async function apiGetResidentsList<
     params: qp,
   })
 
-  const { items, total } = pickItemsAndTotalDetailed(resp)
-  const list: ResidentRow[] = items.map(adaptResidentDetailed)
-  return { list, total } as T
+  const { items, total } = pickItemsAndTotal(resp)
+
+  // mapeo
+  const all: ResidentRow[] = items.map(adaptResidentDetailed)
+
+  // paginación en cliente
+  const start = (pageIndex - 1) * pageSize
+  const end   = start + pageSize
+  const pageSlice = all.slice(start, end)
+
+  return { list: pageSlice, total: Number(total ?? all.length) } as T
 }
 
 export async function apiCreateResident(payload: {
@@ -170,6 +205,7 @@ export async function apiCreateResident(payload: {
   is_owner?: boolean
   start_date?: string | Date
   end_date?: string | Date
+  home_role?: string
 }) {
   const body: Record<string, unknown> = {
     user_id: Number(payload.user_id),
@@ -178,6 +214,7 @@ export async function apiCreateResident(payload: {
     end_date: toYMD(payload.end_date) ?? null,
   }
   if (typeof payload.is_owner === 'boolean') body.is_owner = payload.is_owner
+  if (typeof payload.home_role === 'string') body.home_role = payload.home_role
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: '/api/v1/residents/',
     method: 'post',
@@ -202,6 +239,7 @@ export async function apiUpdateResident(
     is_owner?: boolean
     start_date?: string | Date
     end_date?: string | Date
+    home_role?: string
   },
 ) {
   const cleanId = String(id).replace(/\/+$/, '')
@@ -211,6 +249,7 @@ export async function apiUpdateResident(
   if (typeof patch.is_owner === 'boolean') body.is_owner = patch.is_owner
   body.start_date = toYMD(patch.start_date) ?? null
   body.end_date = toYMD(patch.end_date) ?? null
+  if (typeof patch.home_role === 'string') body.home_role = patch.home_role
   return ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
     url: `/api/v1/residents/${encodeURIComponent(cleanId)}`,
     method: 'put',

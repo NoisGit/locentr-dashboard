@@ -108,18 +108,41 @@ const dashboardsRoute: Routes = [
     meta: { pageContainerType: 'contained' },
   },
 
+  /* ----------------------- ACCESS POINTS (HARDWARE) ------------------------------------ */
+  {
+    key: 'concepts.accesspoints.accesspointsList',
+    path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-list`,
+    component: lazy(() => import('@/views/concepts/accesspoints/AccessPointsList/AccessPointsList')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: { pageContainerType: 'contained' },
+  },
+  {
+    key: 'concepts.accesspoints.accesspointsEdit',
+    path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-edit/:id`,
+    component: lazy(() => import('@/views/concepts/accesspoints/AccessPointsEdit/AccessPointsEdit')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: {
+      header: {
+        title: 'Editar Access Point',
+        description: 'Edita el nombre y ubicación; otros campos informativos se muestran en solo lectura.',
+        contained: true,
+      },
+      footer: false,
+    },
+  },
+
   /* ----------------------- PRODUCTS/AMENITIES (visible para SUPERADMIN y grupo admin) ------------- */
   {
     key: 'concepts.products.productList',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
     component: lazy(() => import('@/views/concepts/products/ProductList')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
   },
   {
     key: 'concepts.products.productEdit',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-edit/:id`,
     component: lazy(() => import('@/views/concepts/products/ProductEdit')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
     meta: {
       header: {
         title: 'Edit product',
@@ -133,7 +156,7 @@ const dashboardsRoute: Routes = [
     key: 'concepts.products.productCreate',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-create`,
     component: lazy(() => import('@/views/concepts/products/ProductCreate')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    authority: [SUPERADMIN],
     meta: {
       header: {
         title: 'Create product',
@@ -479,6 +502,22 @@ const dashboardsRoute: Routes = [
     component: lazy(() => import('@/views/concepts/properties/PropertiesDetails')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
+  },
+
+  /* ----------------------- COLLABORATORS ------------------------------------------------ */
+  {
+    key: 'concepts.collaborators.collaboratorsEdit',
+    path: `${CONCEPTS_PREFIX_PATH}/collaborators/collaborators-edit/:id`,
+    component: lazy(() => import('@/views/concepts/collaborators/CollaboratorsEdit')),
+    authority: [SUPERADMIN, ...ADMIN_GROUP],
+    meta: {
+      header: {
+        title: 'Editar colaborador',
+        description: 'Edita nombre, teléfono y contraseña (correo y rol son solo lectura).',
+        contained: true,
+      },
+      footer: false,
+    },
   },
 ]
 

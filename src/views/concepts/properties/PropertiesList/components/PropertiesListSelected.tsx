@@ -29,6 +29,7 @@ const PropertiesListSelected = () => {
   const handleCancel = () => { if (!deleteLoading) setDeleteConfirmationOpen(false) }
 
   const handleConfirmDelete = async () => {
+    // ✅ ÚNICA validación simple
     if (!hasSelection) {
       setDeleteConfirmationOpen(false)
       return
@@ -44,6 +45,7 @@ const PropertiesListSelected = () => {
       setTableData(prev => ({ ...prev, pageIndex: (prev.pageIndex as number) - 1 }))
     }
 
+    // Optimista
     mutate({ list: newList, total: newTotal }, false)
 
     setDeleteConfirmationOpen(false)
@@ -60,6 +62,17 @@ const PropertiesListSelected = () => {
         <Notification type="danger">No se pudo sincronizar la lista con el servidor</Notification>,
         { placement: 'top-center' }
       )
+    }
+
+    // 🔔 Notificar a otras vistas (tabs, etc.) para refrescar sin F5
+    try {
+      window.dispatchEvent(
+        new CustomEvent('properties:changed', {
+          detail: { action: 'delete', ids: idsToDelete }
+        })
+      )
+    } catch {
+      /* no-op */
     }
 
     if (failed === 0) {

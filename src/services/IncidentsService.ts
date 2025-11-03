@@ -22,6 +22,8 @@ export type IncidentRow = {
   created_at?: string
   community_id?: number | string
   community_name?: string
+  /** <- Agregamos para que el detalle pueda mostrarla directo */
+  description?: string
 }
 
 export type GetIncidentsListResponse = {
@@ -41,6 +43,7 @@ export type GetIncidentUpdatesResponse = {
   total: number
 }
 
+/* ---------------- Utils runtime (sin any) ---------------- */
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
@@ -66,26 +69,50 @@ function trimSlashes(s: string): string {
   return s.replace(/\/+$/, '')
 }
 
+/* ---------------- De-dupe communities fetch ---------------- */
+let _communityIdsCache: Array<string | number> | null = null
+let _communityIdsPromise: Promise<Array<string | number>> | null = null
+
 async function getAllCommunityIds(): Promise<Array<string | number>> {
-  let list: Community[] = []
-  try {
-    list = await apiGetMyCommunities<Community[]>()
-  } catch (e) {
-    // ignore; fallback to list all
-    void e
-  }
-  if (!list.length) {
+  if (_communityIdsCache) return _communityIdsCache
+  if (_communityIdsPromise) return _communityIdsPromise
+
+  _communityIdsPromise = (async () => {
+    let list: Community[] = []
     try {
-      list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 })
-    } catch (e) {
-      // ignore; return empty
-      void e
+      // 1) Preferimos “mis comunidades” si existe
+      list = await apiGetMyCommunities<Community[]>()
+    } catch {
+      // ignore
     }
-  }
-  const ids = list.map(c => c.id).filter(id => id !== undefined && id !== null)
-  return Array.from(new Set(ids.map(x => String(x)))).map(x => (/^\d+$/.test(x) ? Number(x) : x))
+    if (!list.length) {
+      try {
+        // 2) Fallback a /communities (una sola vez)
+        list = await apiListCommunities<Community[]>({ pageIndex: 1, pageSize: 200 })
+      } catch {
+        // ignore
+      }
+    }
+    const ids = list
+      .map((c) => c.id)
+      .filter((id) => id !== undefined && id !== null)
+    const deduped = Array.from(new Set(ids.map((x) => String(x)))).map((x) =>
+      /^\d+$/.test(x) ? Number(x) : x,
+    )
+    _communityIdsCache = deduped
+    return deduped
+  })()
+
+  return _communityIdsPromise
 }
 
+/* (opcional) si en algún flujo cambian las comunidades y quieres refrescar: */
+// export function invalidateCommunitiesCache() {
+//   _communityIdsCache = null
+//   _communityIdsPromise = null
+// }
+
+/* ---------------- Mapeos ---------------- */
 function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
   const candidates = [
     get(raw, 'items'),
@@ -157,6 +184,14 @@ function mapIncidentRow(p: unknown): IncidentRow {
     toStr(get(o, 'created')) ??
     undefined
 
+  // 🔸 NUEVO: mapeamos description (varios alias por si acaso)
+  const description =
+    toStr(get(o, 'description')) ??
+    toStr(get(o, 'desc')) ??
+    toStr(get(o, 'details')) ??
+    toStr(get(o, 'detail')) ??
+    undefined
+
   const community = isObject(get(o, 'community')) ? (get(o, 'community') as Record<string, unknown>) : undefined
   const communityId = get(o, 'community_id') ?? (community ? get(community, 'id') : undefined)
   const communityName = get(o, 'community_name') ?? (community ? get(community, 'name') : undefined)
@@ -174,6 +209,7 @@ function mapIncidentRow(p: unknown): IncidentRow {
   if (cid !== undefined) mapped.community_id = cid
   const cname = toStr(communityName)
   if (cname !== undefined) mapped.community_name = cname
+  if (description !== undefined) mapped.description = description
 
   return mapped
 }
@@ -200,6 +236,7 @@ function compareBySort(a: IncidentRow, b: IncidentRow, sort?: SortParam): number
   return String(va).localeCompare(String(vb)) * order
 }
 
+/* ---------------- API ---------------- */
 export async function apiGetIncidentsList<
   T = GetIncidentsListResponse,
   Q extends TableQueries = TableQueries
@@ -221,7 +258,7 @@ export async function apiGetIncidentsList<
 
   const cid = (params as TableQueries).communityId
 
-  // Si NO hay comunidad -> agregar en cliente (no existe /all para GET)
+  // Sin comunidad -> agregamos en cliente (no existe /all para GET)
   if (cid === '' || cid == null) {
     const ids = await getAllCommunityIds()
     if (!ids.length) return { list: [], total: 0 } as T
@@ -253,7 +290,6 @@ export async function apiGetIncidentsList<
     }
 
     let mapped = allItems.map(mapIncidentRow)
-    // Orden global consistente
     mapped = mapped.sort((a, b) => compareBySort(a, b, s))
 
     const start = (pageIndex - 1) * pageSize
@@ -262,7 +298,7 @@ export async function apiGetIncidentsList<
     return { list: sliced, total: totalAcc || mapped.length } as T
   }
 
-  // Con comunidad -> llamada directa al endpoint de comunidad
+  // Con comunidad -> endpoint directo
   const endpoint = `/api/v1/incidents/community/${encodeURIComponent(String(cid))}`
 
   const body = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
@@ -277,8 +313,8 @@ export async function apiGetIncidentsList<
 }
 
 /**
- * Nota: tu API no expone GET /api/v1/incidents/{id}.
- * Esta función busca el incidente por ID recorriendo todas las comunidades del usuario.
+ * Tu API no expone GET /api/v1/incidents/{id}.
+ * Recorremos comunidades del usuario (memoizadas) y devolvemos el que matchee.
  */
 export async function apiFindIncidentByIdAcrossCommunities(
   id: string | number
@@ -303,16 +339,15 @@ export async function apiFindIncidentByIdAcrossCommunities(
           return row
         }
       }
-    } catch (e) {
+    } catch {
       // continuar con la siguiente comunidad
-      void e
     }
   }
 
   return null
 }
 
-/** Mantenido por compatibilidad (tu backend devuelve 405) */
+/** Legacy (tu backend devuelve 405) */
 export async function apiGetIncidentById(id: string | number) {
   const cleanId = trimSlashes(String(id))
   const body = await ApiService.fetchDataWithAxios<unknown, Record<string, unknown>>({
@@ -381,8 +416,8 @@ export async function apiPatchIncidentStatus(
 
 const IncidentsApi = {
   apiGetIncidentsList,
-  apiFindIncidentByIdAcrossCommunities, // nueva
-  apiGetIncidentById, // legacy (405 en tu backend)
+  apiFindIncidentByIdAcrossCommunities,
+  apiGetIncidentById, // legacy
   apiGetIncidentUpdates,
   apiPatchIncidentStatus,
 }

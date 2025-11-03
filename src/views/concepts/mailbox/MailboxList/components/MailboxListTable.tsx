@@ -1,7 +1,10 @@
-import { useMemo, useCallback } from 'react'
+// src/views/concepts/mailbox/MailboxList/components/MailboxListTable.tsx
+import { useMemo, useCallback, useState } from 'react'
 import DataTable from '@/components/shared/DataTable'
+import Tooltip from '@/components/ui/Tooltip'
 import useMailboxList from '../hooks/useMailboxList'
 import cloneDeep from 'lodash/cloneDeep'
+import { TbEye } from 'react-icons/tb'
 import type { OnSortParam, ColumnDef } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
 import type { MailboxEntry } from '../types'
@@ -9,10 +12,7 @@ import type { MailboxEntry } from '../types'
 const EMPTY = '-------'
 
 type Rec = Record<string, unknown>
-
-function isRec(v: unknown): v is Rec {
-  return typeof v === 'object' && v !== null
-}
+const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null
 
 function pickFirst(row: unknown, keys: string[]): unknown {
   if (!isRec(row)) return undefined
@@ -92,6 +92,32 @@ function readFloor(row: unknown): string {
   return EMPTY
 }
 
+/** Lee una URL de imagen desde varias posibles keys y valida http(s) */
+function readImageUrl(row: unknown): string | null {
+  const candidates = [
+    'image_url',
+    'imageUrl',
+    'photo_url',
+    'photoUrl',
+    'image',
+    'photo',
+  ]
+  let v = pickFirst(row, candidates)
+  if (isRec(v)) {
+    // por si viene como { url: '...' }
+    v = (v as Rec).url ?? (v as Rec).href
+  }
+  const url = typeof v === 'string' ? v.trim() : ''
+  if (!url) return null
+  try {
+    const u = new URL(url, window.location.origin)
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString()
+  } catch {
+    // ignorar
+  }
+  return null
+}
+
 const RecipientColumn = ({ row }: { row: MailboxEntry }) => {
   const id = resolveIdFromRow(row)
   const name =
@@ -108,6 +134,7 @@ const RecipientColumn = ({ row }: { row: MailboxEntry }) => {
 
 const MailboxListTable = () => {
   const { mailboxList, mailboxListTotal, tableData, isLoading, setTableData } = useMailboxList()
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const fmtDate = useCallback((v?: string) => {
     if (!v) return EMPTY
@@ -179,6 +206,26 @@ const MailboxListTable = () => {
           return <span>{deliveredAt === EMPTY ? EMPTY : fmtDate(deliveredAt)}</span>
         },
       },
+      // === NUEVA COLUMNA: Ver imagen ===
+      {
+        header: 'Ver imagen',
+        id: 'view_image',
+        cell: (props) => {
+          const url = readImageUrl(props.row.original)
+          if (!url) return <span className="text-gray-400">{EMPTY}</span>
+          return (
+            <Tooltip title="Ver imagen">
+              <button
+                type="button"
+                className="text-xl cursor-pointer select-none p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setPreviewUrl(url)}
+              >
+                <TbEye />
+              </button>
+            </Tooltip>
+          )
+        },
+      },
     ],
     [fmtDate],
   )
@@ -205,20 +252,46 @@ const MailboxListTable = () => {
   }
 
   return (
-    <DataTable
-      columns={columns}
-      data={mailboxList}
-      noData={!isLoading && mailboxList.length === 0}
-      loading={isLoading}
-      pagingData={{
-        total: mailboxListTotal,
-        pageIndex: tableData.pageIndex as number,
-        pageSize: tableData.pageSize as number,
-      }}
-      onPaginationChange={handlePaginationChange}
-      onSelectChange={handleSelectChange}
-      onSort={handleSort}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={mailboxList}
+        noData={!isLoading && mailboxList.length === 0}
+        loading={isLoading}
+        pagingData={{
+          total: mailboxListTotal,
+          pageIndex: tableData.pageIndex as number,
+          pageSize: tableData.pageSize as number,
+        }}
+        onPaginationChange={handlePaginationChange}
+        onSelectChange={handleSelectChange}
+        onSort={handleSort}
+      />
+
+      {/* Lightbox simple */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={previewUrl}
+              alt="Imagen de casilla"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl"
+            />
+            <button
+              type="button"
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-black shadow font-bold"
+              onClick={() => setPreviewUrl(null)}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

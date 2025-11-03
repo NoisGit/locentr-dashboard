@@ -8,6 +8,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import useResidentsList from '../hooks/useResidentsList'
+import type { Filter } from '../store/ResidentsListStore'
 
 const sortOptions = [
   { value: 'id_desc', label: 'Recientes primero (ID ↓)', key: 'id', order: 'desc' as const },
@@ -30,12 +31,7 @@ type FormSchema = z.infer<typeof validationSchema>
 const ResidentsListTableFilter = () => {
   const [dialogIsOpen, setIsOpen] = useState(false)
 
-  const {
-    tableData,
-    filterData,
-    setTableData,
-    setFilterData,
-  } = useResidentsList()
+  const { tableData, filterData, setTableData, setFilterData } = useResidentsList()
 
   const openDialog = () => setIsOpen(true)
   const onDialogClose = () => setIsOpen(false)
@@ -43,36 +39,45 @@ const ResidentsListTableFilter = () => {
   const initialSortValue = useMemo<string>(() => {
     const key = tableData?.sort?.key ?? 'id'
     const order = tableData?.sort?.order ?? 'desc'
-    const found = sortOptions.find(o => o.key === key && o.order === order)
+    const found = sortOptions.find((o) => o.key === key && o.order === order)
     return found?.value ?? 'id_desc'
   }, [tableData?.sort?.key, tableData?.sort?.order])
 
   const { handleSubmit, reset, control } = useForm<FormSchema>({
     defaultValues: {
       sortBy: initialSortValue as FormSchema['sortBy'],
-      propertyId: (filterData as any)?.propertyId ?? '',
-      userId: (filterData as any)?.userId ?? '',
-      isOwner: (filterData as any)?.isOwner === '' ? '' : (filterData as any)?.isOwner ? 'true' : 'false',
-      startDateFrom: (filterData as any)?.startDateFrom ?? '',
-      endDateTo: (filterData as any)?.endDateTo ?? '',
+      propertyId: typeof filterData.propertyId === 'number' ? filterData.propertyId : '',
+      userId: typeof filterData.userId === 'number' ? filterData.userId : '',
+      isOwner:
+        filterData.isOwner === ''
+          ? ''
+          : filterData.isOwner === true
+          ? 'true'
+          : 'false',
+      startDateFrom: filterData.startDateFrom ?? '',
+      endDateTo: filterData.endDateTo ?? '',
     },
     resolver: zodResolver(validationSchema),
   })
 
   const onSubmit = (values: FormSchema) => {
-    const chosen = sortOptions.find(o => o.value === values.sortBy) ?? sortOptions[0]
+    const chosen =
+      sortOptions.find((o) => o.value === values.sortBy) ?? sortOptions[0]
 
-    setTableData(prev => ({
+    setTableData((prev) => ({
       ...prev,
       sort: { key: chosen.key, order: chosen.order },
       pageIndex: 1,
     }))
 
-    setFilterData((prev: any) => ({
+    setFilterData((prev: Filter) => ({
       ...prev,
       propertyId: values.propertyId === '' ? '' : Number(values.propertyId),
       userId: values.userId === '' ? '' : Number(values.userId),
-      isOwner: values.isOwner === '' ? '' : values.isOwner === 'true',
+      isOwner:
+        values.isOwner === ''
+          ? ''
+          : values.isOwner === 'true',
       startDateFrom: values.startDateFrom || undefined,
       endDateTo: values.endDateTo || undefined,
     }))
@@ -81,12 +86,12 @@ const ResidentsListTableFilter = () => {
   }
 
   const onClear = () => {
-    setTableData(prev => ({
+    setTableData((prev) => ({
       ...prev,
       sort: undefined,
       pageIndex: 1,
     }))
-    setFilterData((prev: any) => ({
+    setFilterData((prev: Filter) => ({
       ...prev,
       propertyId: '',
       userId: '',
@@ -111,11 +116,7 @@ const ResidentsListTableFilter = () => {
         Filtrar
       </Button>
 
-      <Dialog
-        isOpen={dialogIsOpen}
-        onClose={onDialogClose}
-        onRequestClose={onDialogClose}
-      >
+      <Dialog isOpen={dialogIsOpen} onClose={onDialogClose} onRequestClose={onDialogClose}>
         <h4 className="mb-4">Filtros del listado</h4>
 
         <Form onSubmit={handleSubmit(onSubmit)}>
@@ -129,7 +130,7 @@ const ResidentsListTableFilter = () => {
                   className="form-select w-full"
                   aria-label="Ordenar residentes"
                 >
-                  {sortOptions.map(opt => (
+                  {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>

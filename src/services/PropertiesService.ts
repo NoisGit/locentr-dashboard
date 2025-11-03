@@ -1,4 +1,3 @@
-// src/services/PropertiesService.ts
 import ApiService from '@/services/ApiService'
 
 export type TableQueries = {
@@ -105,7 +104,6 @@ function mapRow(p: unknown): PropertyRow {
 
   const floorNum = toNum(get(o, 'floor'))
 
-  // ⇩ aquí soportamos todas las variantes que puede devolver el backend
   const towerVal =
     toStr(get(o, 'tower')) ??
     toStr(get(o, 'block')) ??
@@ -155,8 +153,20 @@ export async function apiGetPropertiesList<
   })
 
   const { items, total } = pickItemsAndTotal(body)
-  const list: PropertyRow[] = items.map(mapRow)
-  return { list, total } as T
+
+  // Mapeamos todo lo que venga
+  let mapped: PropertyRow[] = items.map(mapRow)
+
+  // 🛟 Fallback de paginación en cliente si el backend ignora pageIndex/pageSize
+  // – Si el servidor ya paginó: mapped.length <= pageSize (normalmente)
+  // – Si devolvió TODO, hacemos slice a la página solicitada
+  if (Array.isArray(mapped) && mapped.length > pageSize) {
+    const start = (pageIndex - 1) * pageSize
+    const end = start + pageSize
+    mapped = mapped.slice(start, end)
+  }
+
+  return { list: mapped, total } as T
 }
 
 export async function apiCreateProperty(payload: {

@@ -4,13 +4,8 @@ import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
 import { Link } from 'react-router'
-import {
-    PiUserDuotone,
-    PiGearDuotone,
-    PiPulseDuotone,
-    PiSignOutDuotone,
-    PiQuestionDuotone,
-} from 'react-icons/pi'
+import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
+// import { PiGearDuotone, PiPulseDuotone, PiQuestionDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 
@@ -20,26 +15,32 @@ type DropdownList = {
     icon: JSX.Element
 }
 
+/**
+ * Ocultamos por ahora:
+ * - Account Setting
+ * - Activity Log
+ * - Help
+ * Para reactivar, descomenta los items y la import comentada de los íconos.
+ */
 const dropdownItemList: DropdownList[] = [
-    {
-        label: 'Account Setting',
-        path: '/concepts/account/settings',
-        icon: <PiGearDuotone />,
-    },
-    {
-        label: 'Activity Log',
-        path: '/concepts/account/activity-log',
-        icon: <PiPulseDuotone />,
-    },
-    {
-        label: 'Help',
-        path: '/concepts/help/manage-help',
-        icon: <PiQuestionDuotone />,
-    },
+    // {
+    //     label: 'Account Setting',
+    //     path: '/concepts/account/settings',
+    //     icon: <PiGearDuotone />,
+    // },
+    // {
+    //     label: 'Activity Log',
+    //     path: '/concepts/account/activity-log',
+    //     icon: <PiPulseDuotone />,
+    // },
+    // {
+    //     label: 'Help',
+    //     path: '/concepts/help/manage-help',
+    //     icon: <PiQuestionDuotone />,
+    // },
 ]
 
 const _UserDropdown = () => {
-    // Tomamos el objeto completo y aplicamos fallbacks por si el backend usa otras keys
     const u = useSessionUser((state) => state.user) as any
 
     const displayName =
