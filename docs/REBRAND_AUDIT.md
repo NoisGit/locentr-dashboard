@@ -7,8 +7,11 @@ Transform this repository into an original portfolio-ready admin dashboard, sepa
 The product identity direction is:
 
 ```text
-Product name: Nois Admin
+Product name: Coredeck
+Frontend name: Coredeck Dashboard
+API name: Coredeck API
 Demo email: admin@nois.dev
+Demo password: 1234
 Frontend repository: dashboard-base
 Backend repository: dashboard-base-api
 ```
@@ -20,6 +23,7 @@ This repository must become the frontend companion for `dashboard-base-api`.
 ```text
 No previous brand references.
 No Nexa references.
+No ECME references.
 No old product logos.
 No old product colors as identity.
 No generated build folder committed.
@@ -37,9 +41,9 @@ The repository still needs cleanup before making it public or deploying it again
 
 ## High Priority Findings
 
-### 1. README must use Nois Admin only
+### 1. README must use Coredeck only
 
-The README was replaced with Nois Admin identity.
+The README was replaced with Coredeck Dashboard identity.
 
 Required follow-up:
 
@@ -49,21 +53,15 @@ Add screenshots only after the UI is clean.
 Add Vercel link only after the new clean deploy exists.
 ```
 
-### 2. package.json still uses template name
+### 2. package.json package name
 
-Current package name:
-
-```json
-"name": "ecme"
-```
-
-Required change:
+Current package name should be:
 
 ```json
 "name": "dashboard-base"
 ```
 
-After changing this, update the lock file locally with:
+After changing this locally, update the lock file with:
 
 ```bash
 npm install
@@ -80,17 +78,19 @@ export const APP_NAME = ''
 Required change:
 
 ```ts
-export const APP_NAME = 'Nois Admin'
+export const APP_NAME = 'Coredeck'
 ```
 
-### 4. Demo identity must use Nois
+### 4. Demo identity must use Coredeck
 
 Recommended visible demo identity:
 
 ```text
-Product label: Nois Admin
+Product label: Coredeck
+Dashboard label: Coredeck Dashboard
 Demo email: admin@nois.dev
-Workspace label: Nois Workspace
+Demo password: 1234
+Workspace label: Coredeck Workspace
 ```
 
 ### 5. Local code still contains condo-related modules
@@ -195,16 +195,15 @@ Required frontend security improvements:
 ## Suggested Work Order
 
 ```text
-1. Rename package from ecme to dashboard-base.
-2. Set APP_NAME to Nois Admin.
-3. Replace visible demo identity with Nois Admin and admin@nois.dev.
-4. Confirm no old brand assets exist.
-5. Rename condo modules to workspace modules.
-6. Centralize endpoints.
-7. Clean services and types.
-8. Connect auth to dashboard-base-api.
-9. Connect users/workspaces/projects/tickets.
-10. Deploy clean project to Vercel.
+1. Set APP_NAME to Coredeck.
+2. Replace visible demo identity with Coredeck and admin@nois.dev / 1234.
+3. Confirm no old brand assets exist.
+4. Rename condo modules to workspace modules.
+5. Centralize endpoints.
+6. Clean services and types.
+7. Connect auth to dashboard-base-api.
+8. Connect users/workspaces/projects/tickets.
+9. Deploy clean project to Vercel.
 ```
 
 ## Deployment Rule
