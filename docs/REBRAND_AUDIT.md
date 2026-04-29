@@ -4,6 +4,15 @@
 
 Transform this repository into an original portfolio-ready admin dashboard, separated from any previous brand, product name, logo, or business-specific identity.
 
+The product identity direction is:
+
+```text
+Product name: Nois Admin
+Demo email: admin@nois.dev
+Frontend repository: dashboard-base
+Backend repository: dashboard-base-api
+```
+
 This repository must become the frontend companion for `dashboard-base-api`.
 
 ## Current Status
@@ -25,7 +34,7 @@ The current README still contains old branding, old clone instructions, old scre
 Required change:
 
 ```text
-Replace README with a new Dashboard Base / Nexa Admin README.
+Replace README with a new Nois Admin README.
 ```
 
 Suggested sections:
@@ -73,12 +82,22 @@ export const APP_NAME = ''
 Required change:
 
 ```ts
-export const APP_NAME = 'Dashboard Base'
+export const APP_NAME = 'Nois Admin'
 ```
 
-or another final product name chosen by the project owner.
+### 4. Demo identity must use Nois
 
-### 4. Local code still contains condo-related modules
+Recommended visible demo identity:
+
+```text
+Product label: Nois Admin
+Demo email: admin@nois.dev
+Workspace label: Nois Workspace
+```
+
+Avoid generic placeholder branding such as Nexa if the goal is to make the project feel more personal and original.
+
+### 5. Local code still contains condo-related modules
 
 The local audit showed pending modules and files named around `condos`.
 
@@ -99,7 +118,7 @@ useSyncCommunityFromCondo -> useSyncWorkspaceContext
 
 These changes must be done carefully because imports, routes, stores, services, and navigation can break.
 
-### 5. Build artifacts must stay out of Git
+### 6. Build artifacts must stay out of Git
 
 Generated build files previously contained old assets.
 
@@ -184,14 +203,15 @@ Required frontend security improvements:
 ```text
 1. Replace README.
 2. Rename package from ecme to dashboard-base.
-3. Set APP_NAME.
-4. Confirm no old brand assets exist.
-5. Rename condo modules to workspace modules.
-6. Centralize endpoints.
-7. Clean services and types.
-8. Connect auth to dashboard-base-api.
-9. Connect users/workspaces/projects/tickets.
-10. Deploy clean project to Vercel.
+3. Set APP_NAME to Nois Admin.
+4. Replace visible demo identity with Nois Admin and admin@nois.dev.
+5. Confirm no old brand assets exist.
+6. Rename condo modules to workspace modules.
+7. Centralize endpoints.
+8. Clean services and types.
+9. Connect auth to dashboard-base-api.
+10. Connect users/workspaces/projects/tickets.
+11. Deploy clean project to Vercel.
 ```
 
 ## Deployment Rule
