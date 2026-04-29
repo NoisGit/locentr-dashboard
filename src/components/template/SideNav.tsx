@@ -1,8 +1,6 @@
 import classNames from 'classnames'
-import porteriaBlack from '@/assets/porteria-black.svg'
-import porteriaWhite from '@/assets/porteria-white.svg'
-import porteriaIcon from '@/assets/porteria-icon.svg'
-import porteriaGrey from '@/assets/porteria-grey.svg'
+import coredeckLogo from '@/assets/coredeck-logo.svg'
+import coredeckIcon from '@/assets/coredeck-icon.svg'
 
 import { useThemeStore } from '@/store/themeStore'
 import { APP_NAME } from '@/constants/app.constant'
@@ -19,7 +17,6 @@ import {
 } from '@/constants/theme.constant'
 import { useMemo } from 'react'
 
-// ✅ NUEVO: usar RBAC para extraer el rol real del usuario
 import { useAuth } from '@/auth'
 import { RBAC } from '@/utils/rbac/rbacCore'
 
@@ -40,12 +37,10 @@ const sideNavCollapseStyle = {
   minWidth: SIDE_NAV_COLLAPSED_WIDTH,
 }
 
-/** Ocultos para ADMIN/SUBADMIN */
-// ⛏️ Agregamos 'concepts.properties' y 'concepts.residents'
 const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'dashboard',
   'concepts.ai',
-  'concepts.customers', // ADMIN/SUBADMIN no ven Usuarios
+  'concepts.customers',
   'concepts.accesses',
   'concepts.perks',
   'concepts.marketplace',
@@ -53,22 +48,20 @@ const HIDE_KEYS_FOR_ADMIN_GROUP = new Set<string>([
   'concepts.plan',
   'concepts.chat',
   'concepts.calendar',
-  'concepts.products', // Amenidades
+  'concepts.products',
   'concepts.properties',
   'concepts.residents',
 ])
 
-/** Whitelist para SUPERADMIN (las vistas + Usuarios) */
-// ⛏️ Quitamos 'concepts.properties' y 'concepts.residents'
 const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
-  'concepts.customers',            // Usuarios
-  'concepts.news',                 // Noticias
-  'concepts.incidents.list',       // Reporte de problemas
-  'concepts.entries',              // Entradas(Pronto)
-  'concepts.mailbox',              // Casilla
-  'concepts.invitations',          // Invitaciones
-  'concepts.logbook',              // Libro de Novedades
-  'concepts.condos',               // Condos
+  'concepts.customers',
+  'concepts.news',
+  'concepts.incidents.list',
+  'concepts.entries',
+  'concepts.mailbox',
+  'concepts.invitations',
+  'concepts.logbook',
+  'concepts.condos',
 ])
 
 type NavNode = (typeof navigationConfig)[number]
@@ -138,17 +131,14 @@ const SideNav = ({
 }: SideNavProps) => {
   const direction = useThemeStore((state) => state.direction)
   const sideNavCollapse = useThemeStore((state) => state.layout.sideNavCollapse)
-  const themeMode = useThemeStore((state) => state.mode)
   const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
   const rawAuthority = useSessionUser((state) => state.user.authority)
 
-  // ✅ NUEVO: rol real desde RBAC
   const { user } = useAuth()
-  const effectiveRole = RBAC.extractUserRole(user) // 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
+  const effectiveRole = RBAC.extractUserRole(user)
 
   const roles = useMemo(() => {
     const s = normalizeAuthority(rawAuthority)
-    // Si el authority del store no trae el rol correcto, lo forzamos con RBAC
     if (effectiveRole) s.add(effectiveRole.toUpperCase())
     if (s.size === 0) s.add('USER')
     return s
@@ -168,10 +158,7 @@ const SideNav = ({
     return filterTreeByKeys(navigationConfig as NavNode[], HIDE_KEYS_FOR_ADMIN_GROUP)
   }, [isSuperAdmin, isAdmin, isSubAdmin])
 
-  let logoSrc = themeMode === 'dark' ? porteriaWhite : porteriaBlack
-  if (sideNavCollapse) {
-    logoSrc = porteriaIcon
-  }
+  const logoSrc = sideNavCollapse ? coredeckIcon : coredeckLogo
 
   return (
     <div
@@ -209,21 +196,10 @@ const SideNav = ({
             routeKey={currentRouteKey}
             direction={direction}
             translationSetup={translationSetup}
-            userAuthority={[...roles]} // ahora incluye SUPERADMIN real
+            userAuthority={[...roles]}
           />
         </ScrollBar>
       </div>
-
-      {!sideNavCollapse && (
-        <div className="p-4 mt-4 shrink-0">
-          <img
-            src={porteriaGrey}
-            alt="Porteria watermark"
-            className="w-36 mx-auto opacity-20"
-            draggable={false}
-          />
-        </div>
-      )}
     </div>
   )
 }
