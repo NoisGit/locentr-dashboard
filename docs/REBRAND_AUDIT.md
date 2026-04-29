@@ -1,4 +1,4 @@
-# Dashboard Base Rebrand Audit
+# Dashboard Base Identity Audit
 
 ## Goal
 
@@ -15,6 +15,16 @@ Backend repository: dashboard-base-api
 
 This repository must become the frontend companion for `dashboard-base-api`.
 
+## Hard Rules
+
+```text
+No previous brand references.
+No Nexa references.
+No old product logos.
+No old product colors as identity.
+No generated build folder committed.
+```
+
 ## Current Status
 
 The project was uploaded successfully to the new repository:
@@ -23,32 +33,20 @@ The project was uploaded successfully to the new repository:
 NoisGit/dashboard-base
 ```
 
-The repository still contains legacy naming and documentation that must be replaced before making it public or deploying it again.
+The repository still needs cleanup before making it public or deploying it again.
 
 ## High Priority Findings
 
-### 1. README still references the old brand
+### 1. README must use Nois Admin only
 
-The current README still contains old branding, old clone instructions, old screenshots, and old color references.
+The README was replaced with Nois Admin identity.
 
-Required change:
-
-```text
-Replace README with a new Nois Admin README.
-```
-
-Suggested sections:
+Required follow-up:
 
 ```text
-- Project overview
-- Live demo placeholder
-- Tech stack
-- Local setup
-- Environment variables
-- Frontend architecture
-- API integration with dashboard-base-api
-- Roadmap
-- Author
+Review README again before public release.
+Add screenshots only after the UI is clean.
+Add Vercel link only after the new clean deploy exists.
 ```
 
 ### 2. package.json still uses template name
@@ -95,8 +93,6 @@ Demo email: admin@nois.dev
 Workspace label: Nois Workspace
 ```
 
-Avoid generic placeholder branding such as Nexa if the goal is to make the project feel more personal and original.
-
 ### 5. Local code still contains condo-related modules
 
 The local audit showed pending modules and files named around `condos`.
@@ -119,8 +115,6 @@ useSyncCommunityFromCondo -> useSyncWorkspaceContext
 These changes must be done carefully because imports, routes, stores, services, and navigation can break.
 
 ### 6. Build artifacts must stay out of Git
-
-Generated build files previously contained old assets.
 
 Required `.gitignore` entries:
 
@@ -201,17 +195,16 @@ Required frontend security improvements:
 ## Suggested Work Order
 
 ```text
-1. Replace README.
-2. Rename package from ecme to dashboard-base.
-3. Set APP_NAME to Nois Admin.
-4. Replace visible demo identity with Nois Admin and admin@nois.dev.
-5. Confirm no old brand assets exist.
-6. Rename condo modules to workspace modules.
-7. Centralize endpoints.
-8. Clean services and types.
-9. Connect auth to dashboard-base-api.
-10. Connect users/workspaces/projects/tickets.
-11. Deploy clean project to Vercel.
+1. Rename package from ecme to dashboard-base.
+2. Set APP_NAME to Nois Admin.
+3. Replace visible demo identity with Nois Admin and admin@nois.dev.
+4. Confirm no old brand assets exist.
+5. Rename condo modules to workspace modules.
+6. Centralize endpoints.
+7. Clean services and types.
+8. Connect auth to dashboard-base-api.
+9. Connect users/workspaces/projects/tickets.
+10. Deploy clean project to Vercel.
 ```
 
 ## Deployment Rule
