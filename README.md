@@ -1,8 +1,8 @@
-# Nois Admin
+# Coredeck Dashboard
 
-Nois Admin is a modern dashboard foundation built with React, TypeScript, Vite, Tailwind CSS, Zustand, SWR, React Hook Form, Zod and Axios.
+Coredeck Dashboard is a modern admin dashboard foundation built with React, TypeScript, Vite, Tailwind CSS, Zustand, SWR, React Hook Form, Zod and Axios.
 
-This project is designed as a portfolio-ready admin interface that will connect to `dashboard-base-api` as its backend.
+This project is designed as a portfolio-ready frontend that will connect to `dashboard-base-api` as its backend.
 
 ## Project Status
 
@@ -11,7 +11,7 @@ This repository is in active cleanup and rebuild mode.
 Current goals:
 
 - Remove all previous product identity.
-- Keep the project fully owned under the Nois identity.
+- Keep the project under the Coredeck identity.
 - Prepare a clean frontend architecture for real API consumption.
 - Build a professional dashboard suitable for a developer portfolio.
 - Connect the app with `dashboard-base-api` through typed services.
@@ -19,8 +19,11 @@ Current goals:
 ## Product Identity
 
 ```text
-Product: Nois Admin
+Product: Coredeck
+Frontend: Coredeck Dashboard
+Backend: Coredeck API
 Demo email: admin@nois.dev
+Demo password: 1234
 Frontend repository: dashboard-base
 Backend repository: dashboard-base-api
 ```
