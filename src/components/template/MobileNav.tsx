@@ -13,9 +13,6 @@ import { RBAC } from '@/utils/rbac/rbacCore'
 import type { NavigationTree } from '@/@types/navigation'
 import Logo from '@/components/template/Logo'
 
-// Marca de agua
-import porteriaGrey from '@/assets/porteria-grey.svg'
-
 const VerticalMenuContent = lazy(
     () => import('@/components/template/VerticalMenuContent'),
 )
@@ -27,8 +24,6 @@ const MobileNavToggle = withHeaderItem<
     MobileNavToggleProps & WithHeaderItemProps
 >(NavToggle)
 
-/** Claves permitidas para SUPERADMIN (whitelist) */
-// ⛏️ Quitamos 'concepts.properties' y 'concepts.residents'
 const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
     'concepts.news',
     'concepts.incidents.list',
@@ -37,7 +32,7 @@ const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
     'concepts.invitations',
     'concepts.logbook',
     'concepts.condos',
-    'concepts.customers', // Usuarios ✅
+    'concepts.customers',
 ])
 
 function filterNavForSuperAdmin(tree: NavigationTree[]): NavigationTree[] {
@@ -52,7 +47,6 @@ function filterNavForSuperAdmin(tree: NavigationTree[]): NavigationTree[] {
     return walk(tree)
 }
 
-/** Remueve un conjunto de claves del árbol (aplicado a todos los roles) */
 function removeKeysFromTree(
     nodes: NavigationTree[],
     keysToRemove: Set<string>,
@@ -77,19 +71,15 @@ const MobileNav = ({
     const currentRouteKey = useRouteKeyStore((s) => s.currentRouteKey)
 
     const { user } = useAuth()
-    const role = RBAC.extractUserRole(user) // 'SUPERADMIN' | 'ADMIN' | 'SUBADMIN' | undefined
+    const role = RBAC.extractUserRole(user)
 
-    // Autoridad que usa AuthorityCheck legacy
     const userAuthority: string[] = role ? [role] : []
 
-    // 🔒 claves que SIEMPRE ocultamos en mobile (todas las cuentas)
     const ALWAYS_HIDE = useMemo(
         () => new Set<string>(['concepts.properties', 'concepts.residents']),
         [],
     )
 
-    // Filtrar menú: SUPERADMIN con whitelist; otros, full config
-    // y luego SIEMPRE removemos properties/residents
     const navTree = useMemo(() => {
         const base =
             role === 'SUPERADMIN'
@@ -114,7 +104,7 @@ const MobileNav = ({
             >
                 <Suspense fallback={<></>}>
                     {isOpen && (
-                        <div className="flex flex-col justify-between h-full">
+                        <div className="flex flex-col h-full">
                             <VerticalMenuContent
                                 collapsed={false}
                                 navigationTree={navTree}
@@ -124,16 +114,6 @@ const MobileNav = ({
                                 translationSetup={translationSetup}
                                 onMenuItemClick={handleDrawerClose}
                             />
-
-                            {/* Marca de agua visible en móvil */}
-                            <div className="p-4 mt-4 shrink-0">
-                                <img
-                                    src={porteriaGrey}
-                                    alt="Porteria watermark"
-                                    className="w-36 mx-auto opacity-20"
-                                    draggable={false}
-                                />
-                            </div>
                         </div>
                     )}
                 </Suspense>
