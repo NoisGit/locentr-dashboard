@@ -1,28 +1,169 @@
-# porteria.com – Modern Dashboard Interface 🚀
+# Nois Admin
 
-Welcome to the **next-generation dashboard interface** for [porteria.com](https://porteria.com/)!  
-This project brings a beautiful, intuitive, and super-fast admin experience, rebuilt with React, Tailwind CSS, and a custom color palette inspired by the latest design trends.
+Nois Admin is a modern dashboard foundation built with React, TypeScript, Vite, Tailwind CSS, Zustand, SWR, React Hook Form, Zod and Axios.
 
-![Porteria Dashboard Screenshot](./screenshot.png)
+This project is designed as a portfolio-ready admin interface that will connect to `dashboard-base-api` as its backend.
 
-## ✨ What's New & Awesome
+## Project Status
 
-- **Completely New Design**: Clean, modern, and fully responsive layout for a seamless experience on any device.
-- **Custom Brand Palette**: Unique Porteria colors (Royal Blue, Dodger Blue, Lime Yellow, Oil Black) for a fresh, recognizable look.
-- **Dynamic Sidebar**: Sidebar that expands and collapses, with a logo that adapts perfectly to each state.
-- **Improved Logo Integration**: Brand new SVG logo (with and without text) for sharp rendering at any size.
-- **Interactive Analytics**: Overview cards with vibrant color-coded icons (yellow, blue, and cyan backgrounds) for instant visual insights.
-- **Animated Charts**: Beautiful and interactive charts to visualize data trends with style.
-- **Fully Modular Components**: Easy to customize and extend. Cards, menus, and dashboards are component-based.
-- **Dark & Light Modes**: Toggle instantly between light and dark themes, always with the brand's palette.
-- **Lightning Fast**: Built with Vite for instant reloads and the smoothest developer experience.
-- **Internationalization Ready**: Structure prepared for easy language switching.
-- **Best Practices**: Clean code, accessibility, and modern patterns throughout.
+This repository is in active cleanup and rebuild mode.
 
-## 🚀 How to Run Locally
+Current goals:
+
+- Remove all previous product identity.
+- Keep the project fully owned under the Nois identity.
+- Prepare a clean frontend architecture for real API consumption.
+- Build a professional dashboard suitable for a developer portfolio.
+- Connect the app with `dashboard-base-api` through typed services.
+
+## Product Identity
+
+```text
+Product: Nois Admin
+Demo email: admin@nois.dev
+Frontend repository: dashboard-base
+Backend repository: dashboard-base-api
+```
+
+## Tech Stack
+
+| Area | Technology |
+|---|---|
+| Framework | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| Styling | Tailwind CSS |
+| State Management | Zustand |
+| Data Fetching | SWR |
+| HTTP Client | Axios |
+| Forms | React Hook Form |
+| Validation | Zod |
+| Tables | TanStack Table |
+| Deployment | Vercel |
+
+## Environment Variables
+
+Create a `.env` file from the example file when available:
 
 ```bash
-git clone https://github.com/NoisGit/dashboardPorteria.git
-cd dashboardPorteria
-npm install
+cp .env.example .env
+```
+
+Recommended local configuration while the API is being prepared:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_ENABLE_MOCK=true
+```
+
+Recommended configuration when the API is ready:
+
+```env
+VITE_API_BASE_URL=https://your-api-url.com/api/v1
+VITE_ENABLE_MOCK=false
+```
+
+## Run Locally
+
+Clone the repository:
+
+```bash
+git clone https://github.com/NoisGit/dashboard-base.git
+cd dashboard-base
+```
+
+Install dependencies:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+Start the development server:
+
+```bash
 npm run dev
+```
+
+## Available Scripts
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run lint:fix
+npm run prettier
+npm run prettier:fix
+npm run format
+```
+
+## Architecture Direction
+
+The frontend will be organized around reusable admin modules:
+
+```text
+src
+├── auth
+├── components
+├── configs
+├── constants
+├── hooks
+├── services
+├── store
+└── views
+```
+
+Expected service structure:
+
+```text
+src/services
+├── ApiService.ts
+├── axios
+├── endpoints
+├── modules
+│   ├── auth
+│   ├── users
+│   ├── workspaces
+│   ├── projects
+│   └── tickets
+└── types
+```
+
+## API Integration Direction
+
+This frontend is planned to consume `dashboard-base-api` through endpoints like:
+
+```text
+POST /auth/login
+POST /auth/logout
+POST /auth/refresh
+GET  /auth/me
+GET  /users
+GET  /workspaces
+GET  /projects
+GET  /support-tickets
+GET  /dashboard/metrics
+```
+
+## Roadmap
+
+- Clean previous identity from files, docs and UI.
+- Rename remaining legacy business modules to generic admin modules.
+- Improve folder and service organization.
+- Add real authentication flow.
+- Add typed API services.
+- Connect users, workspaces, projects and support tickets.
+- Add protected routes and safer token handling.
+- Reconnect Vercel only when the project is clean and stable.
+
+## Repository Workflow
+
+```text
+feature branches → develop → main → Vercel
+```
+
+For now, `main` contains the initial clean upload. New work should be done in feature branches or `develop` once created.
+
+## Author
+
+Developed by NoisGit.
