@@ -1,8 +1,6 @@
 import classNames from 'classnames'
-import porteriaBlack from '@/assets/porteria-black.svg'
-import porteriaWhite from '@/assets/porteria-white.svg'
-import porteriaIcon from '@/assets/porteria-icon.svg' // <--- CAMBIA AQUÍ!!
-import { useThemeStore } from '@/store/themeStore'
+import coredeckLogo from '@/assets/coredeck-logo.svg'
+import coredeckIcon from '@/assets/coredeck-icon.svg'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'
 import type { CommonProps } from '@/@types/common'
@@ -16,29 +14,21 @@ interface LogoProps extends CommonProps {
     onlyIcon?: boolean
 }
 
-const LOGO_HEIGHT = 44;
+const LOGO_HEIGHT = 44
 
 const Logo = (props: LogoProps) => {
     const {
         className,
         imgClass,
         style,
-        mode,
         disableLink = false,
         onlyIcon = false,
     } = props
-    const themeMode = useThemeStore((state) => state.mode)
-    const isDark = (mode ? mode : themeMode) === 'dark'
 
-    let logoSrc = porteriaBlack
-    if (onlyIcon) {
-        logoSrc = porteriaIcon
-    } else {
-        logoSrc = isDark ? porteriaWhite : porteriaBlack
-    }
+    const logoSrc = onlyIcon ? coredeckIcon : coredeckLogo
 
     const alignment = onlyIcon
-        ? 'flex items-center w-full pl-6'  
+        ? 'flex items-center w-full pl-6'
         : 'flex items-center w-full'
 
     const logoImg = (
@@ -58,22 +48,12 @@ const Logo = (props: LogoProps) => {
     )
 
     const logoContent = (
-        <div
-            className={classNames(
-                'logo',
-                alignment,
-                className
-            )}
-        >
+        <div className={classNames('logo', alignment, className)}>
             {logoImg}
         </div>
     )
 
-    return disableLink ? logoContent : (
-        <Link to="/dashboards">
-            {logoContent}
-        </Link>
-    )
+    return disableLink ? logoContent : <Link to="/dashboards">{logoContent}</Link>
 }
 
 export default Logo
