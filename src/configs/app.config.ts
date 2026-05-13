@@ -8,13 +8,15 @@ export type AppConfig = {
   activeNavTranslation: boolean
 }
 
+const apiPrefix = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '')
+
 const appConfig: AppConfig = {
-  apiPrefix: 'https://dev-api-residencial-dvhndhdqh8eeazgy.brazilsouth-01.azurewebsites.net',
+  apiPrefix,
   authenticatedEntryPath: '/dashboards',
   unAuthenticatedEntryPath: '/auth/sign-in',
   locale: 'es',
   accessTokenPersistStrategy: 'localStorage',
-  enableMock: false, 
+  enableMock: false,
   activeNavTranslation: true,
 }
 
