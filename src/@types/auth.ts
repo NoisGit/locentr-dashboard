@@ -4,14 +4,10 @@ export type SignInCredential = {
 }
 
 export type SignInResponse = {
-    token: string
-    user: {
-        userId: string
-        userName: string
-        authority: string[]
-        avatar: string
-        email: string
-    }
+    access_token: string
+    refresh_token: string
+    token_type?: string
+    user?: User
 }
 
 export type ForgotPassword = {
@@ -19,7 +15,9 @@ export type ForgotPassword = {
 }
 
 export type ResetPassword = {
-    password: string
+    reset_token: string
+    new_password: string
+    confirm_new_password: string
 }
 
 export type AuthRequestStatus = 'success' | 'failed' | ''
@@ -31,15 +29,18 @@ export type AuthResult = Promise<{
 
 export type User = {
     userId?: string | null
+    id?: string | number | null
     avatar?: string | null
     userName?: string | null
+    full_name?: string | null
     email?: string | null
+    role?: string | null
     authority?: string[]
 }
 
 export type Token = {
     accessToken: string
-    refereshToken?: string
+    refreshToken?: string
 }
 
 export type OauthSignInCallbackPayload = {

@@ -16,9 +16,11 @@ export async function apiSignIn(data: SignInCredential): Promise<SignInResponse>
   })
 }
 
-// No-Op (si el backend no expone logout)
 export async function apiSignOut(): Promise<void> {
-  return
+  return ApiService.fetchDataWithAxios<void>({
+    url: endpointConfig.signOut,
+    method: 'post',
+  })
 }
 
 export async function apiMe<T = unknown>(): Promise<T> {

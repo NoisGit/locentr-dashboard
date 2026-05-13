@@ -5,8 +5,8 @@ import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
 import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
-import { apiSignIn } from '@/services/AuthService'
-import { apiGetMe, normalizeUser } from '@/services/UserService'
+import { apiMe, apiSignIn, apiSignOut } from '@/services/AuthService'
+import { normalizeUser } from '@/services/UserService'
 import { apiGetMyCommunities, apiListCommunities } from '@/services/CommunitiesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
@@ -87,7 +87,7 @@ function readRoleTokens(user: unknown): string[] {
 function hasDashboardAccess(user: unknown): boolean {
   const tokens = readRoleTokens(user).map(normalizeRoleToken)
   if (!tokens.length) return false
-  const allow = ['superadmin', 'admin', 'subadmin']
+  const allow = ['superadmin', 'admin']
   return tokens.some((t) => allow.some((a) => t.includes(a)))
 }
 function isSuperAdminUser(user: unknown): boolean {
@@ -106,7 +106,7 @@ function AuthProvider({ children }: AuthProviderProps) {
   const user = useSessionUser((s) => s.user)
   const setUser = useSessionUser((s) => s.setUser)
   const setSessionSignedIn = useSessionUser((s) => s.setSessionSignedIn)
-  const { token, setToken } = useToken()
+  const { token, setToken, setRefreshToken, clearToken } = useToken()
   const authenticated = Boolean(token)
 
   const { setCommunities, reset: resetCommunities } = useCommunitiesStore()
@@ -152,7 +152,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           list = await apiGetMyCommunities()
         }
       } else {
-        // ADMIN/SUBADMIN solo ven sus comunidades asignadas
+        // ADMIN solo ve sus comunidades asignadas
         list = await apiGetMyCommunities()
       }
 
@@ -162,6 +162,9 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   const handleSignIn = (tokens: Token, u?: AppUser) => {
     setToken(tokens.accessToken)
+    if (tokens.refreshToken) {
+      setRefreshToken(tokens.refreshToken)
+    }
     setSessionSignedIn(true)
     if (u) {
       // Normalizar usuario con datos del backend
@@ -184,7 +187,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       sessionStorage.setItem('__isLoggingOut', 'true')
     } catch { }
 
-    setToken('')
+    clearToken()
     const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
     setUser(emptyUser)
     setSessionSignedIn(false)
@@ -196,7 +199,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     if (hydratingRef.current) return
     hydratingRef.current = true
     try {
-      const me = await apiGetMe()
+      const me = await apiMe<any>()
       const normalized = normalizeUser(me)
 
       // Convertir a usuario RBAC con roles y permisos
@@ -222,18 +225,24 @@ function AuthProvider({ children }: AuthProviderProps) {
       const tokenType =
         toStr((resp as Record<string, unknown>)?.token_type) ||
         toStr((resp as Record<string, unknown>)?.tokenType)
+      const rawRefreshToken =
+        toStr((resp as Record<string, unknown>)?.refresh_token) ||
+        toStr((resp as Record<string, unknown>)?.refreshToken)
       const headerToken = ensureBearerPrefix(rawToken, tokenType)
       let userLike: unknown =
         (resp as Record<string, unknown>)?.user ??
         (resp as Record<string, unknown>)?.data
       if (!userLike) {
         setToken(headerToken)
+        if (rawRefreshToken) {
+          setRefreshToken(rawRefreshToken)
+        }
         try {
-          userLike = await apiGetMe()
+          userLike = await apiMe<any>()
         } catch { }
       }
       if (!hasDashboardAccess(userLike)) {
-        setToken('')
+        clearToken()
         const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
         setUser(emptyUser)
         setSessionSignedIn(false)
@@ -242,7 +251,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           message: 'Acceso denegado: tu rol no tiene permiso para ingresar.',
         }
       }
-      handleSignIn({ accessToken: headerToken }, (userLike ?? undefined) as AppUser)
+      handleSignIn({ accessToken: headerToken, refreshToken: rawRefreshToken }, (userLike ?? undefined) as AppUser)
       void hydrateUserFromApi()
       redirect()
       return { status: 'success', message: '' }
@@ -257,6 +266,9 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signOut = async () => {
+    try {
+      await apiSignOut()
+    } catch { }
     handleSignOut()
     // Limpiar cualquier URL de redirección pendiente antes de navegar
     const url = new URL(window.location.href)
