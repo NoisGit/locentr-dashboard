@@ -87,7 +87,7 @@ function readRoleTokens(user: unknown): string[] {
 function hasDashboardAccess(user: unknown): boolean {
   const tokens = readRoleTokens(user).map(normalizeRoleToken)
   if (!tokens.length) return false
-  const allow = ['superadmin', 'admin', 'subadmin']
+  const allow = ['superadmin', 'admin']
   return tokens.some((t) => allow.some((a) => t.includes(a)))
 }
 function isSuperAdminUser(user: unknown): boolean {
@@ -152,7 +152,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           list = await apiGetMyCommunities()
         }
       } else {
-        // ADMIN/SUBADMIN solo ven sus comunidades asignadas
+        // ADMIN solo ve sus comunidades asignadas
         list = await apiGetMyCommunities()
       }
 
