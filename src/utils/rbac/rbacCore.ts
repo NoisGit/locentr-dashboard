@@ -9,6 +9,7 @@ import {
     PermissionCheckResult,
     ROLE_IDS,
 } from './types'
+import { getCoredeckRole, getCoredeckRoleLabel } from './roleAliases'
 
 /**
  * Convierte un ID de rol de la base de datos al enum Role
@@ -330,6 +331,8 @@ export function createAuthUser(userData: unknown): AuthUser | null {
         email: (u.email ?? '') as string,
         userName: (u.userName ?? u.username ?? u.name ?? '') as string,
         role,
+        coredeckRole: getCoredeckRole(role),
+        coredeckRoleLabel: getCoredeckRoleLabel(role),
         permissions: getUserPermissions({ role } as AuthUser),
         isSuperAdmin: role === Role.SUPERADMIN,
     }
