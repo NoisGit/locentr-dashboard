@@ -7,6 +7,7 @@ import { Link } from 'react-router'
 import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
 // import { PiGearDuotone, PiPulseDuotone, PiQuestionDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
+import { getCoredeckRoleLabel } from '@/utils/rbac'
 import type { JSX } from 'react'
 
 type DropdownList = {
@@ -59,6 +60,11 @@ const _UserDropdown = () => {
         u?.mail ||
         ''
 
+    const displayRole =
+        u?.coredeckRoleLabel ||
+        getCoredeckRoleLabel(u?.role) ||
+        getCoredeckRoleLabel(Array.isArray(u?.authority) ? u.authority[0] : undefined)
+
     const avatarSrc =
         u?.avatar ||
         u?.avatar_url ||
@@ -96,6 +102,11 @@ const _UserDropdown = () => {
                         <div className="text-xs">
                             {displayEmail || 'No email available'}
                         </div>
+                        {displayRole ? (
+                            <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                {displayRole}
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </Dropdown.Item>
