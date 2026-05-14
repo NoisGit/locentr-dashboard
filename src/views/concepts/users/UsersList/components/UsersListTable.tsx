@@ -55,14 +55,14 @@ const UsersListTable = () => {
   const navigate = useNavigate()
 
   const {
-    customerList,
-    customerListTotal,
+    usersList,
+    usersListTotal,
     tableData,
     isLoading,
     setTableData,
-    setSelectAllCustomer,
-    setSelectedCustomer,
-    selectedCustomer,
+    setSelectAllUsers,
+    setSelectedUser,
+    selectedUsers,
   } = useUsersList()
 
   const handleEdit = (user: User) => {
@@ -104,8 +104,8 @@ const UsersListTable = () => {
 
   const handleSetTableData = (data: TableQueries) => {
     setTableData(data)
-    if (selectedCustomer.length > 0) {
-      setSelectAllCustomer([])
+    if (selectedUsers.length > 0) {
+      setSelectAllUsers([])
     }
   }
 
@@ -129,15 +129,15 @@ const UsersListTable = () => {
   }
 
   const handleRowSelect = (checked: boolean, row: User) => {
-    setSelectedCustomer(checked, row)
+    setSelectedUser(checked, row)
   }
 
   const handleAllRowSelect = (checked: boolean, rows: Row<User>[]) => {
     if (checked) {
       const originalRows = rows.map((row) => row.original)
-      setSelectAllCustomer(originalRows)
+      setSelectAllUsers(originalRows)
     } else {
-      setSelectAllCustomer([])
+      setSelectAllUsers([])
     }
   }
 
@@ -145,18 +145,18 @@ const UsersListTable = () => {
     <DataTable
       selectable
       columns={columns}
-      data={customerList}
-      noData={!isLoading && customerList.length === 0}
+      data={usersList}
+      noData={!isLoading && usersList.length === 0}
       skeletonAvatarColumns={[0]}
       skeletonAvatarProps={{ width: 28, height: 28 }}
       loading={isLoading}
       pagingData={{
-        total: customerListTotal,
+        total: usersListTotal,
         pageIndex: tableData.pageIndex as number,
         pageSize: tableData.pageSize as number,
       }}
       checkboxChecked={(row) =>
-        selectedCustomer.some((selected) => selected.id === row.id)
+        selectedUsers.some((selected) => selected.id === row.id)
       }
       onPaginationChange={handlePaginationChange}
       onSelectChange={handleSelectChange}
