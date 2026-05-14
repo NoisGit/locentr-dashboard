@@ -1,1 +1,1 @@
-export { default } from '@/views/concepts/customers/CustomerList'
+export { default } from './UsersList'
