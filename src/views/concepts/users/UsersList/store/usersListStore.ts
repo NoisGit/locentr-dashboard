@@ -12,16 +12,8 @@ export const initialTableData: TableQueries = {
   },
 }
 
-export const initialFilterData = {
+export const initialFilterData: Filter = {
   query: '',
-  purchasedProducts: '',
-  purchaseChannel: [
-    'Retail Stores',
-    'Online Retailers',
-    'Resellers',
-    'Mobile Apps',
-    'Direct Sales',
-  ],
 }
 
 export type UsersListState = {
@@ -39,7 +31,7 @@ type UsersListAction = {
 
 const initialState: UsersListState = {
   tableData: initialTableData,
-  filterData: initialFilterData as unknown as Filter,
+  filterData: initialFilterData,
   selectedUsers: [],
 }
 
