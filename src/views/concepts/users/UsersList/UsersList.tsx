@@ -1,6 +1,6 @@
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
-import CustomerListTable from '@/views/concepts/customers/CustomerList/components/CustomerListTable'
+import UsersListTable from './components/UsersListTable'
 import CustomerListActionTools from '@/views/concepts/customers/CustomerList/components/CustomerListActionTools'
 import CustomersListTableTools from '@/views/concepts/customers/CustomerList/components/CustomersListTableTools'
 import CustomerListSelected from '@/views/concepts/customers/CustomerList/components/CustomerListSelected'
@@ -16,7 +16,7 @@ const UsersList = () => {
                             <CustomerListActionTools />
                         </div>
                         <CustomersListTableTools />
-                        <CustomerListTable />
+                        <UsersListTable />
                     </div>
                 </AdaptiveCard>
             </Container>
