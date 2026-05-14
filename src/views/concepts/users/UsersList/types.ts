@@ -5,8 +5,6 @@ export type GetUsersListResponse = {
 
 export type Filter = {
   query?: string
-  purchasedProducts: string
-  purchaseChannel: string[]
 }
 
 export type User = {
