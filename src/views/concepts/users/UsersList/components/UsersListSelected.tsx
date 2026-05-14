@@ -9,7 +9,7 @@ import toast from '@/components/ui/toast'
 import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useUsersList from '../hooks/useUsersList'
-import { apiDeleteCustomer } from '@/services/CustomersService'
+import { apiDeleteUser } from '@/services/UsersService'
 import { TbChecks } from 'react-icons/tb'
 import type { User } from '../types'
 
@@ -43,7 +43,7 @@ const UsersListSelected = () => {
 
     setIsDeleting(true)
     try {
-      const results = await Promise.allSettled(ids.map((id) => apiDeleteCustomer(id)))
+      const results = await Promise.allSettled(ids.map((id) => apiDeleteUser(id)))
       const ok = results.filter((r) => r.status === 'fulfilled').length
       const fail = results.length - ok
 
