@@ -3,7 +3,7 @@ import Container from '@/components/shared/Container'
 import UsersListTable from './components/UsersListTable'
 import UsersListActionTools from './components/UsersListActionTools'
 import UsersListTableTools from './components/UsersListTableTools'
-import CustomerListSelected from '@/views/concepts/customers/CustomerList/components/CustomerListSelected'
+import UsersListSelected from './components/UsersListSelected'
 
 const UsersList = () => {
     return (
@@ -20,7 +20,7 @@ const UsersList = () => {
                     </div>
                 </AdaptiveCard>
             </Container>
-            <CustomerListSelected />
+            <UsersListSelected />
         </>
     )
 }
