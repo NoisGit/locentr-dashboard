@@ -15,29 +15,6 @@ function buildParams(tableData: any, filterData: any): ServiceTableQueries {
   return { pageIndex, pageSize, query, ...(sort ? { sort } : {}) }
 }
 
-function roleString(row: unknown): string {
-  if (!row || typeof row !== 'object') return ''
-  const user = row as any
-  const name =
-    user.role_name ??
-    (typeof user.role === 'string' ? user.role : user.role?.name) ??
-    user.roleName ??
-    ''
-
-  return String(name || '').trim().toLowerCase()
-}
-
-function isAdminOrSuperRow(row: unknown): boolean {
-  const role = roleString(row)
-
-  if (!role) return false
-  if (role.includes('super') && role.includes('admin')) return true
-  if (role.includes('admin') && !role.includes('sub')) return true
-  if (role === 'administrador' || role === 'super administrador') return true
-
-  return false
-}
-
 const SWR_KEY = 'users:list'
 
 export default function useUsersList() {
@@ -60,9 +37,8 @@ export default function useUsersList() {
     { revalidateOnFocus: false },
   )
 
-  const all = data?.list || []
-  const usersList = all.filter(isAdminOrSuperRow)
-  const usersListTotal = usersList.length
+  const usersList = data?.list || []
+  const usersListTotal = data?.total ?? usersList.length
 
   return {
     usersList,
