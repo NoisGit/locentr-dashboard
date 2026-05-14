@@ -11,7 +11,7 @@ function normalizeRole(raw: unknown): string {
 
 const UsersListActionTools = () => {
   const navigate = useNavigate()
-  const { customerList } = useUsersList()
+  const { usersList } = useUsersList()
 
   const csvHeaders = [
     { label: 'ID', key: 'id' },
@@ -21,7 +21,7 @@ const UsersListActionTools = () => {
     { label: 'Rol', key: 'role' },
   ]
 
-  const csvData = (customerList || []).map((user) => ({
+  const csvData = (usersList || []).map((user) => ({
     id: user.id,
     name:
       (user as any).name ??
