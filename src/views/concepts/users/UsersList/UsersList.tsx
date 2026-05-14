@@ -1,8 +1,8 @@
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
 import UsersListTable from './components/UsersListTable'
-import CustomerListActionTools from '@/views/concepts/customers/CustomerList/components/CustomerListActionTools'
-import CustomersListTableTools from '@/views/concepts/customers/CustomerList/components/CustomersListTableTools'
+import UsersListActionTools from './components/UsersListActionTools'
+import UsersListTableTools from './components/UsersListTableTools'
 import CustomerListSelected from '@/views/concepts/customers/CustomerList/components/CustomerListSelected'
 
 const UsersList = () => {
@@ -13,9 +13,9 @@ const UsersList = () => {
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                             <h3>Usuarios</h3>
-                            <CustomerListActionTools />
+                            <UsersListActionTools />
                         </div>
-                        <CustomersListTableTools />
+                        <UsersListTableTools />
                         <UsersListTable />
                     </div>
                 </AdaptiveCard>
