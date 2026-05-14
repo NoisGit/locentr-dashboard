@@ -26,13 +26,13 @@ const dashboardsRoute: Routes = [
   {
     key: 'concepts.users.userList',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
-    component: lazy(() => import('@/views/concepts/customers/CustomerList')),
+    component: lazy(() => import('@/views/concepts/users/UsersList')),
     authority: [SUPERADMIN],
   },
   {
     key: 'concepts.users.userEdit',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-edit/:id`,
-    component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
+    component: lazy(() => import('@/views/concepts/users/UsersEdit')),
     authority: [SUPERADMIN],
     meta: {
       header: {
@@ -46,7 +46,7 @@ const dashboardsRoute: Routes = [
   {
     key: 'concepts.users.userCreate',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-create`,
-    component: lazy(() => import('@/views/concepts/customers/CustomerCreate')),
+    component: lazy(() => import('@/views/concepts/users/UsersCreate')),
     authority: [SUPERADMIN],
     meta: {
       header: {
@@ -60,7 +60,7 @@ const dashboardsRoute: Routes = [
   {
     key: 'concepts.users.userDetails',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-details/:id`,
-    component: lazy(() => import('@/views/concepts/customers/CustomerDetails')),
+    component: lazy(() => import('@/views/concepts/users/UsersDetails')),
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
