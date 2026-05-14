@@ -8,19 +8,19 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import useCustomerList from '@/views/concepts/customers/CustomerList/hooks/useCustomerList'
+import useUsersList from '../hooks/useUsersList'
 import { apiDeleteCustomer } from '@/services/CustomersService'
 import { TbChecks } from 'react-icons/tb'
-import type { Customer } from '@/views/concepts/customers/CustomerList/types'
+import type { User } from '../types'
 
-type SelectedUser = Partial<Customer> & {
+type SelectedUser = Partial<User> & {
   avatar?: string
   img?: string
   name?: string
 }
 
 const UsersListSelected = () => {
-  const { selectedCustomer, mutate, setSelectAllCustomer } = useCustomerList()
+  const { selectedCustomer, mutate, setSelectAllCustomer } = useUsersList()
   const selectedUsers = selectedCustomer as SelectedUser[]
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
