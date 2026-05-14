@@ -1,7 +1,7 @@
 import Button from '@/components/ui/Button'
 import { TbCloudDownload, TbUserPlus } from 'react-icons/tb'
 import { useNavigate } from 'react-router'
-import useCustomerList from '@/views/concepts/customers/CustomerList/hooks/useCustomerList'
+import useUsersList from '../hooks/useUsersList'
 import { CSVLink } from 'react-csv'
 import { getCoredeckRoleLabel } from '@/utils/rbac'
 
@@ -11,7 +11,7 @@ function normalizeRole(raw: unknown): string {
 
 const UsersListActionTools = () => {
   const navigate = useNavigate()
-  const { customerList } = useCustomerList()
+  const { customerList } = useUsersList()
 
   const csvHeaders = [
     { label: 'ID', key: 'id' },
@@ -21,16 +21,16 @@ const UsersListActionTools = () => {
     { label: 'Rol', key: 'role' },
   ]
 
-  const csvData = (customerList || []).map((u) => ({
-    id: u.id,
+  const csvData = (customerList || []).map((user) => ({
+    id: user.id,
     name:
-      (u as any).name ??
-      (u as any).full_name ??
-      [ (u as any).first_name, (u as any).last_name ].filter(Boolean).join(' ') ??
+      (user as any).name ??
+      (user as any).full_name ??
+      [ (user as any).first_name, (user as any).last_name ].filter(Boolean).join(' ') ??
       '',
-    email: (u as any).email ?? '',
-    phone: (u as any).phone ?? (u as any).phone_number ?? '',
-    role: normalizeRole((u as any).role ?? (u as any).role_name),
+    email: (user as any).email ?? '',
+    phone: (user as any).phone ?? (user as any).phone_number ?? '',
+    role: normalizeRole((user as any).role ?? (user as any).role_name),
   }))
 
   return (

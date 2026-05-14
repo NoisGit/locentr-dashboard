@@ -1,16 +1,16 @@
 import { useMemo } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import DataTable from '@/components/shared/DataTable'
-import useCustomerList from '@/views/concepts/customers/CustomerList/hooks/useCustomerList'
+import useUsersList from '../hooks/useUsersList'
 import { useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import { getCoredeckRoleLabel } from '@/utils/rbac'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
-import type { Customer } from '@/views/concepts/customers/CustomerList/types'
+import type { User } from '../types'
 import type { TableQueries } from '@/@types/common'
 
-const NameColumn = ({ row }: { row: Customer }) => {
+const NameColumn = ({ row }: { row: User }) => {
   const avatarSrc = (row as any).avatar || (row as any).avatar_url || (row as any).img || ''
   const displayName =
     (row as any).name ||
@@ -27,7 +27,7 @@ const NameColumn = ({ row }: { row: Customer }) => {
   )
 }
 
-function roleDisplay(row: Customer): string {
+function roleDisplay(row: User): string {
   const raw =
     typeof (row as any).role === 'string'
       ? (row as any).role
@@ -63,13 +63,13 @@ const UsersListTable = () => {
     setSelectAllCustomer,
     setSelectedCustomer,
     selectedCustomer,
-  } = useCustomerList()
+  } = useUsersList()
 
-  const handleEdit = (user: Customer) => {
+  const handleEdit = (user: User) => {
     navigate(`/concepts/users/users-edit/${user.id}`)
   }
 
-  const columns: ColumnDef<Customer>[] = useMemo(
+  const columns: ColumnDef<User>[] = useMemo(
     () => [
       {
         header: 'Nombre',
@@ -128,11 +128,11 @@ const UsersListTable = () => {
     handleSetTableData(newTableData)
   }
 
-  const handleRowSelect = (checked: boolean, row: Customer) => {
+  const handleRowSelect = (checked: boolean, row: User) => {
     setSelectedCustomer(checked, row)
   }
 
-  const handleAllRowSelect = (checked: boolean, rows: Row<Customer>[]) => {
+  const handleAllRowSelect = (checked: boolean, rows: Row<User>[]) => {
     if (checked) {
       const originalRows = rows.map((row) => row.original)
       setSelectAllCustomer(originalRows)
