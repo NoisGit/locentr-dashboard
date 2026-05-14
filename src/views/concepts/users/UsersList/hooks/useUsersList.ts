@@ -3,7 +3,14 @@ import useCustomerList from '@/views/concepts/customers/CustomerList/hooks/useCu
 const useUsersList = () => {
   const usersListState = useCustomerList()
 
-  return usersListState
+  return {
+    ...usersListState,
+    usersList: usersListState.customerList,
+    usersListTotal: usersListState.customerListTotal,
+    selectedUsers: usersListState.selectedCustomer,
+    setSelectedUser: usersListState.setSelectedCustomer,
+    setSelectAllUsers: usersListState.setSelectAllCustomer,
+  }
 }
 
 export default useUsersList
