@@ -20,8 +20,8 @@ type SelectedUser = Partial<User> & {
 }
 
 const UsersListSelected = () => {
-  const { selectedCustomer, mutate, setSelectAllCustomer } = useUsersList()
-  const selectedUsers = selectedCustomer as SelectedUser[]
+  const { selectedUsers, mutate, setSelectAllUsers } = useUsersList()
+  const selectedUsersList = selectedUsers as SelectedUser[]
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
   const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
@@ -32,7 +32,7 @@ const UsersListSelected = () => {
   const handleCancel = () => setDeleteConfirmationOpen(false)
 
   const handleConfirmDelete = async () => {
-    const ids = selectedUsers
+    const ids = selectedUsersList
       .map((user) => user.id)
       .filter((v): v is string | number => v !== undefined && v !== null)
 
@@ -48,7 +48,7 @@ const UsersListSelected = () => {
       const fail = results.length - ok
 
       await mutate()
-      setSelectAllCustomer([])
+      setSelectAllUsers([])
 
       if (ok > 0) {
         toast.push(
@@ -89,7 +89,7 @@ const UsersListSelected = () => {
       })
       setSendMessageLoading(false)
       setSendMessageDialogOpen(false)
-      setSelectAllCustomer([])
+      setSelectAllUsers([])
     }, 500)
   }
 
@@ -97,7 +97,7 @@ const UsersListSelected = () => {
 
   return (
     <>
-      {selectedUsers.length > 0 && (
+      {selectedUsersList.length > 0 && (
         <StickyFooter
           className=" flex items-center justify-between py-4 bg-white dark:bg-gray-800"
           stickyClass="-mx-4 sm:-mx-8 border-t border-gray-200 dark:border-gray-700 px-8"
@@ -112,9 +112,9 @@ const UsersListSelected = () => {
                   </span>
                   <span className="font-semibold flex items-center gap-1">
                     <span className="heading-text">
-                      {selectedUsers.length} usuario{selectedUsers.length > 1 ? 's' : ''}
+                      {selectedUsersList.length} usuario{selectedUsersList.length > 1 ? 's' : ''}
                     </span>
-                    <span>seleccionado{selectedUsers.length > 1 ? 's' : ''}</span>
+                    <span>seleccionado{selectedUsersList.length > 1 ? 's' : ''}</span>
                   </span>
                 </span>
               </span>
@@ -174,7 +174,7 @@ const UsersListSelected = () => {
           maxCount={4}
           omittedAvatarProps={{ size: 30 }}
         >
-          {selectedUsers.map((user) => (
+          {selectedUsersList.map((user) => (
             <Tooltip key={String(user.id)} title={String(user.name ?? '')}>
               <Avatar size={30} src={getAvatarSrc(user)} alt="" />
             </Tooltip>
