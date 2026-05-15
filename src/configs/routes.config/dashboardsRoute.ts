@@ -26,7 +26,7 @@ const dashboardsRoute: Routes = [
   {
     key: 'concepts.users.userList',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
-    component: lazy(() => import('@/views/concepts/users/UsersList')),
+    component: lazy(() => import('@/views/concepts/users/UsersList/UsersList')),
     authority: [SUPERADMIN],
   },
   {
@@ -36,8 +36,8 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: {
       header: {
-        title: 'Edit user',
-        description: 'Manage user details, purchase history, and preferences.',
+        title: 'Editar usuario',
+        description: 'Gestiona los datos y rol del usuario.',
         contained: true,
       },
       footer: false,
@@ -50,8 +50,8 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: {
       header: {
-        title: 'Crear Usuario',
-        description: 'Manage user details, track purchases, and update preferences easily.',
+        title: 'Crear usuario',
+        description: 'Crea usuarios y asigna roles dentro de Coredeck.',
         contained: true,
       },
       footer: false,
