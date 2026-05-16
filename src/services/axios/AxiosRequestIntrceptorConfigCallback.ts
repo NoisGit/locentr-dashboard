@@ -7,13 +7,14 @@ import {
   TOKEN_NAME_IN_STORAGE,
 } from '@/constants/api.constant'
 import { useSessionUser } from '@/store/authStore'
+import { useCompaniesStore, isVirtualCompanyId } from '@/store/companies/CompaniesStore'
 import { RBAC } from '@/utils/rbac'
 import { Role } from '@/utils/rbac/types'
 import type { InternalAxiosRequestConfig } from 'axios'
 
 const AUTH_PREFIX = '/auth'
-const EXCLUDED_PATHS = ['/api/v1/users/me', '/api/v1/communities/access']
-const COMMUNITIES_ROOT = '/api/v1/communities/'
+const EXCLUDED_PATHS = ['/api/v1/users/me']
+const COMPANIES_ROOT = '/api/v1/companies/'
 
 function getPathname(raw?: string): string {
   if (!raw) return ''
@@ -24,24 +25,40 @@ function getPathname(raw?: string): string {
   }
 }
 
-function shouldAttachCommunity(pathname: string): boolean {
+function shouldAttachCompany(pathname: string): boolean {
   if (!pathname) return false
   if (pathname === AUTH_PREFIX || pathname.startsWith(`${AUTH_PREFIX}/`)) return false
-  for (const p of EXCLUDED_PATHS) {
-    if (pathname === p || pathname.startsWith(p)) return false
+  for (const path of EXCLUDED_PATHS) {
+    if (pathname === path || pathname.startsWith(path)) return false
   }
-  if (pathname === '/api/v1/communities' || pathname === COMMUNITIES_ROOT) return false
+  if (pathname === '/api/v1/companies' || pathname === COMPANIES_ROOT) return false
+  if (pathname.startsWith('/api/v1/auth')) return false
   return true
 }
 
-function getSelectedCommunityIdFromStorage(): string | number | undefined {
+function getSelectedCompanyId(): string | number | undefined {
   try {
-    const raw = localStorage.getItem('current_community')
+    const selectedId = useCompaniesStore.getState().selectedId
+    if (
+      selectedId !== undefined &&
+      selectedId !== null &&
+      String(selectedId) !== '' &&
+      !isVirtualCompanyId(selectedId)
+    ) {
+      return selectedId
+    }
+  } catch {}
+
+  try {
+    const raw = localStorage.getItem('current_company')
     if (!raw) return undefined
     const parsed = JSON.parse(raw) as { id?: string | number }
     const id = parsed?.id
-    if (id !== undefined && id !== null && String(id) !== '') return id
+    if (id !== undefined && id !== null && String(id) !== '' && !isVirtualCompanyId(id)) {
+      return id
+    }
   } catch {}
+
   return undefined
 }
 
@@ -72,37 +89,36 @@ export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
   } catch {}
 
   if (stored) {
-    const val = stored.trim()
-    const hasBearer = /^bearer\s/i.test(val)
-    const headerValue = hasBearer ? val : `${TOKEN_TYPE} ${val}`
+    const value = stored.trim()
+    const hasBearer = /^bearer\s/i.test(value)
+    const headerValue = hasBearer ? value : `${TOKEN_TYPE} ${value}`
     config.headers = config.headers ?? {}
     ;(config.headers as Record<string, unknown>)[REQUEST_HEADER_AUTH_KEY] = headerValue
   }
 
   const pathname = getPathname(typeof config.url === 'string' ? config.url : undefined)
   const method = String(config.method || 'get').toLowerCase()
-  
-  // SUPERADMIN no necesita communityId en las peticiones
+
   if (isSuperAdmin()) {
     return config
   }
 
-  const communityId = getSelectedCommunityIdFromStorage()
+  const companyId = getSelectedCompanyId()
 
-  if (communityId !== undefined && shouldAttachCommunity(pathname)) {
+  if (companyId !== undefined && shouldAttachCompany(pathname)) {
     config.headers = config.headers ?? {}
-    ;(config.headers as Record<string, unknown>)['x-community-id'] = String(communityId)
+    ;(config.headers as Record<string, unknown>)['x-company-id'] = String(companyId)
 
     if (!config.params || typeof config.params !== 'object') config.params = {}
     const params = config.params as Record<string, unknown>
-    if (!('communityId' in params) && !('community_id' in params)) {
-      params['communityId'] = communityId
+    if (!('companyId' in params) && !('company_id' in params)) {
+      params.companyId = companyId
     }
 
     if ((method === 'post' || method === 'put' || method === 'patch') && config.data && typeof config.data === 'object') {
       const body = config.data as Record<string, unknown>
-      if (!('communityId' in body) && !('community_id' in body)) {
-        body['communityId'] = communityId
+      if (!('companyId' in body) && !('company_id' in body)) {
+        body.companyId = companyId
       }
     }
   }
