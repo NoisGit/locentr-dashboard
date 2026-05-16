@@ -27,11 +27,11 @@ const authRoute: Routes = [
         authority: [],
     },
     {
-        key: 'communitySelect',
-        path: '/auth/community-select',
-        component: lazy(() => import('@/views/auth/CommunitySelect')),
+        key: 'companySelect',
+        path: '/auth/company-select',
+        component: lazy(() => import('@/views/auth/CompanySelect/CompanySelect')),
         authority: [],
-    }
+    },
 ]
 
 export default authRoute
