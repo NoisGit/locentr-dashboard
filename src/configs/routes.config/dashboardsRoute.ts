@@ -250,33 +250,6 @@ const dashboardsRoute: Routes = [
     meta: { pageContainerType: 'contained' },
   },
   {
-    key: 'concepts.condos.condosList',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
-    component: lazy(() => import('@/views/concepts/condos/CondosList')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
-  },
-  {
-    key: 'concepts.condos.condosEdit',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-edit/:id`,
-    component: lazy(() => import('@/views/concepts/condos/CondosEdit')),
-    authority: [SUPERADMIN],
-    meta: { header: { title: 'Edit condo', description: 'Manage condo details and permissions.', contained: true }, footer: false },
-  },
-  {
-    key: 'concepts.condos.condosCreate',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-create`,
-    component: lazy(() => import('@/views/concepts/condos/CondosCreate')),
-    authority: [SUPERADMIN],
-    meta: { header: { title: 'Crear Condo', description: 'Create new condo entries easily.', contained: true }, footer: false },
-  },
-  {
-    key: 'concepts.condos.condosDetails',
-    path: `${CONCEPTS_PREFIX_PATH}/condos/condos-details/:id`,
-    component: lazy(() => import('@/views/concepts/condos/CondosDetails')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: { pageContainerType: 'contained' },
-  },
-  {
     key: 'concepts.help.manage',
     path: '/concepts/help/manage-help',
     component: lazy(() => import('@/views/concepts/help/ManageHelp/ManageHelp')),
