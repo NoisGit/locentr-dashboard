@@ -11,7 +11,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.dashboard.dashboard',
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo lo ve SUPERADMIN)
         authority: [SUPERADMIN],
         subMenu: [],
     },
@@ -22,7 +21,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsAi.ai',
         icon: 'ai',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -39,12 +37,11 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsCustomers.customers',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.conceptsCustomers.customersDesc',
-                label: 'Customer management',
+                label: 'User management',
             },
         },
         subMenu: [],
@@ -56,7 +53,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsAccesses.accesses',
         icon: 'signIn',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -73,7 +69,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsHelpCenter.helpCenter',
         icon: 'helpCeterArticle',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -90,7 +85,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsProjects.projects',
         icon: 'uiFeedbackAlert',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -107,7 +101,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.entries',
         icon: 'uiFormsFormControl',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -124,7 +117,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.mailbox',
         icon: 'products',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -140,7 +132,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
                 translateKey: 'nav.mailboxDetails',
                 icon: 'orders',
                 type: NAV_ITEM_TYPE_ITEM,
-                // Visible para todos
                 authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
                 meta: {
                     description: {
@@ -159,7 +150,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.invitations',
         icon: 'invitations',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -176,7 +166,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.perks',
         icon: 'uiDataDisplayTag',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -193,29 +182,11 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.logbook',
         icon: 'documentation',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.logbookDesc',
                 label: 'Registro de novedades y eventos',
-            },
-        },
-        subMenu: [],
-    },
-    {
-        key: 'concepts.condos',
-        path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
-        title: 'Condos',
-        translateKey: 'nav.conceptsCondos.condos',
-        icon: 'building',
-        type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos (además quieres que sea la landing para admin/subadmin)
-        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
-        meta: {
-            description: {
-                translateKey: 'nav.conceptsCondos.condosDesc',
-                label: 'Gestión de condominios',
             },
         },
         subMenu: [],
@@ -227,7 +198,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.workspaces',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -244,7 +214,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.residents',
         icon: 'residentsIcon',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
@@ -261,7 +230,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.conceptsProducts.products',
         icon: 'calendar',
         type: NAV_ITEM_TYPE_ITEM,
-        // Visible para todos
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -278,29 +246,11 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.marketplace',
         icon: 'marketplaceIcon',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.marketplaceDesc',
                 label: 'View and manage marketplace items',
-            },
-        },
-        subMenu: [],
-    },
-    {
-        key: 'concepts.condosAdmin',
-        path: `${CONCEPTS_PREFIX_PATH}/account/roles-permissions`,
-        title: 'Condos Admin',
-        translateKey: 'nav.condosAdmin',
-        icon: 'accountRoleAndPermission',
-        type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
-        authority: [SUPERADMIN],
-        meta: {
-            description: {
-                translateKey: 'nav.condosAdminDesc',
-                label: 'Manage roles and condominium administration',
             },
         },
         subMenu: [],
@@ -312,7 +262,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.plan',
         icon: 'accountPricing',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -329,7 +278,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.chat',
         icon: 'chat',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
@@ -346,7 +294,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.calendar',
         icon: 'calendar',
         type: NAV_ITEM_TYPE_ITEM,
-        // Oculto para admin y subadmin (solo SUPERADMIN)
         authority: [SUPERADMIN],
         meta: {
             description: {
