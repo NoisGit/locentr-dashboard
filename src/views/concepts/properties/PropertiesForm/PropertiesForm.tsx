@@ -12,9 +12,8 @@ import FormItem from '@/components/ui/Form/FormItem'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import isEmpty from 'lodash/isEmpty'
-import { useAuth } from '@/auth'
-import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
-import { apiGetMyCommunities, apiListCommunities, type Community } from '@/services/CommunitiesService'
+import { useCompaniesStore } from '@/store/companies/CompaniesStore'
+import { apiListCompanies, type Company } from '@/services/CompaniesService'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -34,31 +33,11 @@ type PropertiesFormProps = {
 } & CommonProps
 
 const validationSchema = z.object({
-  community_id: z.coerce.number().int().gt(0, { message: 'Selecciona la comunidad' }),
+  community_id: z.coerce.number().int().gt(0, { message: 'Selecciona la empresa' }),
   property_number: z.string().min(1, { message: 'Número requerido' }),
   floor: z.coerce.number().int().min(0, { message: 'Piso requerido' }),
   block: z.string().optional(),
 })
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null
-}
-function readRoleTokens(user: unknown): string[] {
-  if (!isRecord(user)) return []
-  const src = (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).roles ??
-    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).role ??
-    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).authorities ??
-    (user as { roles?: unknown; role?: unknown; authorities?: unknown; authority?: unknown }).authority ?? []
-  if (Array.isArray(src)) return src.map((x) => String(x).toLowerCase())
-  if (src != null) return [String(src).toLowerCase()]
-  return []
-}
-function isSuperAdminUser(user: unknown): boolean {
-  const tokens = readRoleTokens(user)
-  const set = new Set(tokens)
-  const hits = ['superadmin', 'super-admin', 'super_admin', 'owner', 'root']
-  return hits.some((t) => set.has(t) || tokens.some((x) => x.includes(t)))
-}
 
 type Option = { label: string; value: number }
 
@@ -89,26 +68,24 @@ const PropertiesForm = (props: PropertiesFormProps) => {
     },
   })
 
-  const { user } = useAuth()
-  const superAdmin = isSuperAdminUser(user)
-  const { selectedId: headerCommunityId } = useCommunitiesStore()
+  const { selectedId: headerCompanyId } = useCompaniesStore()
 
-  const { data: communities, isLoading: loadingCommunities } = useSWR<Community[]>(
-    superAdmin ? ['communities:all'] : ['communities:mine'],
-    () => (superAdmin ? apiListCommunities({ pageIndex: 1, pageSize: 10000 }) : apiGetMyCommunities()),
+  const { data: companies, isLoading: loadingCompanies } = useSWR<Company[]>(
+    ['companies:all'],
+    () => apiListCompanies({ pageIndex: 1, pageSize: 10000 }),
     { revalidateOnFocus: false }
   )
 
-  const communityOptions: Option[] = useMemo(
+  const companyOptions: Option[] = useMemo(
     () =>
-      (communities ?? [])
-        .map((c) => {
-          const idNum = Number((c as Community).id)
+      (companies ?? [])
+        .map((company) => {
+          const idNum = Number(company.id)
           if (!Number.isFinite(idNum)) return null
-          return { label: (c as Community).name || String((c as Community).id), value: idNum }
+          return { label: company.name || String(company.id), value: idNum }
         })
         .filter(Boolean) as Array<Option>,
-    [communities]
+    [companies]
   )
 
   useEffect(() => {
@@ -124,20 +101,20 @@ const PropertiesForm = (props: PropertiesFormProps) => {
       })
       return
     }
-    if (headerCommunityId != null && String(headerCommunityId) !== '') {
+    if (headerCompanyId != null && String(headerCompanyId) !== '') {
       const formVal = getValues()
       if (hideCommunity || !formVal.community_id || Number.isNaN(Number(formVal.community_id))) {
-        const headerIdNum = Number(headerCommunityId)
+        const headerIdNum = Number(headerCompanyId)
         reset({ ...formVal, community_id: headerIdNum })
       }
     }
-  }, [JSON.stringify(defaultValues), headerCommunityId, hideCommunity, reset, getValues])
+  }, [JSON.stringify(defaultValues), headerCompanyId, hideCommunity, reset, getValues])
 
   useEffect(() => {
-    if (hideCommunity && headerCommunityId != null && String(headerCommunityId) !== '') {
-      setValue('community_id', Number(headerCommunityId), { shouldDirty: false })
+    if (hideCommunity && headerCompanyId != null && String(headerCompanyId) !== '') {
+      setValue('community_id', Number(headerCompanyId), { shouldDirty: false })
     }
-  }, [hideCommunity, headerCommunityId, setValue])
+  }, [hideCommunity, headerCompanyId, setValue])
 
   const onSubmit = (values: PropertiesFormSchema) => onFormSubmit?.(values)
 
@@ -156,7 +133,7 @@ const PropertiesForm = (props: PropertiesFormProps) => {
                 {!hideCommunity && (
                   <div className="md:col-span-2">
                     <FormItem
-                      label="Comunidad"
+                      label="Empresa"
                       invalid={!!errors.community_id}
                       errorMessage={errors.community_id?.message}
                     >
@@ -165,18 +142,18 @@ const PropertiesForm = (props: PropertiesFormProps) => {
                         control={control}
                         render={({ field }) => (
                           <Select
-                            options={communityOptions}
+                            options={companyOptions}
                             isSearchable={false}
-                            isLoading={loadingCommunities}
-                            isDisabled={loadingCommunities}
+                            isLoading={loadingCompanies}
+                            isDisabled={loadingCompanies}
                             value={
-                              communityOptions.find(
-                                (o) => Number(o.value) === Number(field.value),
+                              companyOptions.find(
+                                (option) => Number(option.value) === Number(field.value),
                               ) ?? null
                             }
-                            placeholder="Selecciona comunidad"
-                            onChange={(opt) =>
-                              field.onChange(opt ? Number((opt as Option).value) : 0)
+                            placeholder="Selecciona empresa"
+                            onChange={(option) =>
+                              field.onChange(option ? Number((option as Option).value) : 0)
                             }
                           />
                         )}
