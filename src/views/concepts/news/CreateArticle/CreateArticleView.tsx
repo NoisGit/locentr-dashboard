@@ -13,8 +13,6 @@ import { apiCreateNews } from '@/services/NewsService'
 type ArticlePayload = {
   title: string
   content: string
-  authors: string
-  tags: string
 }
 
 const CreateArticleView = () => {
@@ -35,8 +33,6 @@ const CreateArticleView = () => {
       await apiCreateNews(String(companyId), {
         title: values.title,
         content: values.content,
-        authors: values.authors,
-        tags: values.tags,
       })
       toast.push(<Notification type="success">Noticia creada correctamente</Notification>, {
         placement: 'top-center',
@@ -70,24 +66,20 @@ const CreateArticleView = () => {
             defaultValues={{
               title: '',
               content: '',
-              authors: '',
-              tags: '',
             }}
             onFormSubmit={handleFormSubmit}
           >
-            <div className="flex justify-end gap-4 mt-8">
-              <Button
-                type="button"
-                className="border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent"
-                icon={<TbTrash />}
-                onClick={handleDiscard}
-              >
-                Descartar
-              </Button>
-              <Button variant="solid" type="submit" loading={isSubmitting}>
-                Crear
-              </Button>
-            </div>
+            <Button
+              type="button"
+              className="border-error ring-1 ring-error text-error hover:border-error hover:ring-error hover:text-error bg-transparent"
+              icon={<TbTrash />}
+              onClick={handleDiscard}
+            >
+              Descartar
+            </Button>
+            <Button variant="solid" type="submit" loading={isSubmitting}>
+              Crear
+            </Button>
           </ArticleForm>
         </AdaptiveCard>
       </Container>
