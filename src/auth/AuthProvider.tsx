@@ -4,10 +4,10 @@ import { useSWRConfig } from 'swr'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
-import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import { apiMe, apiSignIn, apiSignOut } from '@/services/AuthService'
 import { normalizeUser } from '@/services/UserService'
-import { apiGetMyCommunities, apiListCommunities } from '@/services/CommunitiesService'
+import { apiListCompanies } from '@/services/CompaniesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import { RBAC } from '@/utils/rbac'
@@ -90,10 +90,6 @@ function hasDashboardAccess(user: unknown): boolean {
   const allow = ['superadmin', 'admin']
   return tokens.some((t) => allow.some((a) => t.includes(a)))
 }
-function isSuperAdminUser(user: unknown): boolean {
-  const tokens = readRoleTokens(user).map(normalizeRoleToken)
-  return tokens.some((t) => t.includes('superadmin') || t.includes('owner') || t.includes('root'))
-}
 function ensureBearerPrefix(token: string, tokenType?: string): string {
   const type = tokenType && tokenType.trim() ? tokenType : 'Bearer'
   const finalType = /^bearer$/i.test(type) ? 'Bearer' : type
@@ -109,7 +105,7 @@ function AuthProvider({ children }: AuthProviderProps) {
   const { token, setToken, setRefreshToken, clearToken } = useToken()
   const authenticated = Boolean(token)
 
-  const { setCommunities, reset: resetCommunities } = useCommunitiesStore()
+  const { setCompanies, reset: resetCompanies } = useCompaniesStore()
   const { mutate, cache } = useSWRConfig()
 
   const navigatorRef = useRef<IsolatedNavigatorRef>(null)
@@ -117,12 +113,12 @@ function AuthProvider({ children }: AuthProviderProps) {
   const prefetchedRef = useRef2(false)
 
   const resetPerUserState = async () => {
-    try { resetCommunities() } catch { }
+    try { resetCompanies() } catch { }
     try { (cache as unknown as { clear?: () => void })?.clear?.() } catch { }
     await mutate(
       (key) =>
         Array.isArray(key) &&
-        (key[0] === 'communities:list' || key[0] === 'news:list' || key[0] === 'news:detail'),
+        (key[0] === 'companies:list' || key[0] === 'news:list' || key[0] === 'news:detail'),
       undefined,
       { revalidate: false },
     )
@@ -136,27 +132,12 @@ function AuthProvider({ children }: AuthProviderProps) {
     })
   }
 
-  const prefetchCommunitiesOnce = async (uLike: unknown) => {
+  const prefetchCompaniesOnce = async () => {
     if (prefetchedRef.current) return
     prefetchedRef.current = true
     try {
-      const superAdmin = isSuperAdminUser(uLike)
-      let list = []
-
-      if (superAdmin) {
-        // SUPERADMIN siempre carga TODAS las comunidades del sistema
-        try {
-          list = await apiListCommunities({ pageIndex: 1, pageSize: 200 })
-        } catch {
-          // Fallback: intentar con mis comunidades
-          list = await apiGetMyCommunities()
-        }
-      } else {
-        // ADMIN solo ve sus comunidades asignadas
-        list = await apiGetMyCommunities()
-      }
-
-      setCommunities(list, superAdmin ? 'all' : 'mine', { autoSelectIfSingle: true })
+      const list = await apiListCompanies({ pageIndex: 1, pageSize: 200 })
+      setCompanies(list, 'all', { autoSelectIfSingle: true })
     } catch { }
   }
 
@@ -167,14 +148,11 @@ function AuthProvider({ children }: AuthProviderProps) {
     }
     setSessionSignedIn(true)
     if (u) {
-      // Normalizar usuario con datos del backend
       const normalized = normalizeUser(u as any)
-
-      // Convertir a usuario RBAC con roles y permisos
       const rbacUser = RBAC.createAuthUser(normalized)
 
       setUser(rbacUser as AppUser)
-      void prefetchCommunitiesOnce(rbacUser)
+      void prefetchCompaniesOnce()
     } else {
       const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
       setUser(emptyUser)
@@ -182,7 +160,6 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const handleSignOut = () => {
-    // Marcar que estamos haciendo logout para evitar guardar redirectUrl
     try {
       sessionStorage.setItem('__isLoggingOut', 'true')
     } catch { }
@@ -201,12 +178,10 @@ function AuthProvider({ children }: AuthProviderProps) {
     try {
       const me = await apiMe<any>()
       const normalized = normalizeUser(me)
-
-      // Convertir a usuario RBAC con roles y permisos
       const rbacUser = RBAC.createAuthUser(normalized)
 
       setUser(rbacUser as unknown as AppUser)
-      void prefetchCommunitiesOnce(rbacUser)
+      void prefetchCompaniesOnce()
     } finally {
       hydratingRef.current = false
     }
@@ -270,13 +245,11 @@ function AuthProvider({ children }: AuthProviderProps) {
       await apiSignOut()
     } catch { }
     handleSignOut()
-    // Limpiar cualquier URL de redirección pendiente antes de navegar
     const url = new URL(window.location.href)
     url.searchParams.delete(REDIRECT_URL_KEY)
     window.history.replaceState({}, '', url.pathname)
     navigatorRef.current?.navigate(appConfig.unAuthenticatedEntryPath, { replace: true })
 
-    // Limpiar el flag de logout después de navegar
     setTimeout(() => {
       try {
         sessionStorage.removeItem('__isLoggingOut')
@@ -299,7 +272,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     if (authenticated && isRecord(user)) {
-      void prefetchCommunitiesOnce(user)
+      void prefetchCompaniesOnce()
     }
   }, [authenticated, user])
 
