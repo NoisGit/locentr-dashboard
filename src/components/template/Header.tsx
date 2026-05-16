@@ -1,6 +1,6 @@
 import classNames from '@/utils/classNames'
 import { HEADER_HEIGHT } from '@/constants/theme.constant'
-import CommunitySwitcher from '@/components/shared/CommunitySwitcher'
+import CompanySwitcher from '@/components/shared/CompanySwitcher/CompanySwitcher'
 import { useAuth } from '@/auth'
 import type { ReactNode } from 'react'
 import type { CommonProps } from '@/@types/common'
@@ -47,7 +47,7 @@ const Header = (props: HeaderProps) => {
 
         <div className="header-action header-action-end flex items-center h-full">
           {authenticated && (
-            <CommunitySwitcher className="hidden md:block mr-3" />
+            <CompanySwitcher className="hidden md:block mr-3" />
           )}
           {headerEnd}
         </div>
