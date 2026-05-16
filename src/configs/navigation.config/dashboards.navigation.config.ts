@@ -221,18 +221,18 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'concepts.properties',
-        path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
-        title: 'Propiedades',
-        translateKey: 'nav.properties',
+        key: 'concepts.workspaces',
+        path: `${CONCEPTS_PREFIX_PATH}/workspaces/workspaces-list`,
+        title: 'Workspaces',
+        translateKey: 'nav.workspaces',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
         // Visible para todos
         authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
         meta: {
             description: {
-                translateKey: 'nav.propertiesDesc',
-                label: 'Gestión de propiedades',
+                translateKey: 'nav.workspacesDesc',
+                label: 'Gestión de workspaces',
             },
         },
         subMenu: [],
