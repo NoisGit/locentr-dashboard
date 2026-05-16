@@ -1,15 +1,14 @@
 // src/services/axios/AxiosResponseIntrceptorErrorCallback.ts
 import { useSessionUser, useToken } from '@/store/authStore'
-import { useCommunitiesStore } from '@/store/communities/CommunitiesStore'
+import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import type { AxiosError } from 'axios'
 
 const UNAUTHORIZED_CODES = [401, 419, 440]
 const FORBIDDEN_CODES = [403]
-const COMMUNITY_SELECT_PATH = '/auth/community-select'
+const COMPANY_SELECT_PATH = '/auth/company-select'
 
-// Evita múltiples redirecciones simultáneas
 let isRedirecting = false
 
 function onAuthPath(pathname: string) {
@@ -24,17 +23,18 @@ function getPathname(raw?: string) {
   }
 }
 
-function headerHasCommunityId(h?: unknown): boolean {
-  if (!h || typeof h !== 'object') return false
-  const entries = Object.entries(h as Record<string, unknown>)
-  return entries.some(([k]) => k.toLowerCase() === 'x-community-id')
+function headerHasCompanyId(headers?: unknown): boolean {
+  if (!headers || typeof headers !== 'object') return false
+
+  return Object.keys(headers as Record<string, unknown>).some(
+    (key) => key.toLowerCase() === 'x-company-id',
+  )
 }
 
 const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
   const status = error.response?.status
   const pathname = getPathname(error.config?.url)
 
-  // 1) Auth expirada / inválida -> limpiar sesión y redirigir a sign-in
   if (status && UNAUTHORIZED_CODES.includes(status)) {
     try {
       const { clearToken } = useToken()
@@ -55,12 +55,10 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
       } catch { }
     }
 
-    // limpiar comunidad también (evita arrastrar una selección vieja)
     try {
-      useCommunitiesStore.getState().clearCommunity()
+      useCompaniesStore.getState().clearCompany()
     } catch { }
 
-    // No redirigir si estamos en proceso de logout explícito
     let isLoggingOut = false
     try {
       isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
@@ -74,20 +72,18 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
     }
   }
 
-  // 2) Prohibido (comunidad no autorizada o inválida):
-  // si enviamos x-community-id, limpiamos selección y mandamos al selector.
   if (status && FORBIDDEN_CODES.includes(status)) {
-    const hadCommunityHeader = headerHasCommunityId(error.config?.headers)
+    const hadCompanyHeader = headerHasCompanyId(error.config?.headers)
 
-    if (hadCommunityHeader) {
+    if (hadCompanyHeader) {
       try {
-        useCommunitiesStore.getState().clearCommunity()
+        useCompaniesStore.getState().clearCompany()
       } catch { }
 
       const onAuth = onAuthPath(pathname)
       if (!onAuth && !isRedirecting) {
         isRedirecting = true
-        window.location.replace(COMMUNITY_SELECT_PATH)
+        window.location.replace(COMPANY_SELECT_PATH)
       }
     }
   }
