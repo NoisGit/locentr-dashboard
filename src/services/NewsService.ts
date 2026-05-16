@@ -1,6 +1,6 @@
 // src/services/NewsService.ts
 import ApiService from '@/services/ApiService'
-import { apiListCommunities } from '@/services/CommunitiesService'
+import { apiListCompanies } from '@/services/CompaniesService'
 
 export type TableQueries = {
   pageIndex: number
@@ -142,10 +142,7 @@ function buildQueryParams(p: TableQueries): Record<string, unknown> {
 }
 
 function tsOf(article: ArticleRow): number {
-  const s =
-    article.updatedAt ||
-    article.createdAt ||
-    ''
+  const s = article.updatedAt || article.createdAt || ''
   const t = Date.parse(s)
   if (!Number.isNaN(t)) return t
   const fixed = s.replace('T', ' ')
@@ -172,20 +169,20 @@ export async function apiGetAllNewsAggregated<
   T = GetArticleListResponse,
   Q extends TableQueries = TableQueries
 >(params: Q): Promise<T> {
-  const communities = await apiListCommunities()
-  if (!Array.isArray(communities) || communities.length === 0) {
+  const companies = await apiListCompanies()
+  if (!Array.isArray(companies) || companies.length === 0) {
     return { list: [], total: 0 } as T
   }
-  const perCommunity = await Promise.all(
-    communities.map((c) =>
-      apiGetCommunityNews<GetArticleListResponse, TableQueries>(c.id, {
+  const perCompany = await Promise.all(
+    companies.map((company) =>
+      apiGetCommunityNews<GetArticleListResponse, TableQueries>(company.id, {
         ...params,
         pageIndex: 1,
       }),
     ),
   )
   let combined: ArticleRow[] = []
-  perCommunity.forEach((r) => {
+  perCompany.forEach((r) => {
     combined = combined.concat(r.list)
   })
   const sortOrder = params.sort?.order === 'asc' ? 'asc' : 'desc'
