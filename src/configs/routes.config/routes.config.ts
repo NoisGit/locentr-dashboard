@@ -1,4 +1,5 @@
 import dashboardsRoute from './dashboardsRoute'
+import workspacesRoute from './workspacesRoute'
 import uiComponentsRoute from './uiComponentsRoute'
 import authRoute from './authRoute'
 import othersRoute from './othersRoute'
@@ -10,6 +11,7 @@ export const publicRoutes: Routes = [...authRoute]
 // Migrar rutas protegidas del sistema antiguo (authority) al nuevo (RBAC)
 const rawProtectedRoutes: Routes = [
     ...dashboardsRoute,
+    ...workspacesRoute,
     ...uiComponentsRoute,
     ...othersRoute,
 ]
