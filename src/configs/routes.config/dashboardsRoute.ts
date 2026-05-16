@@ -4,7 +4,6 @@ import { SUPERADMIN, ADMIN_GROUP } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const dashboardsRoute: Routes = [
-  /* ----------------------- PANEL (oculto para admin/subadmin/user) ----------------------- */
   {
     key: 'dashboard.dashboard',
     path: `${DASHBOARDS_PREFIX_PATH}`,
@@ -12,8 +11,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- IA (oculto para admin/subadmin/user) ------------------------- */
   {
     key: 'concepts.ai.chat',
     path: `${CONCEPTS_PREFIX_PATH}/ai/chat`,
@@ -21,8 +18,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- USUARIOS (solo superadmin) ---------------------------------- */
   {
     key: 'concepts.users.userList',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
@@ -34,28 +29,14 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/users/users-edit/:id`,
     component: lazy(() => import('@/views/concepts/users/UsersEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Editar usuario',
-        description: 'Gestiona los datos y rol del usuario.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Editar usuario', description: 'Gestiona los datos y rol del usuario.', contained: true }, footer: false },
   },
   {
     key: 'concepts.users.userCreate',
     path: `${CONCEPTS_PREFIX_PATH}/users/users-create`,
     component: lazy(() => import('@/views/concepts/users/UsersCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Crear usuario',
-        description: 'Crea usuarios y asigna roles dentro de Coredeck.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Crear usuario', description: 'Crea usuarios y asigna roles dentro de Coredeck.', contained: true }, footer: false },
   },
   {
     key: 'concepts.users.userDetails',
@@ -64,8 +45,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- ACCESOS (solo superadmin) ----------------------------------- */
   {
     key: 'concepts.access.accessList',
     path: `${CONCEPTS_PREFIX_PATH}/accesses/access-list`,
@@ -77,28 +56,14 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/accesses/access-edit/:id`,
     component: lazy(() => import('@/views/concepts/accesses/AccessEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Edit access',
-        description: 'Manage access details and permissions.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Edit access', description: 'Manage access details and permissions.', contained: true }, footer: false },
   },
   {
     key: 'concepts.access.accessCreate',
     path: `${CONCEPTS_PREFIX_PATH}/accesses/access-create`,
     component: lazy(() => import('@/views/concepts/accesses/AccessCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Create access',
-        description: 'Create new access entries easily.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Create access', description: 'Create new access entries easily.', contained: true }, footer: false },
   },
   {
     key: 'concepts.access.accessDetails',
@@ -107,8 +72,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- ACCESS POINTS (HARDWARE) ------------------------------------ */
   {
     key: 'concepts.accesspoints.accesspointsList',
     path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-list`,
@@ -121,17 +84,8 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/accesspoints/accesspoints-edit/:id`,
     component: lazy(() => import('@/views/concepts/accesspoints/AccessPointsEdit/AccessPointsEdit')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: {
-      header: {
-        title: 'Editar Access Point',
-        description: 'Edita el nombre y ubicación; otros campos informativos se muestran en solo lectura.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Editar Access Point', description: 'Edita el nombre y ubicación; otros campos informativos se muestran en solo lectura.', contained: true }, footer: false },
   },
-
-  /* ----------------------- PRODUCTS/AMENITIES (visible para SUPERADMIN y grupo admin) ------------- */
   {
     key: 'concepts.products.productList',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-list`,
@@ -143,32 +97,15 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/products/product-edit/:id`,
     component: lazy(() => import('@/views/concepts/products/ProductEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Edit product',
-        description: 'Quickly manage product details, stock, and availability.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Edit product', description: 'Quickly manage product details, stock, and availability.', contained: true }, footer: false },
   },
   {
     key: 'concepts.products.productCreate',
     path: `${CONCEPTS_PREFIX_PATH}/products/product-create`,
     component: lazy(() => import('@/views/concepts/products/ProductCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Create product',
-        description:
-          'Quickly add products to your inventory. Enter key details, manage stock, and set availability.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Create product', description: 'Quickly add products to your inventory. Enter key details, manage stock, and set availability.', contained: true }, footer: false },
   },
-
-  /* ----------------------- INCIDENTS ---------------------------------------------------- */
   {
     key: 'concepts.incidents.list',
     path: `${CONCEPTS_PREFIX_PATH}/incidents`,
@@ -183,17 +120,12 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- ACCOUNT ------------------------------------------------------ */
   {
     key: 'concepts.account.settings',
     path: `${CONCEPTS_PREFIX_PATH}/account/settings`,
     component: lazy(() => import('@/views/concepts/accounts/Settings')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: {
-      header: { title: 'Settings' },
-      pageContainerType: 'contained',
-    },
+    meta: { header: { title: 'Settings' }, pageContainerType: 'contained' },
   },
   {
     key: 'concepts.account.activityLog',
@@ -209,8 +141,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained', pageBackgroundType: 'plain' },
   },
-
-  /* ----------------------- PLAN (solo superadmin) -------------------------------------- */
   {
     key: 'concepts.account.pricing',
     path: `${CONCEPTS_PREFIX_PATH}/account/pricing`,
@@ -218,8 +148,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- NEWS --------------------------------------------------------- */
   {
     key: 'concepts.helpCenter.editArticle',
     path: `${CONCEPTS_PREFIX_PATH}/news/edit-article/:id`,
@@ -237,11 +165,9 @@ const dashboardsRoute: Routes = [
   {
     key: 'concepts.helpCenter.createArticle',
     path: `${CONCEPTS_PREFIX_PATH}/news/create-article`,
-    component: lazy(() => import('@/views/concepts/news/CreateArticle/CreateArticle')),
+    component: lazy(() => import('@/views/concepts/news/CreateArticle/CreateArticleView')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
   },
-
-  /* ----------------------- CALENDARIO (solo superadmin) -------------------------------- */
   {
     key: 'concepts.calendar',
     path: `${CONCEPTS_PREFIX_PATH}/calendar`,
@@ -249,8 +175,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained', pageBackgroundType: 'plain' },
   },
-
-  /* ----------------------- CHAT (solo superadmin) -------------------------------------- */
   {
     key: 'concepts.chat',
     path: `${CONCEPTS_PREFIX_PATH}/chat`,
@@ -258,8 +182,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- MARKETPLACE (solo superadmin) ------------------------------- */
   {
     key: 'concepts.marketplace.marketplaceList',
     path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-list`,
@@ -271,39 +193,21 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-edit/:id`,
     component: lazy(() => import('@/views/concepts/marketplace/MarketplaceEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Edit marketplace item',
-        contained: true,
-        description: 'Edit marketplace product information',
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Edit marketplace item', contained: true, description: 'Edit marketplace product information' }, footer: false },
   },
   {
     key: 'concepts.marketplace.marketplaceCreate',
     path: `${CONCEPTS_PREFIX_PATH}/marketplace/marketplace-create`,
     component: lazy(() => import('@/views/concepts/marketplace/MarketplaceCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Create marketplace item',
-        contained: true,
-        description: 'Add a new product to the marketplace',
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Create marketplace item', contained: true, description: 'Add a new product to the marketplace' }, footer: false },
   },
-
-  /* ----------------------- LOGBOOK ------------------------------------------------------ */
   {
     key: 'concepts.logbook.logbookList',
     path: `${CONCEPTS_PREFIX_PATH}/logbook/logbook-list`,
     component: lazy(() => import('@/views/concepts/logbook/LogbookList')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
   },
-
-  /* ----------------------- ENTRIES ------------------------------------------------------ */
   {
     key: 'concepts.entry.entryList',
     path: `${CONCEPTS_PREFIX_PATH}/entries/entry-list`,
@@ -318,8 +222,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- PERKS (solo superadmin) -------------------------- */
   {
     key: 'concepts.perks.perksList',
     path: `${CONCEPTS_PREFIX_PATH}/perks/perks-list`,
@@ -331,28 +233,14 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/perks/perks-edit/:id`,
     component: lazy(() => import('@/views/concepts/perks/PerksEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Edit perk',
-        description: 'Manage perk details and permissions.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Edit perk', description: 'Manage perk details and permissions.', contained: true }, footer: false },
   },
   {
     key: 'concepts.perks.perksCreate',
     path: `${CONCEPTS_PREFIX_PATH}/perks/perks-create`,
     component: lazy(() => import('@/views/concepts/perks/PerksCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Create perk',
-        description: 'Create new perk entries easily.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Create perk', description: 'Create new perk entries easily.', contained: true }, footer: false },
   },
   {
     key: 'concepts.perks.perksDetails',
@@ -361,8 +249,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- CONDOS ------------------------------------------------------- */
   {
     key: 'concepts.condos.condosList',
     path: `${CONCEPTS_PREFIX_PATH}/condos/condos-list`,
@@ -374,28 +260,14 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/condos/condos-edit/:id`,
     component: lazy(() => import('@/views/concepts/condos/CondosEdit')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Edit condo',
-        description: 'Manage condo details and permissions.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Edit condo', description: 'Manage condo details and permissions.', contained: true }, footer: false },
   },
   {
     key: 'concepts.condos.condosCreate',
     path: `${CONCEPTS_PREFIX_PATH}/condos/condos-create`,
     component: lazy(() => import('@/views/concepts/condos/CondosCreate')),
     authority: [SUPERADMIN],
-    meta: {
-      header: {
-        title: 'Crear Condo',
-        description: 'Create new condo entries easily.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Crear Condo', description: 'Create new condo entries easily.', contained: true }, footer: false },
   },
   {
     key: 'concepts.condos.condosDetails',
@@ -404,8 +276,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- HELP --------------------------------------------------------- */
   {
     key: 'concepts.help.manage',
     path: '/concepts/help/manage-help',
@@ -427,8 +297,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageBackgroundType: 'plain' },
   },
-
-  /* ----------------------- RESIDENTES --------------------------------------------------- */
   {
     key: 'concepts.residents.residentsList',
     path: `${CONCEPTS_PREFIX_PATH}/residents/residents-list`,
@@ -440,14 +308,7 @@ const dashboardsRoute: Routes = [
     path: `${CONCEPTS_PREFIX_PATH}/residents/residents-edit/:id`,
     component: lazy(() => import('@/views/concepts/residents/ResidentsEdit')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: {
-      header: {
-        title: 'Editar residente',
-        description: 'Manage resident details and assignments.',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Editar residente', description: 'Manage resident details and assignments.', contained: true }, footer: false },
   },
   {
     key: 'concepts.residents.residentsDetails',
@@ -456,8 +317,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- MAILBOX ------------------------------------------------------ */
   {
     key: 'concepts.mailbox.mailboxList',
     path: `${CONCEPTS_PREFIX_PATH}/mailbox/mailbox-list`,
@@ -465,8 +324,6 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- INVITATIONS -------------------------------------------------- */
   {
     key: 'concepts.invitations.invitationsList',
     path: `${CONCEPTS_PREFIX_PATH}/invitations/invitations-list`,
@@ -474,21 +331,12 @@ const dashboardsRoute: Routes = [
     authority: [SUPERADMIN, ...ADMIN_GROUP],
     meta: { pageContainerType: 'contained' },
   },
-
-  /* ----------------------- COLLABORATORS ------------------------------------------------ */
   {
     key: 'concepts.collaborators.collaboratorsEdit',
     path: `${CONCEPTS_PREFIX_PATH}/collaborators/collaborators-edit/:id`,
     component: lazy(() => import('@/views/concepts/collaborators/CollaboratorsEdit')),
     authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: {
-      header: {
-        title: 'Editar colaborador',
-        description: 'Edita nombre, teléfono y contraseña (correo y rol son solo lectura).',
-        contained: true,
-      },
-      footer: false,
-    },
+    meta: { header: { title: 'Editar colaborador', description: 'Edita nombre, teléfono y contraseña (correo y rol son solo lectura).', contained: true }, footer: false },
   },
 ]
 
