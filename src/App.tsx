@@ -6,12 +6,12 @@ import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import { SWRConfig } from 'swr'
 import { useEffect } from 'react'
-import { hydrateCommunitiesFromStorage } from '@/store/communities/CommunitiesStore'
+import { hydrateCompaniesFromStorage } from '@/store/companies/CompaniesStore'
 import './locales'
 
 function App() {
   useEffect(() => {
-    hydrateCommunitiesFromStorage()
+    hydrateCompaniesFromStorage()
   }, [])
 
   return (
