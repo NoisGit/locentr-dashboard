@@ -475,35 +475,6 @@ const dashboardsRoute: Routes = [
     meta: { pageContainerType: 'contained' },
   },
 
-  /* ----------------------- PROPERTIES --------------------------------------------------- */
-  {
-    key: 'concepts.properties.propertiesList',
-    path: `${CONCEPTS_PREFIX_PATH}/properties/properties-list`,
-    component: lazy(() => import('@/views/concepts/properties/PropertiesList/PropertiesList')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
-  },
-  {
-    key: 'concepts.properties.propertiesEdit',
-    path: `${CONCEPTS_PREFIX_PATH}/properties/properties-edit/:id`,
-    component: lazy(() => import('@/views/concepts/properties/PropertiesEdit/PropertiesEdit')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: {
-      header: {
-        title: '',
-        description: 'Manage property details and assignments.',
-        contained: true,
-      },
-      footer: false,
-    },
-  },
-  {
-    key: 'concepts.properties.propertiesDetails',
-    path: `${CONCEPTS_PREFIX_PATH}/properties/properties-details/:id`,
-    component: lazy(() => import('@/views/concepts/properties/PropertiesDetails')),
-    authority: [SUPERADMIN, ...ADMIN_GROUP],
-    meta: { pageContainerType: 'contained' },
-  },
-
   /* ----------------------- COLLABORATORS ------------------------------------------------ */
   {
     key: 'concepts.collaborators.collaboratorsEdit',
