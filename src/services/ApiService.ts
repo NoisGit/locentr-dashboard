@@ -1,7 +1,7 @@
 // src/services/ApiService.ts
 import AxiosBase from './axios/AxiosBase'
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { useCommunitiesStore, isVirtualCommunityId } from '@/store/communities/CommunitiesStore'
+import { useCompaniesStore, isVirtualCompanyId } from '@/store/companies/CompaniesStore'
 import { useSessionUser } from '@/store/authStore'
 import { RBAC } from '@/utils/rbac'
 import { Role } from '@/utils/rbac/types'
@@ -35,10 +35,9 @@ function getPathname(rawUrl: string): string {
   }
 }
 
-function shouldSkipCommunityContext(pathname: string): boolean {
+function shouldSkipCompanyContext(pathname: string): boolean {
   const p = stripTrailingSlash(pathname.toLowerCase())
-  if (p.startsWith('/api/v1/communities')) return true
-  if (p === '/api/v1/communities/access') return true
+  if (p.startsWith('/api/v1/companies')) return true
   if (p.startsWith('/api/v1/auth')) return true
   return false
 }
@@ -51,17 +50,16 @@ function urlSearchParamsToObject(sp: URLSearchParams): Record<string, string> {
   return out
 }
 
-function withCommunityContext<Request = Record<string, unknown>>(
+function withCompanyContext<Request = Record<string, unknown>>(
   cfg: AxiosRequestConfig<Request>,
 ): AxiosRequestConfig<Request> {
   const url = String(cfg.url ?? '')
   const pathname = getPathname(url)
 
-  if (shouldSkipCommunityContext(pathname)) {
+  if (shouldSkipCompanyContext(pathname)) {
     return cfg
   }
 
-  // SUPERADMIN no necesita communityId
   try {
     const user = useSessionUser.getState().user
     const role = RBAC.extractUserRole(user)
@@ -69,27 +67,27 @@ function withCommunityContext<Request = Record<string, unknown>>(
       return cfg
     }
   } catch {
-    // Si hay error al obtener el usuario, continuar con la lógica normal
+    void 0
   }
 
-  let communityId: string | number | null = null
+  let companyId: string | number | null = null
   try {
-    const s = useCommunitiesStore.getState()
-    const id = s.selectedId
-    if (id !== undefined && id !== null && String(id) !== '' && !isVirtualCommunityId(id)) {
-      communityId = id
+    const state = useCompaniesStore.getState()
+    const id = state.selectedId
+    if (id !== undefined && id !== null && String(id) !== '' && !isVirtualCompanyId(id)) {
+      companyId = id
     }
   } catch {
-    communityId = null
+    companyId = null
   }
 
-  if (!communityId) {
+  if (!companyId) {
     return cfg
   }
 
   const nextHeaders: AxiosRequestConfig['headers'] = {
     ...(cfg.headers as AxiosRequestConfig['headers']),
-    'X-Community-Id': String(communityId),
+    'X-Company-Id': String(companyId),
   }
 
   const method = String(cfg.method ?? 'get').toLowerCase()
@@ -102,14 +100,14 @@ function withCommunityContext<Request = Record<string, unknown>>(
     } else if (cur && typeof cur === 'object') {
       paramsObj = { ...(cur as Record<string, unknown>) }
     }
-    if (paramsObj.communityId === undefined) {
-      paramsObj.communityId = communityId
+    if (paramsObj.companyId === undefined) {
+      paramsObj.companyId = companyId
     }
     return { ...cfg, headers: nextHeaders, params: paramsObj as unknown as Request }
   }
 
-  if (cfg.data && typeof cfg.data === 'object' && !(cfg.data as Record<string, unknown>).communityId) {
-    ; (cfg.data as Record<string, unknown>).communityId = communityId
+  if (cfg.data && typeof cfg.data === 'object' && !(cfg.data as Record<string, unknown>).companyId) {
+    ;(cfg.data as Record<string, unknown>).companyId = companyId
   }
 
   return { ...cfg, headers: nextHeaders }
@@ -163,7 +161,7 @@ const ApiService = {
 
       const normalizedUrl = normalizeUsersUrl(rawUrl)
       const baseCfg: AxiosRequestConfig<Request> = { ...param, url: normalizedUrl }
-      const finalCfg = withCommunityContext<Request>(baseCfg)
+      const finalCfg = withCompanyContext<Request>(baseCfg)
 
       AxiosBase(finalCfg)
         .then((response: AxiosResponse<Response>) => {
