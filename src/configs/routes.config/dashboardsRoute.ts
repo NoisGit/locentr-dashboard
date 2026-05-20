@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
+import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { SUPERADMIN } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
@@ -13,33 +13,33 @@ const dashboardsRoute: Routes = [
     },
     {
         key: 'users.list',
-        path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
-        component: lazy(() => import('@/views/concepts/users/UsersList/UsersList')),
+        path: '/users',
+        component: lazy(() => import('@/views/users/UsersList/UsersList')),
         authority: [SUPERADMIN],
     },
     {
-        key: 'users.edit',
-        path: `${CONCEPTS_PREFIX_PATH}/users/users-edit/:id`,
-        component: lazy(() => import('@/views/concepts/users/UsersEdit')),
+        key: 'users.create',
+        path: '/users/create',
+        component: lazy(() => import('@/views/users/UsersCreate/UsersCreate')),
         authority: [SUPERADMIN],
         meta: {
             header: {
-                title: 'Editar usuario',
-                description: 'Gestiona los datos y rol del usuario.',
+                title: 'Create user',
+                description: 'Create users and assign roles inside Coredeck.',
                 contained: true,
             },
             footer: false,
         },
     },
     {
-        key: 'users.create',
-        path: `${CONCEPTS_PREFIX_PATH}/users/users-create`,
-        component: lazy(() => import('@/views/concepts/users/UsersCreate')),
+        key: 'users.edit',
+        path: '/users/:id/edit',
+        component: lazy(() => import('@/views/users/UserEditView')),
         authority: [SUPERADMIN],
         meta: {
             header: {
-                title: 'Crear usuario',
-                description: 'Crea usuarios y asigna roles dentro de Coredeck.',
+                title: 'Edit user',
+                description: 'Manage user information and role.',
                 contained: true,
             },
             footer: false,
@@ -47,8 +47,8 @@ const dashboardsRoute: Routes = [
     },
     {
         key: 'users.details',
-        path: `${CONCEPTS_PREFIX_PATH}/users/users-details/:id`,
-        component: lazy(() => import('@/views/concepts/users/UsersDetails')),
+        path: '/users/:id',
+        component: lazy(() => import('@/views/users/UserDetailsView')),
         authority: [SUPERADMIN],
         meta: { pageContainerType: 'contained' },
     },
