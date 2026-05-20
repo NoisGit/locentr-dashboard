@@ -6,7 +6,7 @@ import { useAuth } from '@/auth'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
-import { CONCEPTS_PREFIX_PATH, DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
+import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { RBAC } from '@/utils/rbac'
 import { Role } from '@/utils/rbac/types'
 import SecureRoutes from '@/components/rbac/SecureRoutes'
@@ -18,7 +18,7 @@ const AUTH_PREFIX = '/auth'
 const COMPANY_SELECT_PATH = `${AUTH_PREFIX}/company-select`
 const STORAGE_KEY = 'current_company'
 const DASHBOARD_HOME = `${DASHBOARDS_PREFIX_PATH}`
-const WORKSPACES_LIST_PATH = `${CONCEPTS_PREFIX_PATH}/workspaces/workspaces-list`
+const WORKSPACES_LIST_PATH = '/workspaces'
 
 interface SecureRoutesWithCommunitiesProps {
     protectedRoutes: Routes
