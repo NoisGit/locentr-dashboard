@@ -1,4 +1,4 @@
-import { DASHBOARDS_PREFIX_PATH, CONCEPTS_PREFIX_PATH } from '@/constants/route.constant'
+import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
 import { ADMIN, USER, SUBADMIN, SUPERADMIN } from '@/constants/roles.constant'
 import type { NavigationTree } from '@/@types/navigation'
@@ -16,7 +16,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'users',
-        path: `${CONCEPTS_PREFIX_PATH}/users/users-list`,
+        path: '/users',
         title: 'Users',
         translateKey: 'nav.users',
         icon: 'customers',
