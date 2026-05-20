@@ -32,7 +32,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'workspaces',
-        path: `${CONCEPTS_PREFIX_PATH}/workspaces/workspaces-list`,
+        path: '/workspaces',
         title: 'Workspaces',
         translateKey: 'nav.workspaces',
         icon: 'landing',
