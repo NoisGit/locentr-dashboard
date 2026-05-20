@@ -13,7 +13,7 @@ type CompanyOption = {
   value: string | number
 }
 
-const WORKSPACES_LIST_PATH = '/concepts/workspaces/workspaces-list'
+const WORKSPACES_LIST_PATH = '/workspaces'
 
 const CompanySelect = () => {
   const navigate = useNavigate()
