@@ -46,6 +46,16 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         },
         subMenu: [],
     },
+    {
+        key: 'tickets',
+        path: '/support-tickets',
+        title: 'Tickets',
+        translateKey: 'nav.tickets',
+        icon: 'documentation',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [SUPERADMIN, ADMIN],
+        subMenu: [],
+    },
 ]
 
 export default dashboardsNavigationConfig
