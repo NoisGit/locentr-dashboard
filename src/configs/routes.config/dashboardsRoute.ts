@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
-import { ADMIN, SUPERADMIN } from '@/constants/roles.constant'
+import { ADMIN, CLIENT, OPERATOR, SUPERADMIN } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const dashboardsRoute: Routes = [
@@ -9,6 +9,13 @@ const dashboardsRoute: Routes = [
         path: `${DASHBOARDS_PREFIX_PATH}`,
         component: lazy(() => import('@/views/dashboard/Dashboard')),
         authority: [SUPERADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'accessManagement.list',
+        path: '/access-management',
+        component: lazy(() => import('@/views/accessManagement/AccessManagement')),
+        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         meta: { pageContainerType: 'contained' },
     },
     {
@@ -56,7 +63,7 @@ const dashboardsRoute: Routes = [
         key: 'supportTickets.list',
         path: '/support-tickets',
         component: lazy(() => import('@/views/supportTickets/SupportTicketsList')),
-        authority: [SUPERADMIN, ADMIN],
+        authority: [SUPERADMIN, ADMIN, CLIENT],
         meta: { pageContainerType: 'contained' },
     },
 ]
