@@ -142,7 +142,8 @@ Current active modules:
 | Frontend module | Backend router | Route |
 |---|---|---|
 | Dashboard | dashboard | `/dashboard` |
-| Users | users | `/users` |
+| Access management | users, whitelists, blacklists, access_logs | `/access-management` |
+| Companies | companies | `/companies` |
 | Workspaces | locations | `/workspaces` |
 | Support tickets | support_tickets | `/support-tickets` |
 | Auth | auth | `/auth/*` |
@@ -151,16 +152,10 @@ Planned API-aligned modules:
 
 | Frontend module | Backend router |
 |---|---|
-| Companies | companies |
 | Documents | documents |
 | Notifications | notifications |
-| Access logs | access_logs |
-| Location logbook | location_logbook |
-| Whitelists | whitelists |
-| Blacklists | blacklists |
-| Emergency contacts | emergency_contacts |
-| Service contacts | service_contacts |
-| Audit log | audit_log |
+| Logs | audit_log, location_logbook |
+| Contacts | emergency_contacts, service_contacts |
 
 Template modules must be removed or migrated before becoming active Coredeck modules.
 
@@ -174,14 +169,14 @@ Preferred routes:
 
 ```txt
 /dashboard
-/users
-/users/create
-/users/:id
-/users/:id/edit
+/companies
+/companies/create
+/companies/:id
 /workspaces
 /workspaces/create
 /workspaces/:id
 /workspaces/:id/edit
+/access-management
 /support-tickets
 ```
 
@@ -245,11 +240,7 @@ src/components/route/SecureRoutesWithCommunities.tsx
 src/utils/rbac
 ```
 
-`SecureRoutesWithCommunities` is a legacy name. It should eventually be renamed to something like:
-
-```txt
-SecureRoutesWithCompanyContext
-```
+`SecureRoutesWithCommunities` is a legacy file name. It should eventually be renamed to a Coredeck company-context name.
 
 ---
 
@@ -301,8 +292,9 @@ export async function apiGetAllSupportTickets(params?: SupportTicketsListParams)
 Use:
 
 ```txt
-/users
+/companies
 /workspaces
+/access-management
 /support-tickets
 ```
 
@@ -325,23 +317,11 @@ Mocks are allowed only when explicitly temporary and documented.
 
 Do not keep fake APIs for modules already connected to the backend.
 
-### Do not mix business names
+### Keep Coredeck naming clean
 
-Coredeck must not contain old product or template domains.
+Coredeck documentation and source code must not mention previous product identities, third-party prototype setups, or template business domains.
 
-Remove or migrate names such as:
-
-```txt
-Portería
-Nexa
-Acme
-Firebase
-Azure
-communities
-customers
-properties
-condos
-```
+Use generic cleanup language instead of listing old names.
 
 ### Backend remains the source of truth
 
@@ -352,6 +332,21 @@ The backend must validate:
 - location/workspace scope,
 - permissions,
 - business rules.
+
+### Use soft-delete language
+
+Normal SaaS removal flows should preserve history.
+
+Use labels such as:
+
+```txt
+Deactivate
+Revoke
+Disable
+Archive
+```
+
+Avoid UI copy that suggests destructive removal when the API preserves data.
 
 ---
 
@@ -365,11 +360,13 @@ Before adding a route, confirm:
 - [ ] The hook uses a service.
 - [ ] The service uses `ApiService`.
 - [ ] The path is clean and product-based.
-- [ ] The sidebar points to the same path.
+- [ ] The desktop sidebar points to the same path.
+- [ ] The mobile navigation points to the same path.
 - [ ] The route authority matches backend roles.
 - [ ] No `/concepts/*` path is introduced.
 - [ ] No mock is added unless explicitly temporary.
 - [ ] Empty, loading and error states are handled.
+- [ ] Deactivation language is used for soft-delete flows.
 
 ---
 
@@ -431,8 +428,9 @@ Active route roots:
 
 ```txt
 /dashboard
-/users
+/companies
 /workspaces
+/access-management
 /support-tickets
 /auth
 ```
@@ -441,8 +439,9 @@ Active view roots:
 
 ```txt
 src/views/dashboard
-src/views/users
+src/views/companies
 src/views/workspaces
+src/views/accessManagement
 src/views/supportTickets
 src/views/auth
 ```
