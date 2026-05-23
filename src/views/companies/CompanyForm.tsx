@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { Form, FormItem } from '@/components/ui/Form'
+import { Form } from '@/components/ui/Form'
+import FormItem from '@/components/ui/Form/FormItem'
 
 export type CompanyFormSchema = {
     name: string
