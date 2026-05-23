@@ -1,6 +1,6 @@
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
-import { ADMIN, USER, SUBADMIN, SUPERADMIN } from '@/constants/roles.constant'
+import { ADMIN, CLIENT, OPERATOR, SUPERADMIN } from '@/constants/roles.constant'
 import type { NavigationTree } from '@/@types/navigation'
 
 const dashboardsNavigationConfig: NavigationTree[] = [
@@ -15,17 +15,17 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'users',
-        path: '/users',
-        title: 'Users',
-        translateKey: 'nav.users',
+        key: 'accessManagement',
+        path: '/access-management',
+        title: 'Access Management',
+        translateKey: 'nav.accessManagement',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN],
+        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         meta: {
             description: {
-                translateKey: 'nav.usersDesc',
-                label: 'User management',
+                translateKey: 'nav.accessManagementDesc',
+                label: 'Users, access lists and access logs',
             },
         },
         subMenu: [],
@@ -37,7 +37,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.workspaces',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, USER, SUBADMIN, SUPERADMIN],
+        authority: [ADMIN, OPERATOR, CLIENT, SUPERADMIN],
         meta: {
             description: {
                 translateKey: 'nav.workspacesDesc',
@@ -53,7 +53,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.tickets',
         icon: 'documentation',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN],
+        authority: [SUPERADMIN, ADMIN, CLIENT],
         subMenu: [],
     },
 ]
