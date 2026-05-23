@@ -1,4 +1,3 @@
-// src/utils/rbac/roleAliases.ts
 import { Role } from './types'
 
 export enum CoredeckRole {
@@ -18,9 +17,8 @@ export const COREDECK_ROLE_LABELS: Record<CoredeckRole, string> = {
 const API_ROLE_ALIASES: Record<string, CoredeckRole> = {
     [Role.SUPERADMIN]: CoredeckRole.OWNER,
     [Role.ADMIN]: CoredeckRole.ADMIN,
-    [Role.SUBADMIN]: CoredeckRole.ADMIN,
-    OPERATOR: CoredeckRole.MEMBER,
-    CLIENT: CoredeckRole.VIEWER,
+    [Role.OPERATOR]: CoredeckRole.MEMBER,
+    [Role.CLIENT]: CoredeckRole.VIEWER,
     OWNER: CoredeckRole.OWNER,
     MEMBER: CoredeckRole.MEMBER,
     VIEWER: CoredeckRole.VIEWER,
