@@ -11,7 +11,7 @@ export type Company = {
     type_document?: string | null
     is_active?: boolean
     parent_company_id?: number | null
-    created_by?: number
+    created_by?: number | null
     created_at?: string | null
 }
 
@@ -44,7 +44,6 @@ export type CompanyUserCreateRequest = {
 type ListCompaniesParams = {
     pageIndex?: number
     pageSize?: number
-    sort?: { key?: string; order?: 'asc' | 'desc' }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -55,6 +54,17 @@ function toStr(value: unknown): string {
     if (typeof value === 'string') return value
     if (typeof value === 'number' || typeof value === 'boolean') return String(value)
     return ''
+}
+
+function toNumber(value: unknown): number | null {
+    if (typeof value === 'number' && !Number.isNaN(value)) return value
+
+    if (typeof value === 'string' && value.trim()) {
+        const parsed = Number(value)
+        return Number.isNaN(parsed) ? null : parsed
+    }
+
+    return null
 }
 
 function firstArrayCandidate(value: unknown): unknown[] {
@@ -78,33 +88,42 @@ function firstArrayCandidate(value: unknown): unknown[] {
     return []
 }
 
-function mapToCompany(value: unknown): Company | null {
-    if (!isRecord(value)) return null
+function unwrapRecord(value: unknown): unknown {
+    if (!isRecord(value)) return value
 
-    const id = value.id ?? value._id ?? value.company_id ?? value.companyId
-    const name = toStr(value.name) || toStr(value.company_name) || toStr(value.label)
+    const data = value.data
+    if (isRecord(data)) return data
+
+    return value
+}
+
+function mapToCompany(value: unknown): Company | null {
+    const record = unwrapRecord(value)
+    if (!isRecord(record)) return null
+
+    const id = record.id ?? record._id ?? record.company_id ?? record.companyId
+    const name = toStr(record.name) || toStr(record.company_name) || toStr(record.label)
 
     if (id === undefined || id === null || !name) return null
 
     return {
         id: id as string | number,
         name,
-        activity: toStr(value.activity) || null,
-        id_number: toStr(value.id_number) || null,
-        logo: toStr(value.logo) || null,
-        type_document: toStr(value.type_document) || null,
-        is_active: typeof value.is_active === 'boolean' ? value.is_active : undefined,
-        parent_company_id:
-            typeof value.parent_company_id === 'number' ? value.parent_company_id : null,
-        created_by: typeof value.created_by === 'number' ? value.created_by : undefined,
-        created_at: toStr(value.created_at) || null,
+        activity: toStr(record.activity) || null,
+        id_number: toStr(record.id_number) || null,
+        logo: toStr(record.logo) || null,
+        type_document: toStr(record.type_document) || null,
+        is_active: typeof record.is_active === 'boolean' ? record.is_active : undefined,
+        parent_company_id: toNumber(record.parent_company_id ?? record.parentCompanyId),
+        created_by: toNumber(record.created_by),
+        created_at: toStr(record.created_at) || null,
     }
 }
 
 export async function apiListCompanies<T = Company[]>(
     params: ListCompaniesParams = {},
 ) {
-    const { pageIndex = 1, pageSize = 200, sort = { key: 'id', order: 'desc' } } = params
+    const { pageIndex = 1, pageSize = 200 } = params
 
     const response = await ApiService.fetchDataWithAxios<unknown>({
         url: COMPANIES_BASE,
@@ -112,8 +131,6 @@ export async function apiListCompanies<T = Company[]>(
         params: {
             page: pageIndex,
             size: pageSize,
-            'sort[key]': sort.key,
-            'sort[order]': sort.order,
         },
     })
 
