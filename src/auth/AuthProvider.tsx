@@ -6,7 +6,7 @@ import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import { apiMe, apiSignIn, apiSignOut } from '@/services/AuthService'
-import { normalizeUser } from '@/services/UserService'
+import { normalizeUser } from '@/services/UsersService'
 import { apiListCompanies } from '@/services/CompaniesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
@@ -148,7 +148,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     }
     setSessionSignedIn(true)
     if (u) {
-      const normalized = normalizeUser(u as any)
+      const normalized = normalizeUser(u)
       const rbacUser = RBAC.createAuthUser(normalized)
 
       setUser(rbacUser as AppUser)
@@ -176,7 +176,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     if (hydratingRef.current) return
     hydratingRef.current = true
     try {
-      const me = await apiMe<any>()
+      const me = await apiMe<unknown>()
       const normalized = normalizeUser(me)
       const rbacUser = RBAC.createAuthUser(normalized)
 
@@ -213,7 +213,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           setRefreshToken(rawRefreshToken)
         }
         try {
-          userLike = await apiMe<any>()
+          userLike = await apiMe<unknown>()
         } catch { }
       }
       if (!hasDashboardAccess(userLike)) {
