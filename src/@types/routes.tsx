@@ -24,7 +24,7 @@ export interface Meta {
 export type Route = {
     key: string
     path: string
-    component: LazyExoticComponent<ComponentType<any>>
+    component: LazyExoticComponent<ComponentType>
 
     /**
      * @deprecated Use 'roles' en su lugar
