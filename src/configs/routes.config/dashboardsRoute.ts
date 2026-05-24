@@ -12,6 +12,62 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
     {
+        key: 'companies.list',
+        path: '/companies',
+        component: lazy(() => import('@/views/companies/CompaniesList')),
+        authority: [SUPERADMIN, ADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'companies.create',
+        path: '/companies/create',
+        component: lazy(() => import('@/views/companies/CompanyCreate')),
+        authority: [SUPERADMIN],
+        meta: {
+            header: {
+                title: 'Create company',
+                description: 'Create a new Coredeck company.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'companies.subcompanyCreate',
+        path: '/companies/subcompany/create',
+        component: lazy(() => import('@/views/companies/CompanySubCreate')),
+        authority: [SUPERADMIN, ADMIN],
+        meta: {
+            header: {
+                title: 'Create subcompany',
+                description: 'Create a subcompany connected to a Coredeck company.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'companies.edit',
+        path: '/companies/:id/edit',
+        component: lazy(() => import('@/views/companies/CompanyEdit')),
+        authority: [SUPERADMIN, ADMIN],
+        meta: {
+            header: {
+                title: 'Edit company',
+                description: 'Manage Coredeck company information.',
+                contained: true,
+            },
+            footer: false,
+        },
+    },
+    {
+        key: 'companies.details',
+        path: '/companies/:id',
+        component: lazy(() => import('@/views/companies/CompanyDetails')),
+        authority: [SUPERADMIN, ADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
         key: 'accessManagement.list',
         path: '/access-management',
         component: lazy(() => import('@/views/accessManagement/AccessManagement')),
