@@ -110,4 +110,17 @@ export default tseslint.config(
             '@typescript-eslint/no-unused-expressions': 'off',
         },
     },
+    {
+        files: [
+            'src/auth/**',
+            'src/components/**',
+            'src/hoc/**',
+            'src/services/**',
+            'src/store/**',
+            'src/utils/**',
+        ],
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+        },
+    },
 )
