@@ -5,25 +5,27 @@ import {
     type TableQueries as UsersTableQueries,
 } from '@/services/UsersService'
 import { useUsersListStore } from '../store/usersListStore'
+import type { TableQueries } from '@/@types/common'
 
-function buildParams(tableData: any, filterData: any): UsersTableQueries {
+type UsersFilter = {
+    query?: string
+}
+
+function buildParams(tableData: TableQueries, filterData: UsersFilter): UsersTableQueries {
     return {
-        pageIndex: Number(tableData?.pageIndex ?? 1),
-        pageSize: Number(tableData?.pageSize ?? 10),
-        query: String(filterData?.query ?? tableData?.query ?? ''),
-        sort: tableData?.sort,
+        pageIndex: Number(tableData.pageIndex ?? 1),
+        pageSize: Number(tableData.pageSize ?? 10),
+        query: String(filterData.query ?? tableData.query ?? ''),
+        sort: tableData.sort as UsersTableQueries['sort'],
     }
 }
 
 const SWR_KEY = 'users:list'
 
 export default function useUsersList() {
-    const {
-        tableData,
-        filterData,
-        setTableData,
-        setFilterData,
-    } = useUsersListStore((state) => state)
+    const { tableData, filterData, setTableData, setFilterData } = useUsersListStore(
+        (state) => state,
+    )
 
     const params = buildParams(tableData, filterData)
 
