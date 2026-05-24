@@ -15,6 +15,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'companies',
+        path: '/companies',
+        title: 'Companies',
+        translateKey: 'nav.companies',
+        icon: 'building',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [SUPERADMIN, ADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.companiesDesc',
+                label: 'Companies and subcompanies',
+            },
+        },
+        subMenu: [],
+    },
+    {
         key: 'accessManagement',
         path: '/access-management',
         title: 'Access Management',
