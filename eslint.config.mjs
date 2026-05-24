@@ -29,6 +29,10 @@ export default tseslint.config(
                 '**/eslint.config.mjs',
                 '**/postcss.config.cjs',
                 '**/tailwind.config.cjs',
+                'src/assets/markdown/**',
+                'src/views/concepts/**',
+                'src/views/ui-components/**',
+                'src/views/others/**',
             ],
         },
         ...fixupConfigRules(
