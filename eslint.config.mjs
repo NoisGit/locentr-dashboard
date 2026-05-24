@@ -82,6 +82,7 @@ export default tseslint.config(
                 'import/no-duplicates': 'error',
                 'import/no-named-as-default': 0,
                 'react/prop-types': 'off',
+                'no-empty': ['error', { allowEmptyCatch: true }],
                 'react/jsx-sort-props': [
                     'warn',
                     {
