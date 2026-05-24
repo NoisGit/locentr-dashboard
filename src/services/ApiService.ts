@@ -119,46 +119,6 @@ const ApiService = {
   ) {
     return new Promise<Response>((resolve, reject) => {
       const rawUrl = String(param?.url ?? '')
-      let pathname = rawUrl.toLowerCase()
-      try {
-        pathname = new URL(rawUrl, 'http://x').pathname.toLowerCase()
-      } catch {
-        void 0
-      }
-
-      const isEcom = pathname.includes('/dashboard/ecommerce')
-      const isProj = pathname.includes('/dashboard/project')
-
-      if (isEcom) {
-        const data = {
-          revenue: [],
-          sales: [],
-          stats: {
-            totalProfit: 0,
-            totalIncome: 0,
-            totalExpense: 0,
-            customers: 0,
-            orders: 0,
-            conversionRate: 0,
-          },
-          topProducts: [],
-          recentTransactions: [],
-        } as unknown as Response
-        resolve(data)
-        return
-      }
-
-      if (isProj) {
-        const data = {
-          overview: [],
-          activities: [],
-          tasks: [],
-          members: [],
-        } as unknown as Response
-        resolve(data)
-        return
-      }
-
       const normalizedUrl = normalizeUsersUrl(rawUrl)
       const baseCfg: AxiosRequestConfig<Request> = { ...param, url: normalizedUrl }
       const finalCfg = withCompanyContext<Request>(baseCfg)
