@@ -5,25 +5,27 @@ import {
     type TableQueries as LocationsTableQueries,
 } from '@/services/LocationsService'
 import { useWorkspacesListStore } from '../store/workspacesListStore'
+import type { TableQueries } from '@/@types/common'
+import type { WorkspacesFilter } from '../types'
 
-function buildParams(tableData: any, filterData: any): LocationsTableQueries {
+function buildParams(
+    tableData: TableQueries,
+    filterData: WorkspacesFilter,
+): LocationsTableQueries {
     return {
-        pageIndex: Number(tableData?.pageIndex ?? 1),
-        pageSize: Number(tableData?.pageSize ?? 10),
-        query: String(filterData?.query ?? tableData?.query ?? ''),
-        sort: tableData?.sort,
+        pageIndex: Number(tableData.pageIndex ?? 1),
+        pageSize: Number(tableData.pageSize ?? 10),
+        query: String(filterData.query ?? tableData.query ?? ''),
+        sort: tableData.sort as LocationsTableQueries['sort'],
     }
 }
 
 const SWR_KEY = 'workspaces:list'
 
 export default function useWorkspacesList() {
-    const {
-        tableData,
-        filterData,
-        setTableData,
-        setFilterData,
-    } = useWorkspacesListStore((state) => state)
+    const { tableData, filterData, setTableData, setFilterData } = useWorkspacesListStore(
+        (state) => state,
+    )
 
     const params = buildParams(tableData, filterData)
 
