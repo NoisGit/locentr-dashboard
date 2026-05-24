@@ -6,16 +6,33 @@ import UsersListTable from './components/UsersListTable'
 import UsersListTableTools from './components/UsersListTableTools'
 import useUsersList from './hooks/useUsersList'
 
+type RequestError = {
+    message?: string
+    response?: {
+        data?: {
+            message?: string
+            detail?: string
+        }
+    }
+}
+
+function getErrorMessage(error: unknown) {
+    const requestError = error as RequestError
+
+    return (
+        requestError?.response?.data?.message ||
+        requestError?.response?.data?.detail ||
+        requestError?.message ||
+        'No se pudo cargar la lista de usuarios.'
+    )
+}
+
 const UsersList = () => {
     const navigate = useNavigate()
     const { usersList, isLoading, error, mutate } = useUsersList()
 
     if (!isLoading && error) {
-        const serverMsg =
-            (error as any)?.response?.data?.message ||
-            (error as any)?.response?.data?.detail ||
-            (error as any)?.message ||
-            'No se pudo cargar la lista de usuarios.'
+        const serverMsg = getErrorMessage(error)
 
         return (
             <Container>
@@ -23,7 +40,9 @@ const UsersList = () => {
                     <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
                         <h3 className="text-lg font-semibold">Error al cargar usuarios</h3>
                         <p className="text-sm text-red-600 dark:text-red-400">{serverMsg}</p>
-                        <Button onClick={() => mutate()} variant="solid">Reintentar</Button>
+                        <Button variant="solid" onClick={() => mutate()}>
+                            Reintentar
+                        </Button>
                     </div>
                 </AdaptiveCard>
             </Container>
