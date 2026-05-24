@@ -8,13 +8,22 @@ export type TableQueries = {
   sort?: { key?: string; order?: 'asc' | 'desc' }
 }
 
+export type RoleRef = {
+  id?: number | string
+  name?: string
+}
+
 export type UserRow = {
   id: number | string
   name: string
   email: string
   phone?: string
-  role?: string
+  role?: string | RoleRef
+  role_id?: number | string
   avatar?: string
+  full_name?: string
+  first_name?: string
+  last_name?: string
 }
 
 export type GetUsersListResponse = {
@@ -45,6 +54,7 @@ type UserLike = {
   phone?: string
   phone_number?: string
   role?: string | RoleLike
+  role_id?: number | string
   role_name?: string
   avatar?: string
   avatar_url?: string
@@ -85,9 +95,13 @@ function extractListPayload(d: unknown): { items: unknown[]; total: number } {
   return { items, total }
 }
 
-function adaptUserRow(user: UserLike): UserRow {
+function userDisplayName(user: UserLike) {
   const nameParts = [user.first_name, user.last_name].filter(Boolean).join(' ')
-  const name = String(user.full_name || user.name || nameParts || '')
+  return String(user.full_name || user.name || nameParts || '')
+}
+
+function adaptUserRow(user: UserLike): UserRow {
+  const name = userDisplayName(user)
   const email = String(user.email || '')
   const role =
     (typeof user.role === 'string' ? user.role : user.role?.name) ||
@@ -99,10 +113,29 @@ function adaptUserRow(user: UserLike): UserRow {
   return {
     id: cleanId,
     name,
+    full_name: user.full_name,
+    first_name: user.first_name,
+    last_name: user.last_name,
     email,
     phone: user.phone ?? user.phone_number ?? '',
     role,
+    role_id: user.role_id ?? (typeof user.role === 'object' ? user.role?.id : undefined),
     avatar: user.avatar ?? user.avatar_url ?? user.photoURL ?? user.photo_url ?? '',
+  }
+}
+
+export function normalizeUser(user: unknown) {
+  const row = isRecord(user) ? adaptUserRow(user as UserLike) : adaptUserRow({})
+  const roleName = typeof row.role === 'string' ? row.role : row.role?.name
+  const roleId = row.role_id || (typeof row.role === 'object' ? row.role?.id : undefined)
+
+  return {
+    id: row.id,
+    userName: row.name,
+    email: row.email,
+    avatar: row.avatar,
+    role: roleName,
+    role_id: roleId,
   }
 }
 
@@ -161,8 +194,8 @@ export async function apiGetUserById(id: string | number) {
       })
       const { items } = extractListPayload(data)
       const found =
-        (items as UserLike[]).find((user) => String(user.id ?? user._id) === cleanId) ??
-        (items as UserLike[]).find((user) => String(user.user_id ?? user.uid) === cleanId) ??
+        (items as UserLike[]).find((item) => String(item.id ?? item._id) === cleanId) ??
+        (items as UserLike[]).find((item) => String(item.user_id ?? item.uid) === cleanId) ??
         null
 
       if (!found) throw error
