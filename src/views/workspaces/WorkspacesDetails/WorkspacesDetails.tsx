@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 import Card from '@/components/ui/Card'
@@ -50,6 +50,12 @@ const WorkspacesDetails = () => {
     const locationId = Number(workspaceId)
     const [policeLink, setPoliceLink] = useState('')
     const [isGeneratingPoliceLink, setIsGeneratingPoliceLink] = useState(false)
+
+    useEffect(() => {
+        if (workspaceId) {
+            localStorage.setItem('current_location_id', workspaceId)
+        }
+    }, [workspaceId])
 
     const { data, isLoading } = useSWR(
         workspaceId ? ['workspaces:detail', workspaceId] : null,
