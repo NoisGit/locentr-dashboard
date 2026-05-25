@@ -30,6 +30,7 @@ export default tseslint.config(
                 '**/postcss.config.cjs',
                 '**/tailwind.config.cjs',
                 'src/assets/markdown/**',
+                'src/components/docs/**',
                 'src/views/concepts/**',
                 'src/views/ui-components/**',
                 'src/views/others/**',
