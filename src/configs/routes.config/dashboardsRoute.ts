@@ -8,7 +8,7 @@ const dashboardsRoute: Routes = [
         key: 'dashboard.dashboard',
         path: `${DASHBOARDS_PREFIX_PATH}`,
         component: lazy(() => import('@/views/dashboard/Dashboard')),
-        authority: [SUPERADMIN],
+        authority: [SUPERADMIN, ADMIN, CLIENT],
         meta: { pageContainerType: 'contained' },
     },
     {
