@@ -11,7 +11,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.dashboard.dashboard',
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN],
+        authority: [SUPERADMIN, ADMIN, CLIENT],
         subMenu: [],
     },
     {
@@ -53,7 +53,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.workspaces',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [ADMIN, OPERATOR, CLIENT, SUPERADMIN],
+        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         meta: {
             description: {
                 translateKey: 'nav.workspacesDesc',
