@@ -79,6 +79,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'notifications',
+        path: '/notifications',
+        title: 'Notifications',
+        translateKey: 'nav.notifications',
+        icon: 'notification',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
+        meta: {
+            description: {
+                translateKey: 'nav.notificationsDesc',
+                label: 'Unread alerts and broadcasts',
+            },
+        },
+        subMenu: [],
+    },
+    {
         key: 'tickets',
         path: '/support-tickets',
         title: 'Tickets',
