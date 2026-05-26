@@ -10,6 +10,7 @@ import WorkspaceOverviewTab from './components/WorkspaceOverviewTab'
 import WorkspaceOperatorsTab from './components/WorkspaceOperatorsTab'
 import WorkspaceAccessTab from './components/WorkspaceAccessTab'
 import WorkspaceContactsTab from './components/WorkspaceContactsTab'
+import WorkspaceDocumentsTab from './components/WorkspaceDocumentsTab'
 import WorkspaceLogbookTab from './components/WorkspaceLogbookTab'
 import WorkspacePoliceAccessTab from './components/WorkspacePoliceAccessTab'
 import {
@@ -26,6 +27,10 @@ import {
     apiGetLocationLogbookSettings,
     apiListLocationLogbookEntries,
 } from '@/services/LocationLogbookService'
+import {
+    apiGetDocumentDownloadUrl,
+    apiListAllDocuments,
+} from '@/services/DocumentsService'
 
 const { TabNav, TabList, TabContent } = Tabs
 
@@ -63,6 +68,8 @@ const WorkspacesDetails = () => {
         { revalidateOnFocus: false },
     )
 
+    const companyId = data?.companyId ?? data?.companyIds?.[0]
+
     const { data: operators } = useSWR(
         Number.isFinite(locationId) ? ['workspaces:operators', locationId] : null,
         ([, currentId]) => apiListLocationOperators(currentId as number, { page: 1, size: 5 }),
@@ -87,6 +94,12 @@ const WorkspacesDetails = () => {
         { revalidateOnFocus: false },
     )
 
+    const { data: documents } = useSWR(
+        companyId ? ['workspaces:documents', companyId] : null,
+        ([, currentCompanyId]) => apiListAllDocuments({ company_id: currentCompanyId as number, page: 1, size: 5 }),
+        { revalidateOnFocus: false },
+    )
+
     const { data: logbookSettings } = useSWR(
         workspaceId ? ['workspaces:logbook-settings', workspaceId] : null,
         ([, currentId]) => apiGetLocationLogbookSettings(currentId as string),
@@ -98,6 +111,20 @@ const WorkspacesDetails = () => {
         ([, currentId]) => apiListLocationLogbookEntries(currentId as string, { page: 1, size: 5 }),
         { revalidateOnFocus: false },
     )
+
+    const handleDownloadDocument = async (documentId: number) => {
+        try {
+            const response = await apiGetDocumentDownloadUrl(documentId)
+            window.open(response.url, '_blank', 'noopener,noreferrer')
+        } catch (error) {
+            toast.push(
+                <Notification type="danger">
+                    {getErrorMessage(error, 'Document download link could not be generated.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
+        }
+    }
 
     const handleGeneratePoliceLink = async () => {
         if (!Number.isFinite(locationId)) return
@@ -137,6 +164,7 @@ const WorkspacesDetails = () => {
                         <TabNav value="operators">Operators</TabNav>
                         <TabNav value="access">Access</TabNav>
                         <TabNav value="contacts">Contacts</TabNav>
+                        <TabNav value="documents">Documents</TabNav>
                         <TabNav value="logbook">Logbook</TabNav>
                         <TabNav value="police">Police QR</TabNav>
                     </TabList>
@@ -155,6 +183,13 @@ const WorkspacesDetails = () => {
                             <WorkspaceContactsTab
                                 emergencyContacts={emergencyContacts}
                                 serviceContacts={serviceContacts}
+                            />
+                        </TabContent>
+                        <TabContent value="documents">
+                            <WorkspaceDocumentsTab
+                                documents={documents}
+                                hasCompanyContext={Boolean(companyId)}
+                                onDownload={handleDownloadDocument}
                             />
                         </TabContent>
                         <TabContent value="logbook">
