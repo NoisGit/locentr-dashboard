@@ -196,6 +196,7 @@ const navigationIcon: NavigationIcons = {
     dashboardProject: <PiRocketDuotone />,
     dashboardAnalytic: <PiChartBarDuotone />,
     dashboardMarketing: <PiMegaphoneDuotone />,
+    notification: <PiMegaphoneDuotone />,
     others: <PiDotsThreeCircleDuotone />,
     accessDenied: <PiCircleHalfTiltDuotone />,
     landing: <PiHouseLineDuotone />,
