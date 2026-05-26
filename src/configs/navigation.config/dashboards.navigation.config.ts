@@ -63,6 +63,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'documents',
+        path: '/documents',
+        title: 'Documents',
+        translateKey: 'nav.documents',
+        icon: 'documentation',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
+        meta: {
+            description: {
+                translateKey: 'nav.documentsDesc',
+                label: 'Company files and downloads',
+            },
+        },
+        subMenu: [],
+    },
+    {
         key: 'tickets',
         path: '/support-tickets',
         title: 'Tickets',
