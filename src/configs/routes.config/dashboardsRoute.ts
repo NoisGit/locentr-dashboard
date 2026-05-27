@@ -89,6 +89,13 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
     {
+        key: 'auditLog.list',
+        path: '/audit-log',
+        component: lazy(() => import('@/views/auditLog')),
+        authority: [SUPERADMIN, ADMIN],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
         key: 'users.list',
         path: '/users',
         component: lazy(() => import('@/views/users/UsersList/UsersList')),
