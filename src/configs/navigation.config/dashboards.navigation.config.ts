@@ -95,6 +95,22 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'auditLog',
+        path: '/audit-log',
+        title: 'Audit Log',
+        translateKey: 'nav.auditLog',
+        icon: 'accountActivityLogs',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [SUPERADMIN, ADMIN],
+        meta: {
+            description: {
+                translateKey: 'nav.auditLogDesc',
+                label: 'Security and system activity',
+            },
+        },
+        subMenu: [],
+    },
+    {
         key: 'tickets',
         path: '/support-tickets',
         title: 'Tickets',
