@@ -8,7 +8,7 @@ import { useAuth } from '@/auth'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import type { LayoutType } from '@/@types/theme'
 import { getUserRoles } from '@/utils/authority'
-import { CONCEPTS_PREFIX_PATH, DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
+import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 
 interface ViewsProps {
   pageContainerType?: 'default' | 'gutterless' | 'contained'
@@ -16,22 +16,20 @@ interface ViewsProps {
 }
 type AllRoutesProps = ViewsProps
 
-const ADMIN_ENTRY = `${CONCEPTS_PREFIX_PATH}/condos/condos-list`
 const SUPER_ENTRY = `${DASHBOARDS_PREFIX_PATH}`
+const DEFAULT_ENTRY = `${DASHBOARDS_PREFIX_PATH}`
 
 const AllRoutes = (props: AllRoutesProps) => {
   const { user } = useAuth()
 
-  // >>> FIX: evaluar roles usando el OBJETO COMPLETO 'user', no solo user.authority
   const roles = getUserRoles(user)
   const isSuper = roles.has('SUPERADMIN')
-  const entryPath = isSuper ? SUPER_ENTRY : ADMIN_ENTRY
+  const entryPath = isSuper ? SUPER_ENTRY : DEFAULT_ENTRY
 
   const toAuthChildPath = (p: string) => p.replace(/^\/?auth\/?/, '')
 
   return (
     <Routes>
-      {/* públicas */}
       <Route path="/auth/*" element={<PublicRoute />}>
         <Route index element={<Navigate replace to="sign-in" />} />
         {publicRoutes.map((route) => (
@@ -44,7 +42,6 @@ const AllRoutes = (props: AllRoutesProps) => {
         <Route path="*" element={<Navigate replace to="sign-in" />} />
       </Route>
 
-      {/* protegidas */}
       <Route path="/" element={<ProtectedRoute />}>
         <Route index element={<Navigate replace to={entryPath} />} />
 
