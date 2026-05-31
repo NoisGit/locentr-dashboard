@@ -1,6 +1,8 @@
 import ApiService from '@/services/ApiService'
 
-export const COMPANIES_BASE = '/api/v1/companies/'
+export const COMPANIES_BASE = '/api/v1/companies'
+
+const COMPANIES_COLLECTION = `${COMPANIES_BASE}/`
 
 export type Company = {
     id: string | number
@@ -44,6 +46,7 @@ export type CompanyUserCreateRequest = {
 type ListCompaniesParams = {
     pageIndex?: number
     pageSize?: number
+    search?: string
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -65,6 +68,14 @@ function toNumber(value: unknown): number | null {
     }
 
     return null
+}
+
+function cleanId(value: string | number) {
+    return encodeURIComponent(String(value).replace(/\/+$/, ''))
+}
+
+function companyUrl(companyId: string | number) {
+    return `${COMPANIES_BASE}/${cleanId(companyId)}`
 }
 
 function firstArrayCandidate(value: unknown): unknown[] {
@@ -123,14 +134,15 @@ function mapToCompany(value: unknown): Company | null {
 export async function apiListCompanies<T = Company[]>(
     params: ListCompaniesParams = {},
 ) {
-    const { pageIndex = 1, pageSize = 200 } = params
+    const { pageIndex = 1, pageSize = 200, search } = params
 
     const response = await ApiService.fetchDataWithAxios<unknown>({
-        url: COMPANIES_BASE,
+        url: COMPANIES_COLLECTION,
         method: 'get',
         params: {
             page: pageIndex,
             size: pageSize,
+            search,
         },
     })
 
@@ -142,7 +154,7 @@ export async function apiListCompanies<T = Company[]>(
 
 export async function apiGetCompanyById<T = Company>(id: string | number) {
     const response = await ApiService.fetchDataWithAxios<unknown>({
-        url: `${COMPANIES_BASE}${encodeURIComponent(String(id))}`,
+        url: companyUrl(id),
         method: 'get',
     })
 
@@ -152,7 +164,7 @@ export async function apiGetCompanyById<T = Company>(id: string | number) {
 
 export async function apiCreateCompany(data: CompanyCreateRequest) {
     return ApiService.fetchDataWithAxios<void, CompanyCreateRequest>({
-        url: COMPANIES_BASE,
+        url: COMPANIES_COLLECTION,
         method: 'post',
         data,
     })
@@ -160,7 +172,7 @@ export async function apiCreateCompany(data: CompanyCreateRequest) {
 
 export async function apiCreateSubCompany(data: SubCompanyCreateRequest) {
     return ApiService.fetchDataWithAxios<void, SubCompanyCreateRequest>({
-        url: `${COMPANIES_BASE}subcompany`,
+        url: `${COMPANIES_BASE}/subcompany`,
         method: 'post',
         data,
     })
@@ -168,7 +180,7 @@ export async function apiCreateSubCompany(data: SubCompanyCreateRequest) {
 
 export async function apiUpdateCompany(id: string | number, data: CompanyUpdateRequest) {
     return ApiService.fetchDataWithAxios<void, CompanyUpdateRequest>({
-        url: `${COMPANIES_BASE}${encodeURIComponent(String(id))}`,
+        url: companyUrl(id),
         method: 'put',
         data,
     })
@@ -176,7 +188,7 @@ export async function apiUpdateCompany(id: string | number, data: CompanyUpdateR
 
 export async function apiDeactivateCompany(id: string | number) {
     return ApiService.fetchDataWithAxios<void>({
-        url: `${COMPANIES_BASE}${encodeURIComponent(String(id))}`,
+        url: companyUrl(id),
         method: 'delete',
     })
 }
@@ -186,7 +198,7 @@ export async function apiAssignUserToCompany(
     data: CompanyAssignUserRequest,
 ) {
     return ApiService.fetchDataWithAxios<void, CompanyAssignUserRequest>({
-        url: `${COMPANIES_BASE}${encodeURIComponent(String(companyId))}/users`,
+        url: `${companyUrl(companyId)}/users`,
         method: 'post',
         data,
     })
@@ -197,7 +209,7 @@ export async function apiCreateUserAndAssignToCompany(
     data: CompanyUserCreateRequest,
 ) {
     return ApiService.fetchDataWithAxios<void, CompanyUserCreateRequest>({
-        url: `${COMPANIES_BASE}${encodeURIComponent(String(companyId))}/create-users`,
+        url: `${companyUrl(companyId)}/create-users`,
         method: 'post',
         data,
     })
