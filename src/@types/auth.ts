@@ -35,6 +35,7 @@ export type User = {
     full_name?: string | null
     email?: string | null
     role?: string | null
+    role_id?: string | number | null
     authority?: string[]
 }
 
