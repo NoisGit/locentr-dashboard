@@ -154,11 +154,11 @@ export async function apiGetUsersList<
 >(params: Q): Promise<T> {
   const queryParams: Record<string, unknown> = {}
 
-  if (params.pageIndex != null) queryParams.pageIndex = params.pageIndex
-  if (params.pageSize != null) queryParams.pageSize = params.pageSize
-  if (params.query != null) queryParams.query = params.query
-  if (params.sort?.key) queryParams['sort[key]'] = params.sort.key
-  if (params.sort?.order) queryParams['sort[order]'] = params.sort.order
+  if (params.pageIndex != null) queryParams.page = params.pageIndex
+  if (params.pageSize != null) queryParams.size = params.pageSize
+  if (params.query != null) queryParams.search = params.query
+  if (params.sort?.key) queryParams.sort_by = params.sort.key
+  if (params.sort?.order) queryParams.sort_order = params.sort.order
 
   const data = await req<unknown>({ url: BASE_COLLECTION, method: 'get', params: queryParams })
   const { items, total } = extractListPayload(data)
@@ -190,7 +190,7 @@ export async function apiGetUserById(id: string | number) {
       const data = await req<unknown>({
         url: BASE_COLLECTION,
         method: 'get',
-        params: { pageIndex: 1, pageSize: 50, query: String(cleanId) },
+        params: { page: 1, size: 50, search: String(cleanId) },
       })
       const { items } = extractListPayload(data)
       const found =
