@@ -13,11 +13,12 @@ const UsersCreate = () => {
         try {
             setIsSubmitting(true)
             await apiCreateUser({
+                username: values.username.trim(),
                 full_name: values.full_name.trim(),
                 email: values.email.trim(),
-                phone: values.phone?.trim() || undefined,
                 password: values.password?.trim() || '',
-                role_id: values.role_id.trim(),
+                role: values.role,
+                status: values.status ?? true,
             })
             toast.push(<Notification type="success">Usuario creado correctamente.</Notification>, {
                 placement: 'top-center',
