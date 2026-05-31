@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import useSWR from 'swr'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
 import Loading from '@/components/shared/Loading'
@@ -9,13 +8,10 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import { useSessionUser } from '@/store/authStore'
 import { SUPERADMIN } from '@/constants/roles.constant'
-import {
-    apiGetDocumentDownloadUrl,
-    apiListAllDocuments,
-    apiListMyCompanyDocuments,
-} from '@/services/DocumentsService'
+import { apiGetDocumentDownloadUrl } from '@/services/DocumentsService'
 import DocumentsList from './components/DocumentsList'
 import DocumentsStats from './components/DocumentsStats'
+import { useDocuments } from './hooks/useDocuments'
 
 function getErrorMessage(error: unknown, fallback: string) {
     const requestError = error as {
@@ -36,16 +32,7 @@ const Documents = () => {
     const authority = useSessionUser((state) => state.user.authority ?? [])
     const isSuperAdmin = role === SUPERADMIN || authority.includes(SUPERADMIN)
     const [search, setSearch] = useState('')
-
-    const { data, isLoading, mutate } = useSWR(
-        ['documents:list', isSuperAdmin, search],
-        () =>
-            isSuperAdmin
-                ? apiListAllDocuments({ page: 1, search, size: 10 })
-                : apiListMyCompanyDocuments({ page: 1, search, size: 10 }),
-        { revalidateOnFocus: false },
-    )
-
+    const { data, isLoading, mutate } = useDocuments({ isSuperAdmin, search })
     const documents = data?.items ?? []
     const totalSize = useMemo(
         () => documents.reduce((total, document) => total + (document.size_bytes ?? 0), 0),
