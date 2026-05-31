@@ -5,17 +5,20 @@ import Card from '@/components/ui/Card'
 import { Form } from '@/components/ui/Form'
 import FormItem from '@/components/ui/Form/FormItem'
 import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
 import BottomStickyBar from '@/components/template/BottomStickyBar'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
+import type { UserRole } from '@/services/UsersService'
 
 export type UserFormSchema = {
+    username: string
     full_name: string
     email: string
-    phone?: string
     password?: string
-    role_id: string
+    role: UserRole | string
+    status?: boolean
 }
 
 type UsersFormProps = {
@@ -27,12 +30,20 @@ type UsersFormProps = {
     onDiscard?: () => void
 }
 
+const roleOptions = [
+    { label: 'SUPERADMIN', value: 'SUPERADMIN' },
+    { label: 'ADMIN', value: 'ADMIN' },
+    { label: 'OPERATOR', value: 'OPERATOR' },
+    { label: 'CLIENT', value: 'CLIENT' },
+]
+
 const validationSchema = z.object({
+    username: z.string().min(1, { message: 'El username es obligatorio' }),
     full_name: z.string().min(1, { message: 'El nombre es obligatorio' }),
     email: z.string().email({ message: 'Ingresa un email válido' }),
-    phone: z.string().optional(),
     password: z.string().optional(),
-    role_id: z.string().min(1, { message: 'El rol es obligatorio' }),
+    role: z.string().min(1, { message: 'El rol es obligatorio' }),
+    status: z.boolean().optional(),
 })
 
 const UsersForm = ({
@@ -50,11 +61,12 @@ const UsersForm = ({
     } = useForm<UserFormSchema>({
         resolver: zodResolver(validationSchema),
         defaultValues: {
+            username: '',
             full_name: '',
             email: '',
-            phone: '',
             password: '',
-            role_id: '',
+            role: '',
+            status: true,
             ...defaultValues,
         },
     })
@@ -70,15 +82,21 @@ const UsersForm = ({
             <Container>
                 <Card className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="md:col-span-2">
-                            <FormItem label="Nombre" invalid={!!errors.full_name} errorMessage={errors.full_name?.message}>
-                                <Controller
-                                    name="full_name"
-                                    control={control}
-                                    render={({ field }) => <Input autoComplete="off" {...field} />}
-                                />
-                            </FormItem>
-                        </div>
+                        <FormItem label="Username" invalid={!!errors.username} errorMessage={errors.username?.message}>
+                            <Controller
+                                name="username"
+                                control={control}
+                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                            />
+                        </FormItem>
+
+                        <FormItem label="Nombre" invalid={!!errors.full_name} errorMessage={errors.full_name?.message}>
+                            <Controller
+                                name="full_name"
+                                control={control}
+                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                            />
+                        </FormItem>
 
                         <FormItem label="Email" invalid={!!errors.email} errorMessage={errors.email?.message}>
                             <Controller
@@ -88,19 +106,17 @@ const UsersForm = ({
                             />
                         </FormItem>
 
-                        <FormItem label="Teléfono" invalid={!!errors.phone} errorMessage={errors.phone?.message}>
+                        <FormItem label="Rol" invalid={!!errors.role} errorMessage={errors.role?.message}>
                             <Controller
-                                name="phone"
+                                name="role"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
-                            />
-                        </FormItem>
-
-                        <FormItem label="Rol ID" invalid={!!errors.role_id} errorMessage={errors.role_id?.message}>
-                            <Controller
-                                name="role_id"
-                                control={control}
-                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                                render={({ field }) => (
+                                    <Select
+                                        options={roleOptions}
+                                        value={roleOptions.find((option) => option.value === field.value) ?? null}
+                                        onChange={(option) => field.onChange(option?.value ?? '')}
+                                    />
+                                )}
                             />
                         </FormItem>
 
