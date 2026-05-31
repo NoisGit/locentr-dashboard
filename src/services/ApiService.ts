@@ -100,14 +100,14 @@ function withCompanyContext<Request = Record<string, unknown>>(
     } else if (cur && typeof cur === 'object') {
       paramsObj = { ...(cur as Record<string, unknown>) }
     }
-    if (paramsObj.companyId === undefined) {
-      paramsObj.companyId = companyId
+    if (paramsObj.company_id === undefined) {
+      paramsObj.company_id = companyId
     }
     return { ...cfg, headers: nextHeaders, params: paramsObj as unknown as Request }
   }
 
-  if (cfg.data && typeof cfg.data === 'object' && !(cfg.data as Record<string, unknown>).companyId) {
-    ;(cfg.data as Record<string, unknown>).companyId = companyId
+  if (cfg.data && typeof cfg.data === 'object' && !(cfg.data as Record<string, unknown>).company_id) {
+    ;(cfg.data as Record<string, unknown>).company_id = companyId
   }
 
   return { ...cfg, headers: nextHeaders }
