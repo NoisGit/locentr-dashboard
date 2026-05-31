@@ -1,6 +1,8 @@
 import ApiService from '@/services/ApiService'
 import type { AxiosRequestConfig } from 'axios'
 
+export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'OPERATOR' | 'CLIENT'
+
 export type TableQueries = {
   pageIndex: number
   pageSize: number
@@ -8,28 +10,42 @@ export type TableQueries = {
   sort?: { key?: string; order?: 'asc' | 'desc' }
 }
 
-export type RoleRef = {
-  id?: number | string
-  name?: string
-}
-
 export type UserRow = {
   id: number | string
+  username?: string
   name: string
   email: string
-  phone?: string
-  role?: string | RoleRef
-  role_id?: number | string
+  role?: UserRole | string
+  status?: boolean
+  is_active?: boolean
   avatar?: string
   full_name?: string
   first_name?: string
   last_name?: string
+  plan_id?: number | null
 }
 
 export type GetUsersListResponse = {
   list: UserRow[]
   total: number
 }
+
+export type UserCreateRequest = {
+  username: string
+  full_name: string
+  email: string
+  password: string
+  role: UserRole | string
+  plan_id?: number | null
+  status?: boolean
+}
+
+export type UserUpdateRequest = Partial<{
+  full_name: string
+  email: string
+  role: UserRole | string
+  status: boolean
+}>
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete'
 type ReqConfig = {
@@ -40,22 +56,21 @@ type ReqConfig = {
   headers?: Record<string, string>
 }
 
-type RoleLike = { id?: number | string; name?: string }
 type UserLike = {
   id?: number | string
   _id?: number | string
   user_id?: number | string
   uid?: number | string
+  username?: string
   first_name?: string
   last_name?: string
   full_name?: string
   name?: string
   email?: string
-  phone?: string
-  phone_number?: string
-  role?: string | RoleLike
-  role_id?: number | string
-  role_name?: string
+  role?: UserRole | string
+  status?: boolean
+  is_active?: boolean
+  plan_id?: number | null
   avatar?: string
   avatar_url?: string
   photoURL?: string
@@ -97,45 +112,40 @@ function extractListPayload(d: unknown): { items: unknown[]; total: number } {
 
 function userDisplayName(user: UserLike) {
   const nameParts = [user.first_name, user.last_name].filter(Boolean).join(' ')
-  return String(user.full_name || user.name || nameParts || '')
+  return String(user.full_name || user.name || nameParts || user.username || '')
 }
 
 function adaptUserRow(user: UserLike): UserRow {
   const name = userDisplayName(user)
   const email = String(user.email || '')
-  const role =
-    (typeof user.role === 'string' ? user.role : user.role?.name) ||
-    user.role_name ||
-    undefined
   const rawId = user.id ?? user._id ?? user.user_id ?? user.uid ?? ''
   const cleanId = String(rawId).replace(/\/+$/, '')
 
   return {
     id: cleanId,
+    username: user.username,
     name,
     full_name: user.full_name,
     first_name: user.first_name,
     last_name: user.last_name,
     email,
-    phone: user.phone ?? user.phone_number ?? '',
-    role,
-    role_id: user.role_id ?? (typeof user.role === 'object' ? user.role?.id : undefined),
+    role: user.role,
+    status: user.status,
+    is_active: user.is_active,
+    plan_id: user.plan_id,
     avatar: user.avatar ?? user.avatar_url ?? user.photoURL ?? user.photo_url ?? '',
   }
 }
 
 export function normalizeUser(user: unknown) {
   const row = isRecord(user) ? adaptUserRow(user as UserLike) : adaptUserRow({})
-  const roleName = typeof row.role === 'string' ? row.role : row.role?.name
-  const roleId = row.role_id || (typeof row.role === 'object' ? row.role?.id : undefined)
 
   return {
     id: row.id,
     userName: row.name,
     email: row.email,
     avatar: row.avatar,
-    role: roleName,
-    role_id: roleId,
+    role: row.role,
   }
 }
 
@@ -167,14 +177,8 @@ export async function apiGetUsersList<
   return { list, total } as T
 }
 
-export async function apiCreateUser(payload: {
-  full_name: string
-  email: string
-  phone?: string
-  password: string
-  role_id: number | string
-}) {
-  return req<unknown>({ url: BASE_COLLECTION, method: 'post', data: payload })
+export async function apiCreateUser(payload: UserCreateRequest) {
+  return req<UserRow>({ url: BASE_COLLECTION, method: 'post', data: payload })
 }
 
 export async function apiGetUserById(id: string | number) {
@@ -204,20 +208,11 @@ export async function apiGetUserById(id: string | number) {
   }
 }
 
-export async function apiUpdateUser(
-  id: string | number,
-  patch: Partial<{
-    full_name: string
-    email: string
-    phone: string
-    password: string
-    role_id: number | string
-  }>,
-) {
+export async function apiUpdateUser(id: string | number, patch: UserUpdateRequest) {
   const cleanId = String(id).replace(/\/+$/, '')
   const url = `${BASE_ITEM}/${encodeURIComponent(cleanId)}`
 
-  return req<unknown>({ url, method: 'put', data: patch })
+  return req<UserRow>({ url, method: 'put', data: patch })
 }
 
 export async function apiDeleteUser(id: string | number) {
