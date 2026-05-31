@@ -36,8 +36,8 @@ export type ListUnreadNotificationsParams = {
 export async function apiSendNotificationToAllUsers(data: NotificationCreateRequest) {
     return ApiService.fetchDataWithAxios<NotificationSendResponse, NotificationCreateRequest>({
         url: `${NOTIFICATIONS_BASE}/send-all-users`,
-        method: 'get',
-        params: data,
+        method: 'post',
+        data,
     })
 }
 
@@ -46,7 +46,7 @@ export async function apiGetUnreadNotifications(
 ) {
     return ApiService.fetchDataWithAxios<PaginatedResponse<NotificationMessage>>({
         url: `${NOTIFICATIONS_BASE}/me/unread`,
-        method: 'post',
+        method: 'get',
         params: {
             page: params.page ?? 1,
             size: params.size ?? 10,
