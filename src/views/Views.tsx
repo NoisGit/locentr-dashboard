@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import Loading from '@/components/shared/Loading'
-import SecureRoutesWithCommunities from '@/components/route/SecureRoutesWithCommunities'
-import { protectedRoutes, publicRoutes } from '@/configs/routes.config'
+import AllRoutes from '@/components/route/AllRoutes'
 import { useLocation } from 'react-router'
 import type { LayoutType } from '@/@types/theme'
 
@@ -18,11 +17,7 @@ const Views = (props: ViewsProps) => {
             key={location.key}
             fallback={<Loading loading={true} className="w-full" />}
         >
-            <SecureRoutesWithCommunities
-                protectedRoutes={protectedRoutes}
-                publicRoutes={publicRoutes}
-                {...props}
-            />
+            <AllRoutes {...props} />
         </Suspense>
     )
 }
