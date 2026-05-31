@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
-import { ADMIN, CLIENT, OPERATOR, SUPERADMIN } from '@/constants/roles.constant'
+import { ADMIN, CLIENT, OPERATOR, SUPERADMIN, ALL_ROLES } from '@/constants/roles.constant'
 import type { Routes } from '@/@types/routes'
 
 const dashboardsRoute: Routes = [
@@ -8,7 +8,7 @@ const dashboardsRoute: Routes = [
         key: 'dashboard.dashboard',
         path: `${DASHBOARDS_PREFIX_PATH}`,
         component: lazy(() => import('@/views/dashboard/Dashboard')),
-        authority: [SUPERADMIN, ADMIN, CLIENT],
+        authority: [...ALL_ROLES],
         meta: { pageContainerType: 'contained' },
     },
     {
