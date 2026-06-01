@@ -1,4 +1,5 @@
 import ApiService from '@/services/ApiService'
+import type { UserCreateRequest } from '@/services/UsersService'
 
 export const COMPANIES_BASE = '/api/v1/companies'
 
@@ -35,18 +36,11 @@ export type CompanyAssignUserRequest = {
     user_id: number
 }
 
-export type CompanyUserCreateRequest = {
-    full_name: string
-    email: string
-    password: string
-    phone?: string
-    role_id: string | number
-}
+export type CompanyUserCreateRequest = UserCreateRequest
 
 type ListCompaniesParams = {
     pageIndex?: number
     pageSize?: number
-    search?: string
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -134,7 +128,7 @@ function mapToCompany(value: unknown): Company | null {
 export async function apiListCompanies<T = Company[]>(
     params: ListCompaniesParams = {},
 ) {
-    const { pageIndex = 1, pageSize = 200, search } = params
+    const { pageIndex = 1, pageSize = 200 } = params
 
     const response = await ApiService.fetchDataWithAxios<unknown>({
         url: COMPANIES_COLLECTION,
@@ -142,7 +136,6 @@ export async function apiListCompanies<T = Company[]>(
         params: {
             page: pageIndex,
             size: pageSize,
-            search,
         },
     })
 
