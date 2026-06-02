@@ -16,8 +16,8 @@ const workspacesRoute: Routes = [
         authority: [SUPERADMIN, ...ADMIN_GROUP],
         meta: {
             header: {
-                title: 'Crear workspace',
-                description: 'Crea un nuevo workspace dentro de Coredeck.',
+                title: 'Crear ubicación',
+                description: 'Crea una nueva ubicación dentro de Locentr.',
                 contained: true,
             },
             footer: false,
@@ -30,8 +30,8 @@ const workspacesRoute: Routes = [
         authority: [SUPERADMIN, ...ADMIN_GROUP],
         meta: {
             header: {
-                title: 'Editar workspace',
-                description: 'Actualiza los datos principales del workspace.',
+                title: 'Editar ubicación',
+                description: 'Actualiza los datos principales de la ubicación.',
                 contained: true,
             },
             footer: false,
