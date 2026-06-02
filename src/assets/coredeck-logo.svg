@@ -1,6 +1,0 @@
-<svg width="220" height="56" viewBox="0 0 220 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="4" y="6" width="44" height="44" rx="14" fill="#111827"/>
-  <path d="M18 34.5V21.5C18 20.1193 19.1193 19 20.5 19H32.5C35.5376 19 38 21.4624 38 24.5C38 27.5376 35.5376 30 32.5 30H24" stroke="#F8FAFC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M24 19V37" stroke="#38BDF8" stroke-width="4" stroke-linecap="round"/>
-  <text x="62" y="36" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#111827">Coredeck</text>
-</svg>
