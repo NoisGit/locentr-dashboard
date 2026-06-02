@@ -11,9 +11,9 @@ const Dashboard = () => {
         <Container>
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                    <h2>Coredeck Dashboard</h2>
+                    <h2>Locentr Dashboard</h2>
                     <p className="text-gray-500 dark:text-gray-400">
-                        Manage your SaaS operations from one clean workspace.
+                        Manage multi-company and multi-location operations from one clean workspace.
                     </p>
                 </div>
 
@@ -38,13 +38,13 @@ const Dashboard = () => {
                             <div className="flex items-center gap-3">
                                 <TbBuildingCommunity className="text-3xl text-primary" />
                                 <div>
-                                    <h5>Workspaces</h5>
+                                    <h5>Locations</h5>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
                                         Manage locations connected to companies.
                                     </p>
                                 </div>
                             </div>
-                            <Button onClick={() => navigate('/workspaces')}>Open workspaces</Button>
+                            <Button onClick={() => navigate('/workspaces')}>Open locations</Button>
                         </div>
                     </Card>
 
@@ -66,7 +66,7 @@ const Dashboard = () => {
 
                 <Card>
                     <div className="flex flex-col gap-2">
-                        <h4>Next Coredeck modules</h4>
+                        <h4>Next Locentr modules</h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Support tickets, documents, notifications, access logs and audit log will be added as API-aligned modules.
                         </p>
