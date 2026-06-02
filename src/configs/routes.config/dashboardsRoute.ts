@@ -26,7 +26,7 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Create company',
-                description: 'Create a new Coredeck company.',
+                description: 'Create a new Locentr company.',
                 contained: true,
             },
             footer: false,
@@ -40,7 +40,7 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Create subcompany',
-                description: 'Create a subcompany connected to a Coredeck company.',
+                description: 'Create a subcompany connected to a Locentr company.',
                 contained: true,
             },
             footer: false,
@@ -54,7 +54,7 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Edit company',
-                description: 'Manage Coredeck company information.',
+                description: 'Manage Locentr company information.',
                 contained: true,
             },
             footer: false,
@@ -109,7 +109,7 @@ const dashboardsRoute: Routes = [
         meta: {
             header: {
                 title: 'Create user',
-                description: 'Create users and assign roles inside Coredeck.',
+                description: 'Create users and assign roles inside Locentr.',
                 contained: true,
             },
             footer: false,
