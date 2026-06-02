@@ -1,8 +1,8 @@
-# Coredeck Dashboard
+# Locentr Dashboard
 
-Coredeck Dashboard is a modern admin dashboard foundation built with React, TypeScript, Vite, Tailwind CSS, Zustand, SWR, React Hook Form, Zod and Axios.
+Locentr Dashboard is a React + TypeScript frontend for a portfolio SaaS operations platform.
 
-This project is designed as a portfolio-ready frontend that will connect to `dashboard-base-api` as its backend.
+Locentr is centered around companies, subcompanies, locations, access management, documents, support tickets, notifications and audit logs.
 
 ## Project Status
 
@@ -10,23 +10,57 @@ This repository is in active cleanup and rebuild mode.
 
 Current goals:
 
-- Remove all previous product identity.
-- Keep the project under the Coredeck identity.
-- Prepare a clean frontend architecture for real API consumption.
-- Build a professional dashboard suitable for a developer portfolio.
-- Connect the app with `dashboard-base-api` through typed services.
+- Keep the frontend aligned with `dashboard-base-api`.
+- Remove obsolete template and demo modules.
+- Use real API services instead of mocks.
+- Keep routing, navigation and permissions coherent with backend roles.
+- Prepare a professional SaaS dashboard suitable for a developer portfolio.
+
+## Product Direction
+
+Locentr is a multi-company, multi-location operations dashboard.
+
+```text
+Company
+├── Subcompanies
+├── Users
+├── Locations
+│   ├── Operators
+│   ├── Access lists
+│   ├── Access logs
+│   ├── Custom forms
+│   ├── Emergency contacts
+│   ├── Service contacts
+│   └── Location logbook
+├── Documents
+├── Support tickets
+├── Notifications
+└── Audit log
+```
 
 ## Product Identity
 
 ```text
-Product: Coredeck
-Frontend: Coredeck Dashboard
-Backend: Coredeck API
-Demo email: admin@nois.dev
-Demo password: 1234
+Product: Locentr
+Frontend: Locentr Dashboard
+Backend: Locentr API
 Frontend repository: dashboard-base
 Backend repository: dashboard-base-api
 ```
+
+## Important Domain Decision
+
+`Workspaces` are no longer the official product concept.
+
+The backend exposes `locations`, and the frontend should use **Locations** as the user-facing module:
+
+```text
+Frontend route: /locations
+Frontend service: LocationsService
+Backend API: /api/v1/locations
+```
+
+Do not create `WorkspacesService` or new `/workspaces` routes unless the product architecture is explicitly changed later.
 
 ## Tech Stack
 
@@ -42,130 +76,57 @@ Backend repository: dashboard-base-api
 | Forms | React Hook Form |
 | Validation | Zod |
 | Tables | TanStack Table |
-| Deployment | Vercel |
 
-## Environment Variables
-
-Create a `.env` file from the example file when available:
-
-```bash
-cp .env.example .env
-```
-
-Recommended local configuration while the API is being prepared:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
-VITE_ENABLE_MOCK=true
-```
-
-Recommended configuration when the API is ready:
-
-```env
-VITE_API_BASE_URL=https://your-api-url.com/api/v1
-VITE_ENABLE_MOCK=false
-```
-
-## Run Locally
-
-Clone the repository:
-
-```bash
-git clone https://github.com/NoisGit/dashboard-base.git
-cd dashboard-base
-```
-
-Install dependencies:
-
-```bash
-npm install --legacy-peer-deps
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-## Available Scripts
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-npm run lint:fix
-npm run prettier
-npm run prettier:fix
-npm run format
-```
-
-## Architecture Direction
-
-The frontend will be organized around reusable admin modules:
+## Roles
 
 ```text
-src
-├── auth
-├── components
-├── configs
-├── constants
-├── hooks
-├── services
-├── store
-└── views
+SUPERADMIN
+ADMIN
+OPERATOR
+CLIENT
 ```
 
-Expected service structure:
+Frontend route protection improves UX, but backend authorization remains the source of truth.
+
+## Active Frontend Modules
+
+| Frontend area | Route | Service | Backend router |
+|---|---|---|---|
+| Dashboard | `/dashboards` | `DashboardService` | `/api/v1/dashboard` |
+| Companies | `/companies` | `CompaniesService` | `/api/v1/companies` |
+| Users | `/users` | `UsersService` | `/api/v1/users` |
+| Locations | `/locations` | `LocationsService` | `/api/v1/locations` |
+| Access Management | `/access-management` | `AccessManagementService` | `/api/v1/whitelists`, `/api/v1/blacklists`, `/api/v1/access-logs` |
+| Documents | `/documents` | `DocumentsService` | `/api/v1/documents` |
+| Notifications | `/notifications` | `NotificationsService` | `/api/v1/notifications` |
+| Audit Log | `/audit-log` | `AuditLogService` | `/api/v1/audit-log` |
+| Support Tickets | `/support-tickets` | `SupportTicketsService` | `/api/v1/support-tickets` |
+
+## Removed or Postponed Concepts
 
 ```text
-src/services
-├── ApiService.ts
-├── axios
-├── endpoints
-├── modules
-│   ├── auth
-│   ├── users
-│   ├── workspaces
-│   ├── projects
-│   └── tickets
-└── types
+Projects
+Workspaces as a separate domain
+Organizations as a separate domain
+Legacy mailbox/email templates
+Template demo pages and mocks
 ```
 
-## API Integration Direction
+If any of these return later, they need a new architecture decision and API contract first.
 
-This frontend is planned to consume `dashboard-base-api` through endpoints like:
+## Architecture Rules
 
-```text
-POST /auth/login
-POST /auth/logout
-POST /auth/refresh
-GET  /auth/me
-GET  /users
-GET  /workspaces
-GET  /projects
-GET  /support-tickets
-GET  /dashboard/metrics
-```
-
-## Roadmap
-
-- Clean previous identity from files, docs and UI.
-- Rename remaining legacy business modules to generic admin modules.
-- Improve folder and service organization.
-- Add real authentication flow.
-- Add typed API services.
-- Connect users, workspaces, projects and support tickets.
-- Add protected routes and safer token handling.
-- Reconnect Vercel only when the project is clean and stable.
+- Components do not call Axios directly.
+- Services use `ApiService` and endpoint URLs aligned with the backend.
+- Hooks own data loading and mutation behavior.
+- Route labels, navigation labels and services must use the same domain language.
+- `Locations` replaces the previous `Workspaces` naming.
 
 ## Repository Workflow
 
 ```text
-feature branches → develop → main → Vercel
+feature branches → develop → main → deploy
 ```
-
-For now, `main` contains the initial clean upload. New work should be done in feature branches or `develop` once created.
 
 ## Author
 
