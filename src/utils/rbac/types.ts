@@ -98,8 +98,8 @@ export interface AuthUser {
     email: string
     userName?: string
     role: Role
-    coredeckRole?: string | null
-    coredeckRoleLabel?: string
+    locentrRole?: string | null
+    locentrRoleLabel?: string
     permissions?: Permission[]
     isSuperAdmin?: boolean
 }
