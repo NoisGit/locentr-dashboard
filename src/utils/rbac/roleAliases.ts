@@ -1,27 +1,27 @@
 import { Role } from './types'
 
-export enum CoredeckRole {
+export enum LocentrRole {
     OWNER = 'OWNER',
     ADMIN = 'ADMIN',
     MEMBER = 'MEMBER',
     VIEWER = 'VIEWER',
 }
 
-export const COREDECK_ROLE_LABELS: Record<CoredeckRole, string> = {
-    [CoredeckRole.OWNER]: 'Owner',
-    [CoredeckRole.ADMIN]: 'Admin',
-    [CoredeckRole.MEMBER]: 'Member',
-    [CoredeckRole.VIEWER]: 'Viewer',
+export const LOCENTR_ROLE_LABELS: Record<LocentrRole, string> = {
+    [LocentrRole.OWNER]: 'Owner',
+    [LocentrRole.ADMIN]: 'Admin',
+    [LocentrRole.MEMBER]: 'Member',
+    [LocentrRole.VIEWER]: 'Viewer',
 }
 
-const API_ROLE_ALIASES: Record<string, CoredeckRole> = {
-    [Role.SUPERADMIN]: CoredeckRole.OWNER,
-    [Role.ADMIN]: CoredeckRole.ADMIN,
-    [Role.OPERATOR]: CoredeckRole.MEMBER,
-    [Role.CLIENT]: CoredeckRole.VIEWER,
-    OWNER: CoredeckRole.OWNER,
-    MEMBER: CoredeckRole.MEMBER,
-    VIEWER: CoredeckRole.VIEWER,
+const API_ROLE_ALIASES: Record<string, LocentrRole> = {
+    [Role.SUPERADMIN]: LocentrRole.OWNER,
+    [Role.ADMIN]: LocentrRole.ADMIN,
+    [Role.OPERATOR]: LocentrRole.MEMBER,
+    [Role.CLIENT]: LocentrRole.VIEWER,
+    OWNER: LocentrRole.OWNER,
+    MEMBER: LocentrRole.MEMBER,
+    VIEWER: LocentrRole.VIEWER,
 }
 
 function normalizeRoleValue(role: unknown): string {
@@ -29,14 +29,14 @@ function normalizeRoleValue(role: unknown): string {
     return role.trim().toUpperCase().replace(/[-\s]/g, '_')
 }
 
-export function getCoredeckRole(role: unknown): CoredeckRole | null {
+export function getLocentrRole(role: unknown): LocentrRole | null {
     const normalized = normalizeRoleValue(role)
     if (!normalized) return null
     return API_ROLE_ALIASES[normalized] ?? null
 }
 
-export function getCoredeckRoleLabel(role: unknown): string {
-    const coredeckRole = getCoredeckRole(role)
-    if (!coredeckRole) return ''
-    return COREDECK_ROLE_LABELS[coredeckRole]
+export function getLocentrRoleLabel(role: unknown): string {
+    const locentrRole = getLocentrRole(role)
+    if (!locentrRole) return ''
+    return LOCENTR_ROLE_LABELS[locentrRole]
 }
