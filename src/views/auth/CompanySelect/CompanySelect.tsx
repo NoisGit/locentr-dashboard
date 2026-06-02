@@ -85,7 +85,7 @@ const CompanySelect = () => {
           <div>
             <h3>Selecciona empresa</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Elige la empresa con la que quieres trabajar en Coredeck.
+              Elige la empresa con la que quieres trabajar en Locentr.
             </p>
           </div>
 
