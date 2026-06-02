@@ -1,6 +1,6 @@
 import classNames from 'classnames'
-import coredeckLogo from '@/assets/coredeck-logo.svg'
-import coredeckIcon from '@/assets/coredeck-icon.svg'
+import locentrLogo from '@/assets/locentr-logo.svg'
+import locentrIcon from '@/assets/locentr-icon.svg'
 
 import { useThemeStore } from '@/store/themeStore'
 import { APP_NAME } from '@/constants/app.constant'
@@ -83,7 +83,7 @@ const SideNav = ({
         return [...nextRoles]
     }, [rawAuthority, effectiveRole])
 
-    const logoSrc = sideNavCollapse ? coredeckIcon : coredeckLogo
+    const logoSrc = sideNavCollapse ? locentrIcon : locentrLogo
 
     return (
         <div
