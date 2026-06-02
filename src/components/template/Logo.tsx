@@ -1,6 +1,6 @@
 import classNames from 'classnames'
-import coredeckLogo from '@/assets/coredeck-logo.svg'
-import coredeckIcon from '@/assets/coredeck-icon.svg'
+import locentrLogo from '@/assets/locentr-logo.svg'
+import locentrIcon from '@/assets/locentr-icon.svg'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'
 import type { CommonProps } from '@/@types/common'
@@ -25,7 +25,7 @@ const Logo = (props: LogoProps) => {
         onlyIcon = false,
     } = props
 
-    const logoSrc = onlyIcon ? coredeckIcon : coredeckLogo
+    const logoSrc = onlyIcon ? locentrIcon : locentrLogo
 
     const alignment = onlyIcon
         ? 'flex items-center w-full pl-6'
