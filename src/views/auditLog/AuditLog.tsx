@@ -17,7 +17,7 @@ const AuditLog = () => {
                     <div>
                         <h3>Audit Log</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Review security and system activity across Coredeck.
+                            Review security and system activity across Locentr.
                         </p>
                     </div>
                     <Button onClick={() => mutate()}>Refresh</Button>
