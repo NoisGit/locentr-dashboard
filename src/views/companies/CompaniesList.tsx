@@ -32,7 +32,7 @@ const CompaniesList = () => {
                         <div>
                             <h3>Companies</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Manage companies and subcompanies in Coredeck.
+                                Manage companies and subcompanies in Locentr.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
