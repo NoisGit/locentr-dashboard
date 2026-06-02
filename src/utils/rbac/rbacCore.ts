@@ -7,7 +7,7 @@ import {
     PermissionCheckResult,
     ROLE_IDS,
 } from './types'
-import { getCoredeckRole, getCoredeckRoleLabel } from './roleAliases'
+import { getLocentrRole, getLocentrRoleLabel } from './roleAliases'
 
 export function roleIdToRole(roleId: unknown): Role | null {
     const id = Number(roleId)
@@ -198,8 +198,8 @@ export function createAuthUser(userData: unknown): AuthUser | null {
         email: (record.email ?? '') as string,
         userName: (record.userName ?? record.username ?? record.name ?? '') as string,
         role,
-        coredeckRole: getCoredeckRole(role),
-        coredeckRoleLabel: getCoredeckRoleLabel(role),
+        locentrRole: getLocentrRole(role),
+        locentrRoleLabel: getLocentrRoleLabel(role),
         permissions: getUserPermissions({ role } as AuthUser),
         isSuperAdmin: role === Role.SUPERADMIN,
     }
@@ -219,5 +219,3 @@ export const RBAC = {
     checkPermissions,
     createAuthUser,
 }
-
-export default RBAC
