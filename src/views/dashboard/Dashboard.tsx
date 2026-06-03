@@ -44,7 +44,7 @@ const Dashboard = () => {
                                     </p>
                                 </div>
                             </div>
-                            <Button onClick={() => navigate('/workspaces')}>Open locations</Button>
+                            <Button onClick={() => navigate('/locations')}>Open locations</Button>
                         </div>
                     </Card>
 
