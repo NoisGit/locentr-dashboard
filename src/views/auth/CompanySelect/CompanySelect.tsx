@@ -13,7 +13,7 @@ type CompanyOption = {
   value: string | number
 }
 
-const WORKSPACES_LIST_PATH = '/workspaces'
+const LOCATIONS_LIST_PATH = '/locations'
 
 const CompanySelect = () => {
   const navigate = useNavigate()
@@ -75,7 +75,7 @@ const CompanySelect = () => {
     }
 
     selectCompany({ id: selectedCompany.value, name: selectedCompany.label })
-    navigate(WORKSPACES_LIST_PATH, { replace: true })
+    navigate(LOCATIONS_LIST_PATH, { replace: true })
   }
 
   return (
