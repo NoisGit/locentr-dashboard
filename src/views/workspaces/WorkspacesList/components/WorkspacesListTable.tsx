@@ -12,7 +12,7 @@ const NameColumn = ({ row }: { row: Workspace }) => {
     return (
         <Link
             className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100"
-            to={`/workspaces/${row.id}`}
+            to={`/locations/${row.id}`}
         >
             {row.name || 'Workspace sin nombre'}
         </Link>
@@ -64,7 +64,7 @@ const WorkspacesListTable = () => {
                 header: '',
                 id: 'action',
                 cell: (props) => (
-                    <ActionColumn onEdit={() => navigate(`/workspaces/${props.row.original.id}/edit`)} />
+                    <ActionColumn onEdit={() => navigate(`/locations/${props.row.original.id}/edit`)} />
                 ),
             },
         ],
