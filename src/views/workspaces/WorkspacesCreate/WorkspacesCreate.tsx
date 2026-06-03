@@ -18,16 +18,16 @@ const WorkspacesCreate = () => {
                 country: values.country?.trim() || null,
                 logo: values.logo?.trim() || null,
             })
-            toast.push(<Notification type="success">Workspace creado correctamente.</Notification>, {
+            toast.push(<Notification type="success">Ubicación creada correctamente.</Notification>, {
                 placement: 'top-center',
             })
-            navigate('/workspaces')
+            navigate('/locations')
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string; detail?: string } } }
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'No se pudo crear el workspace.'
+                'No se pudo crear la ubicación.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',
@@ -38,7 +38,7 @@ const WorkspacesCreate = () => {
     }
 
     const handleDiscard = () => {
-        navigate('/workspaces')
+        navigate('/locations')
     }
 
     return (
