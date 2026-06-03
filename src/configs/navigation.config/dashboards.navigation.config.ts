@@ -47,17 +47,17 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'workspaces',
-        path: '/workspaces',
-        title: 'Workspaces',
-        translateKey: 'nav.workspaces',
+        key: 'locations',
+        path: '/locations',
+        title: 'Locations',
+        translateKey: 'nav.locations',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         meta: {
             description: {
-                translateKey: 'nav.workspacesDesc',
-                label: 'Workspace management',
+                translateKey: 'nav.locationsDesc',
+                label: 'Location management',
             },
         },
         subMenu: [],
