@@ -58,7 +58,7 @@ const WorkspacesList = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             Cuando se creen workspaces aparecerán aquí.
                         </p>
-                        <Button variant="solid" onClick={() => navigate('/workspaces/create')}>
+                        <Button variant="solid" onClick={() => navigate('/locations/create')}>
                             Crear workspace
                         </Button>
                     </div>
@@ -73,7 +73,7 @@ const WorkspacesList = () => {
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <h3>Workspaces</h3>
-                        <Button variant="solid" onClick={() => navigate('/workspaces/create')}>
+                        <Button variant="solid" onClick={() => navigate('/locations/create')}>
                             Crear workspace
                         </Button>
                     </div>
