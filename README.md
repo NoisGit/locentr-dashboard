@@ -10,7 +10,7 @@ This repository is in active cleanup and rebuild mode.
 
 Current goals:
 
-- Keep the frontend aligned with `dashboard-base-api`.
+- Keep the frontend aligned with `locentr-api`.
 - Remove obsolete template and demo modules.
 - Use real API services instead of mocks.
 - Keep routing, navigation and permissions coherent with backend roles.
@@ -44,8 +44,8 @@ Company
 Product: Locentr
 Frontend: Locentr Dashboard
 Backend: Locentr API
-Frontend repository: dashboard-base
-Backend repository: dashboard-base-api
+Frontend repository: locentr-dashboard
+Backend repository: locentr-api
 ```
 
 ## Important Domain Decision
