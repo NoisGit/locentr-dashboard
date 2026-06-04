@@ -14,7 +14,7 @@ type StackedSideNavSecondaryProps = {
     onCollapse: () => void
     direction?: Direction
     translationSetup?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
 }
 
 const StackedSideNavSecondary = (props: StackedSideNavSecondaryProps) => {
@@ -30,21 +30,21 @@ const StackedSideNavSecondary = (props: StackedSideNavSecondaryProps) => {
         ...rest
     } = props
 
-    const handleCollpase = () => {
+    const handleCollapse = () => {
         onCollapse()
     }
 
     return (
         <div className={classNames('h-full', className)} {...rest}>
             <div
-                className={`flex items-center justify-between gap-4 pl-6 pr-4`}
+                className="flex items-center justify-between gap-4 pl-6 pr-4"
                 style={{ height: HEADER_HEIGHT }}
             >
                 <h5 className="font-bold">{title}</h5>
                 <button
                     type="button"
                     className="close-button"
-                    onClick={handleCollpase}
+                    onClick={handleCollapse}
                 >
                     {direction === DIR_LTR && <HiOutlineArrowSmLeft />}
                     {direction === DIR_RTL && <HiOutlineArrowSmRight />}
