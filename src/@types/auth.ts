@@ -1,3 +1,5 @@
+import type { Permission } from '@/utils/rbac/types'
+
 export type SignInCredential = {
     email: string
     password: string
@@ -36,7 +38,10 @@ export type User = {
     email?: string | null
     role?: string | null
     role_id?: string | number | null
-    authority?: string[]
+    permissions?: Permission[]
+    isSuperAdmin?: boolean
+    locentrRole?: string | null
+    locentrRoleLabel?: string
 }
 
 export type Token = {
