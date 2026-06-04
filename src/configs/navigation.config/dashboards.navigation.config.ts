@@ -1,6 +1,5 @@
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { NAV_ITEM_TYPE_ITEM } from '@/constants/navigation.constant'
-import { ADMIN, CLIENT, OPERATOR, SUPERADMIN } from '@/constants/roles.constant'
 import { Role, Permission } from '@/utils/rbac/types'
 import type { NavigationTree } from '@/@types/navigation'
 
@@ -12,7 +11,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.dashboard.dashboard',
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_DASHBOARD],
         subMenu: [],
@@ -24,7 +22,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.companies',
         icon: 'building',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN],
         roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_COMPANIES],
         meta: {
@@ -42,7 +39,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.accessManagement',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
         meta: {
@@ -60,7 +56,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.locations',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_LOCATIONS],
         meta: {
@@ -78,7 +73,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.documents',
         icon: 'documentation',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_DOCUMENTS],
         meta: {
@@ -96,7 +90,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.notifications',
         icon: 'notification',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, OPERATOR, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_NOTIFICATIONS],
         meta: {
@@ -114,7 +107,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.auditLog',
         icon: 'accountActivityLogs',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN],
         roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_AUDIT_LOG],
         meta: {
@@ -132,7 +124,6 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.tickets',
         icon: 'documentation',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [SUPERADMIN, ADMIN, CLIENT],
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_SUPPORT_TICKETS],
         subMenu: [],
