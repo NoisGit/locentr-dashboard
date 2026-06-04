@@ -10,7 +10,7 @@ import StackedSideNavSecondary from './StackedSideNavSecondary'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { useThemeStore } from '@/store/themeStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
-import { useSessionUser } from '@/store/authStore'
+import { useAuth } from '@/auth'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
 import isEmpty from 'lodash/isEmpty'
@@ -35,8 +35,7 @@ const StackedSideNav = ({
     const direction = useThemeStore((state) => state.direction)
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-
-    const userAuthority = useSessionUser((state) => state.user.authority)
+    const { user } = useAuth()
 
     const { larger } = useResponsive()
 
@@ -86,7 +85,7 @@ const StackedSideNav = ({
                         mode={mode}
                         direction={direction}
                         navigationTree={navigationConfig}
-                        userAuthority={userAuthority || []}
+                        userAuthority={user}
                         selectedMenu={selectedMenu}
                         t={t as TraslationFn}
                         onChange={handleChange}
@@ -114,7 +113,7 @@ const StackedSideNav = ({
                                 routeKey={currentRouteKey}
                                 direction={direction}
                                 translationSetup={translationSetup}
-                                userAuthority={userAuthority || []}
+                                userAuthority={user}
                                 onCollapse={handleCollpase}
                             />
                         )}
