@@ -1,6 +1,6 @@
 import HorizontalMenuContent from './HorizontalMenuContent'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
-import { useSessionUser } from '@/store/authStore'
+import { useAuth } from '@/auth'
 import appConfig from '@/configs/app.config'
 import navigationConfig from '@/configs/navigation.config'
 
@@ -10,14 +10,13 @@ const HorizontalNav = ({
     translationSetup?: boolean
 }) => {
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-
-    const userAuthority = useSessionUser((state) => state.user.authority)
+    const { user } = useAuth()
 
     return (
         <HorizontalMenuContent
             navigationTree={navigationConfig}
             routeKey={currentRouteKey}
-            userAuthority={userAuthority || []}
+            userAuthority={user}
             translationSetup={translationSetup}
         />
     )
