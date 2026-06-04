@@ -12,7 +12,7 @@ interface DefaultItemProps extends CommonProps {
     t: TraslationFn
     indent?: boolean
     dotIndent?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
 }
 
 interface CollapsedItemProps extends DefaultItemProps {
@@ -37,7 +37,12 @@ const DefaultItem = ({
     t,
 }: DefaultItemProps) => {
     return (
-        <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
+        <AuthorityCheck
+            userAuthority={userAuthority}
+            authority={nav.authority}
+            roles={nav.roles}
+            permissions={nav.permissions}
+        >
             <MenuCollapse
                 key={nav.key}
                 label={
@@ -82,7 +87,12 @@ const CollapsedItem = ({
     )
 
     return (
-        <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
+        <AuthorityCheck
+            userAuthority={userAuthority}
+            authority={nav.authority}
+            roles={nav.roles}
+            permissions={nav.permissions}
+        >
             <Dropdown
                 trigger="hover"
                 renderTitle={renderAsIcon ? menuItem : dropdownItem}
