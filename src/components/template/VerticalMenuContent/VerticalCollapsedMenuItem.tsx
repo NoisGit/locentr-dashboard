@@ -39,7 +39,6 @@ const DefaultItem = ({
     return (
         <AuthorityCheck
             userAuthority={userAuthority}
-            authority={nav.authority}
             roles={nav.roles}
             permissions={nav.permissions}
         >
@@ -89,7 +88,6 @@ const CollapsedItem = ({
     return (
         <AuthorityCheck
             userAuthority={userAuthority}
-            authority={nav.authority}
             roles={nav.roles}
             permissions={nav.permissions}
         >
