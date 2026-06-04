@@ -20,6 +20,11 @@ export enum Permission {
     EDIT_COMPANY = 'edit:company',
     DEACTIVATE_COMPANY = 'deactivate:company',
 
+    VIEW_USERS = 'view:users',
+    CREATE_USER = 'create:user',
+    EDIT_USER = 'edit:user',
+    DEACTIVATE_USER = 'deactivate:user',
+
     VIEW_LOCATIONS = 'view:locations',
     CREATE_LOCATION = 'create:location',
     EDIT_LOCATION = 'edit:location',
@@ -60,6 +65,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         Permission.VIEW_COMPANIES,
         Permission.CREATE_COMPANY,
         Permission.EDIT_COMPANY,
+        Permission.VIEW_USERS,
+        Permission.CREATE_USER,
+        Permission.EDIT_USER,
         Permission.VIEW_LOCATIONS,
         Permission.CREATE_LOCATION,
         Permission.EDIT_LOCATION,
