@@ -1,3 +1,5 @@
+import type { Role, Permission } from '@/utils/rbac/types'
+
 export type HorizontalMenuMeta =
     | {
           layout: 'default'
@@ -20,7 +22,9 @@ export interface NavigationTree {
     translateKey: string
     icon: string
     type: 'title' | 'collapse' | 'item'
-    authority: string[]
+    authority?: string[]
+    roles?: Role[]
+    permissions?: Permission[]
     subMenu: NavigationTree[]
     description?: string
     meta?: {
