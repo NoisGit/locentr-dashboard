@@ -115,7 +115,6 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
                         {nav.type === NAV_ITEM_TYPE_TITLE && (
                             <AuthorityCheck
                                 userAuthority={userAuthority}
-                                authority={nav.authority}
                                 roles={nav.roles}
                                 permissions={nav.permissions}
                             >
