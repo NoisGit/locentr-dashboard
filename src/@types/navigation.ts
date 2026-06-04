@@ -22,7 +22,6 @@ export interface NavigationTree {
     translateKey: string
     icon: string
     type: 'title' | 'collapse' | 'item'
-    authority?: string[]
     roles?: Role[]
     permissions?: Permission[]
     subMenu: NavigationTree[]
