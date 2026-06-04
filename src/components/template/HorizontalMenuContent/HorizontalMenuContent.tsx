@@ -14,7 +14,7 @@ type HorizontalMenuContentProps = {
     navigationTree?: NavigationTree[]
     direction?: Direction
     translationSetup?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
 }
 
 const HorizontalMenuContent = (props: HorizontalMenuContentProps) => {
@@ -35,6 +35,8 @@ const HorizontalMenuContent = (props: HorizontalMenuContentProps) => {
                     key={nav.key}
                     userAuthority={userAuthority}
                     authority={nav.authority}
+                    roles={nav.roles}
+                    permissions={nav.permissions}
                 >
                     {nav.subMenu.length > 0 ? (
                         <HorizontalMenuDropdown
