@@ -9,16 +9,13 @@ import VerticalMenuContent from '@/components/template/VerticalMenuContent'
 import ScrollBar from '@/components/ui/ScrollBar'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
-import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
 } from '@/constants/theme.constant'
-import { useMemo } from 'react'
 
 import { useAuth } from '@/auth'
-import { RBAC } from '@/utils/rbac/rbacCore'
 
 type SideNavProps = {
     translationSetup?: boolean
@@ -37,32 +34,6 @@ const sideNavCollapseStyle = {
     minWidth: SIDE_NAV_COLLAPSED_WIDTH,
 }
 
-function normalizeAuthority(authority: unknown): Set<string> {
-    const roles = new Set<string>()
-
-    const add = (value: unknown) => {
-        if (value == null) return
-
-        if (typeof value === 'string') {
-            roles.add(value.toUpperCase())
-            return
-        }
-
-        if (Array.isArray(value)) {
-            value.forEach(add)
-            return
-        }
-
-        if (typeof value === 'object') {
-            const record = value as Record<string, unknown>
-            add(record.name ?? record.role ?? record.authority ?? record.code)
-        }
-    }
-
-    add(authority)
-    return roles
-}
-
 const SideNav = ({
     translationSetup = appConfig.activeNavTranslation,
     background = true,
@@ -72,16 +43,7 @@ const SideNav = ({
     const direction = useThemeStore((state) => state.direction)
     const sideNavCollapse = useThemeStore((state) => state.layout.sideNavCollapse)
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-    const rawAuthority = useSessionUser((state) => state.user.authority)
-
     const { user } = useAuth()
-    const effectiveRole = RBAC.extractUserRole(user)
-
-    const roles = useMemo(() => {
-        const nextRoles = normalizeAuthority(rawAuthority)
-        if (effectiveRole) nextRoles.add(effectiveRole)
-        return [...nextRoles]
-    }, [rawAuthority, effectiveRole])
 
     const logoSrc = sideNavCollapse ? locentrIcon : locentrLogo
 
@@ -117,7 +79,7 @@ const SideNav = ({
                         routeKey={currentRouteKey}
                         direction={direction}
                         translationSetup={translationSetup}
-                        userAuthority={roles}
+                        userAuthority={user}
                     />
                 </ScrollBar>
             </div>
