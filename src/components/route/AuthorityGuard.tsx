@@ -21,10 +21,7 @@ const AuthorityGuard = ({
     requireAllPermissions = true,
     children,
 }: AuthorityGuardProps) => {
-    if (RBAC.isSuperAdmin(userAuthority)) {
-        return <>{children}</>
-    }
-
+    const hasLegacyAccess = useAuthority(userAuthority, authority)
     const hasRequiredRole = roles.length === 0 || RBAC.hasAnyRole(userAuthority, roles)
     const hasRequiredPermissions =
         permissions.length === 0 ||
@@ -32,8 +29,8 @@ const AuthorityGuard = ({
             requireAll: requireAllPermissions,
         }).allowed
 
-    const hasRbacAccess = hasRequiredRole && hasRequiredPermissions
-    const hasLegacyAccess = useAuthority(userAuthority, authority)
+    const hasRbacAccess =
+        RBAC.isSuperAdmin(userAuthority) || (hasRequiredRole && hasRequiredPermissions)
     const allowed = roles.length || permissions.length ? hasRbacAccess : hasLegacyAccess
 
     if (!allowed) {
