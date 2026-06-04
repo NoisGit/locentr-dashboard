@@ -1,117 +1,33 @@
-# Coredeck Routing and Protection Guide
+# Locentr Routing and Protection Guide
 
-> Reference guide for Coredeck routing, authentication, RBAC and API-aligned frontend modules.
->
-> Use this document when adding routes, migrating legacy template screens, protecting pages or connecting a new screen to `dashboard-base-api`.
+Reference guide for Locentr routing, authentication, RBAC and API-aligned frontend modules.
 
----
+Use this document when adding routes, cleaning legacy template screens, protecting pages or connecting a new screen to `locentr-api`.
 
-## Table of Contents
+## Core rule
 
-1. [Simple Explanation](#simple-explanation)
-2. [Core Concepts](#core-concepts)
-3. [Architecture](#architecture)
-4. [Roles](#roles)
-5. [Route Structure](#route-structure)
-6. [Route Protection Flow](#route-protection-flow)
-7. [Implementation Examples](#implementation-examples)
-8. [Best Practices](#best-practices)
-9. [New Route Checklist](#new-route-checklist)
-10. [Troubleshooting](#troubleshooting)
-11. [Quick Reference](#quick-reference)
+A frontend module exists only when it maps to a real backend router or an active Locentr product screen.
 
----
+Frontend route protection improves UX. The backend remains the source of truth for authorization, ownership and tenant scope.
 
-## Simple Explanation
-
-Coredeck routing works like a controlled access system.
-
-- Routes are doors.
-- Roles are keys.
-- Guards check if the user can enter.
-- Services connect the UI with the API.
-- The backend is the real source of truth for permissions.
-
-The frontend improves the user experience, but it must never be treated as the only security layer.
-
----
-
-## Core Concepts
-
-### Authentication
-
-Authentication answers:
+## Product routing model
 
 ```txt
-Who are you?
-```
-
-If the user is not authenticated, the app redirects to:
-
-```txt
-/auth/sign-in
-```
-
-### Authorization
-
-Authorization answers:
-
-```txt
-What are you allowed to access?
-```
-
-If the user is authenticated but does not have enough authority, the app must redirect to an access denied flow.
-
-### Company context
-
-Some users need an active company context before using the app.
-
-If the context is missing, the app redirects to:
-
-```txt
-/auth/company-select
-```
-
-After company selection, the app redirects to:
-
-```txt
-/workspaces
-```
-
----
-
-## Architecture
-
-Coredeck frontend should follow this flow:
-
-```txt
-Component -> hook -> service -> ApiService -> AxiosBase -> backend
-```
-
-Examples:
-
-```txt
-UsersList -> useUsersList -> UsersService
-WorkspacesList -> useWorkspacesList -> LocationsService
-SupportTicketsList -> useSupportTicketsList -> SupportTicketsService
+Component -> hook -> service -> ApiService -> AxiosBase -> locentr-api
 ```
 
 Rules:
 
-- Components must not call Axios directly.
-- Components should not know backend URLs.
-- Hooks own loading, error and data behavior.
+- Components do not call Axios directly.
+- Components do not know backend URLs.
+- Hooks own loading, error and mutation behavior.
 - Services own endpoint details.
 - `ApiService` owns shared request behavior.
 - Axios interceptors own shared headers and auth context.
 
----
-
 ## Roles
 
 Frontend roles must match the backend contract.
-
-Current Coredeck API roles:
 
 ```txt
 SUPERADMIN
@@ -120,293 +36,157 @@ OPERATOR
 CLIENT
 ```
 
-Role meaning:
-
 | Role | Purpose |
 |---|---|
-| SUPERADMIN | Global platform access |
-| ADMIN | Company or workspace administration |
-| OPERATOR | Operational access to assigned resources |
-| CLIENT | Limited customer/user access |
+| SUPERADMIN | Platform-level administration. |
+| ADMIN | Company/subcompany/location administration. |
+| OPERATOR | Operational access to assigned locations. |
+| CLIENT | Read or limited access to company/location data. |
 
 Do not introduce frontend-only roles. If a new role is needed, update the backend contract first.
 
----
+## RBAC model
 
-## API-Aligned Modules
+Routes and navigation use `roles` and `permissions`.
 
-A frontend module should exist only when it maps to a real backend router or an active Coredeck product screen.
+Do not use legacy `authority`.
 
-Current active modules:
+```ts
+{
+    key: 'locations.list',
+    path: '/locations',
+    component: lazy(() => import('@/views/locations/LocationsList/LocationsList')),
+    roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+    permissions: [Permission.VIEW_LOCATIONS],
+}
+```
 
-| Frontend module | Backend router | Route |
-|---|---|---|
-| Dashboard | dashboard | `/dashboard` |
-| Access management | users, whitelists, blacklists, access_logs | `/access-management` |
-| Companies | companies | `/companies` |
-| Workspaces | locations | `/workspaces` |
-| Support tickets | support_tickets | `/support-tickets` |
-| Auth | auth | `/auth/*` |
+```ts
+{
+    key: 'locations',
+    path: '/locations',
+    title: 'Locations',
+    translateKey: 'nav.locations',
+    icon: 'landing',
+    type: NAV_ITEM_TYPE_ITEM,
+    roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+    permissions: [Permission.VIEW_LOCATIONS],
+    subMenu: [],
+}
+```
 
-Planned API-aligned modules:
-
-| Frontend module | Backend router |
-|---|---|
-| Documents | documents |
-| Notifications | notifications |
-| Logs | audit_log, location_logbook |
-| Contacts | emergency_contacts, service_contacts |
-
-Template modules must be removed or migrated before becoming active Coredeck modules.
-
----
-
-## Route Structure
-
-Use clean product routes.
-
-Preferred routes:
+Main files:
 
 ```txt
-/dashboard
+src/utils/rbac/types.ts
+src/utils/rbac/rbacCore.ts
+src/components/route/AuthorityGuard.tsx
+src/components/shared/AuthorityCheck.tsx
+src/configs/routes.config/*.ts
+src/configs/navigation.config/*.ts
+```
+
+## Active frontend modules
+
+| Frontend module | Route | Service | Backend router |
+|---|---|---|---|
+| Dashboard | `/dashboards` | `DashboardService` | `/api/v1/dashboard` |
+| Companies | `/companies` | `CompaniesService` | `/api/v1/companies` |
+| Users | `/users` | `UsersService` | `/api/v1/users` |
+| Locations | `/locations` | `LocationsService` | `/api/v1/locations` |
+| Access Management | `/access-management` | `AccessManagementService` | `/api/v1/whitelists`, `/api/v1/blacklists`, `/api/v1/access-logs` |
+| Documents | `/documents` | `DocumentsService` | `/api/v1/documents` |
+| Notifications | `/notifications` | `NotificationsService` | `/api/v1/notifications` |
+| Audit Log | `/audit-log` | `AuditLogService` | `/api/v1/audit-log` |
+| Support Tickets | `/support-tickets` | `SupportTicketsService` | `/api/v1/support-tickets` |
+
+## Active route roots
+
+```txt
+/dashboards
 /companies
-/companies/create
-/companies/:id
-/workspaces
-/workspaces/create
-/workspaces/:id
-/workspaces/:id/edit
+/users
+/locations
 /access-management
+/documents
+/notifications
+/audit-log
 /support-tickets
+/auth
 ```
 
-Avoid legacy template routes:
+## Active view roots
 
 ```txt
-/concepts/users/users-list
-/concepts/workspaces/workspaces-list
-/concepts/products/product-list
-/concepts/help/manage-help
-/concepts/news/manage-article
+src/views/dashboard
+src/views/companies
+src/views/users
+src/views/locations
+src/views/accessManagement
+src/views/documents
+src/views/notifications
+src/views/auditLog
+src/views/supportTickets
+src/views/auth
 ```
 
----
-
-## Route Files
-
-Public routes:
+## Removed or postponed concepts
 
 ```txt
-src/configs/routes.config/authRoute.ts
+Workspaces as a separate domain
+Organizations as a separate domain
+Projects
+Template demo pages
+Legacy concepts routes
+Legacy mock server
 ```
 
-Protected route composition:
+`Locations` is the official domain. Do not add `/workspaces` routes or `WorkspacesService` unless the product architecture changes later.
 
-```txt
-src/configs/routes.config/routes.config.ts
-```
-
-Active protected route groups:
-
-```txt
-src/configs/routes.config/dashboardsRoute.ts
-src/configs/routes.config/workspacesRoute.ts
-```
-
-Guidelines:
-
-- Keep route files small.
-- Keep only active Coredeck modules.
-- Remove route groups from the original template.
-- Do not keep lazy imports to deleted folders.
-
----
-
-## Route Protection Flow
+## Route protection flow
 
 Protected routes should check:
 
 1. User is authenticated.
 2. Route allows the user role.
-3. Required company/workspace context exists.
-4. The page renders only after those checks pass.
+3. Route permissions match the user.
+4. Backend validates tenant/object-level access.
+5. The page renders only after those checks pass.
 
-Important files:
-
-```txt
-src/components/route/ProtectedRoute.tsx
-src/components/route/AuthorityGuard.tsx
-src/components/route/SecureRoutesWithCommunities.tsx
-src/utils/rbac
-```
-
-`SecureRoutesWithCommunities` is a legacy file name. It should eventually be renamed to a Coredeck company-context name.
-
----
-
-## Implementation Examples
-
-### Protected route
-
-```ts
-{
-    key: 'supportTickets.list',
-    path: '/support-tickets',
-    component: lazy(() => import('@/views/supportTickets/SupportTicketsList')),
-    authority: [SUPERADMIN, ADMIN],
-    meta: { pageContainerType: 'contained' },
-}
-```
-
-### Sidebar item
-
-```ts
-{
-    key: 'tickets',
-    path: '/support-tickets',
-    title: 'Tickets',
-    type: NAV_ITEM_TYPE_ITEM,
-    authority: [SUPERADMIN, ADMIN],
-    subMenu: [],
-}
-```
-
-### Service pattern
-
-```ts
-export async function apiGetAllSupportTickets(params?: SupportTicketsListParams) {
-    return ApiService.fetchDataWithAxios({
-        url: '/api/v1/support-tickets/all',
-        method: 'get',
-        params,
-    })
-}
-```
-
----
-
-## Best Practices
-
-### Keep routes clean
-
-Use:
-
-```txt
-/companies
-/workspaces
-/access-management
-/support-tickets
-```
-
-Do not use:
-
-```txt
-/concepts/users/users-list
-/concepts/workspaces/workspaces-list
-```
-
-### Keep modules API-aligned
-
-If the backend has a router, the frontend module can exist.
-
-If the backend does not have a router, remove or postpone the module.
-
-### Remove dead mocks
-
-Mocks are allowed only when explicitly temporary and documented.
-
-Do not keep fake APIs for modules already connected to the backend.
-
-### Keep Coredeck naming clean
-
-Coredeck documentation and source code must not mention previous product identities, third-party prototype setups, or template business domains.
-
-Use generic cleanup language instead of listing old names.
-
-### Backend remains the source of truth
-
-The backend must validate:
-
-- ownership,
-- company scope,
-- location/workspace scope,
-- permissions,
-- business rules.
-
-### Use soft-delete language
-
-Normal SaaS removal flows should preserve history.
-
-Use labels such as:
-
-```txt
-Deactivate
-Revoke
-Disable
-Archive
-```
-
-Avoid UI copy that suggests destructive removal when the API preserves data.
-
----
-
-## New Route Checklist
+## New route checklist
 
 Before adding a route, confirm:
 
 - [ ] The backend router exists.
 - [ ] The frontend service exists.
-- [ ] The page uses a hook.
+- [ ] The page uses a hook when data loading is needed.
 - [ ] The hook uses a service.
 - [ ] The service uses `ApiService`.
 - [ ] The path is clean and product-based.
-- [ ] The desktop sidebar points to the same path.
-- [ ] The mobile navigation points to the same path.
-- [ ] The route authority matches backend roles.
+- [ ] The sidebar/mobile navigation points to the same path.
+- [ ] The route uses `roles` and `permissions`.
+- [ ] No `authority` field is introduced.
 - [ ] No `/concepts/*` path is introduced.
 - [ ] No mock is added unless explicitly temporary.
 - [ ] Empty, loading and error states are handled.
-- [ ] Deactivation language is used for soft-delete flows.
-
----
 
 ## Troubleshooting
 
 ### User is redirected to login
 
-Check:
+Check authentication state, stored session data, route wrapper and backend auth response.
 
-- authentication state,
-- stored session data,
-- route wrapper,
-- backend auth response.
+### User is redirected to dashboard
 
-### User is redirected to company select
-
-Check:
-
-- user role,
-- selected company state,
-- stored company context,
-- company list API response.
+Check route `roles`, route `permissions`, backend role value and RBAC normalization.
 
 ### Route renders blank
 
-Check:
-
-- lazy import path,
-- default export,
-- deleted legacy folder references,
-- runtime console errors.
+Check lazy import path, default export, deleted legacy folder references and runtime console errors.
 
 ### Sidebar item does not show
 
-Check:
-
-- navigation authority,
-- backend role value,
-- RBAC role normalization,
-- route key uniqueness.
+Check navigation `roles`, navigation `permissions`, backend role value and route key uniqueness.
 
 ### Build fails with missing file
 
@@ -414,49 +194,23 @@ Search for stale imports:
 
 ```txt
 @/views/concepts
-@/views/dashboards
+@/views/workspaces
 /concepts/
+/workspaces
 ```
 
 Then update the route or remove the stale import.
 
----
+## Naming rules
 
-## Quick Reference
-
-Active route roots:
+Use Locentr naming consistently:
 
 ```txt
-/dashboard
-/companies
-/workspaces
-/access-management
-/support-tickets
-/auth
+Product: Locentr
+Frontend: Locentr Dashboard
+Backend: Locentr API
+Frontend repo: locentr-dashboard
+Backend repo: locentr-api
 ```
 
-Active view roots:
-
-```txt
-src/views/dashboard
-src/views/companies
-src/views/workspaces
-src/views/accessManagement
-src/views/supportTickets
-src/views/auth
-```
-
-Legacy folders to remove or migrate:
-
-```txt
-src/views/concepts
-src/views/dashboards
-src/views/others
-src/views/ui-components
-```
-
-Core rule:
-
-```txt
-A frontend module exists only when it maps to a real backend router or an active Coredeck product screen.
-```
+Avoid old product names, old template modules and previous prototype infrastructure names.
