@@ -140,7 +140,6 @@ function NavigationAuthorityCheck({
     return (
         <AuthorityCheck
             userAuthority={userAuthority}
-            authority={nav.authority}
             roles={nav.roles}
             permissions={nav.permissions}
         >
