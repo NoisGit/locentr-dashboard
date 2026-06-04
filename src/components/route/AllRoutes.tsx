@@ -53,7 +53,13 @@ const AllRoutes = (props: AllRoutesProps) => {
                         key={route.key}
                         path={route.path}
                         element={
-                            <AuthorityGuard userAuthority={user} authority={route.authority}>
+                            <AuthorityGuard
+                                userAuthority={user}
+                                authority={route.authority}
+                                roles={route.roles}
+                                permissions={route.permissions}
+                                requireAllPermissions={route.requireAllPermissions}
+                            >
                                 <PageContainer {...props} {...route.meta}>
                                     <AppRoute
                                         routeKey={route.key}
