@@ -53,7 +53,6 @@ const CollapsedItem = ({
     return (
         <AuthorityCheck
             userAuthority={userAuthority}
-            authority={nav.authority}
             roles={nav.roles}
             permissions={nav.permissions}
         >
@@ -104,7 +103,6 @@ const DefaultItem = (props: DefaultItemProps) => {
     return (
         <AuthorityCheck
             userAuthority={userAuthority}
-            authority={nav.authority}
             roles={nav.roles}
             permissions={nav.permissions}
         >
