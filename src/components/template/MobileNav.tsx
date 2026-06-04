@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy, useMemo } from 'react'
+import { useState, Suspense, lazy } from 'react'
 import classNames from 'classnames'
 import Drawer from '@/components/ui/Drawer'
 import NavToggle from '@/components/shared/NavToggle'
@@ -9,8 +9,6 @@ import appConfig from '@/configs/app.config'
 import { useThemeStore } from '@/store/themeStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
 import { useAuth } from '@/auth'
-import { RBAC } from '@/utils/rbac/rbacCore'
-import type { NavigationTree } from '@/@types/navigation'
 import Logo from '@/components/template/Logo'
 
 const VerticalMenuContent = lazy(
@@ -24,42 +22,6 @@ const MobileNavToggle = withHeaderItem<
     MobileNavToggleProps & WithHeaderItemProps
 >(NavToggle)
 
-const SUPERADMIN_ALLOWED_KEYS = new Set<string>([
-    'concepts.news',
-    'concepts.incidents.list',
-    'concepts.entries',
-    'concepts.mailbox',
-    'concepts.invitations',
-    'concepts.logbook',
-    'concepts.condos',
-    'concepts.customers',
-])
-
-function filterNavForSuperAdmin(tree: NavigationTree[]): NavigationTree[] {
-    const walk = (nodes: NavigationTree[]): NavigationTree[] =>
-        nodes
-            .map((n) => {
-                const sub = n.subMenu ? walk(n.subMenu) : []
-                const keep = SUPERADMIN_ALLOWED_KEYS.has(n.key) || sub.length > 0
-                return keep ? { ...n, subMenu: sub } : null
-            })
-            .filter(Boolean) as NavigationTree[]
-    return walk(tree)
-}
-
-function removeKeysFromTree(
-    nodes: NavigationTree[],
-    keysToRemove: Set<string>,
-): NavigationTree[] {
-    const out: NavigationTree[] = []
-    for (const n of nodes) {
-        if (keysToRemove.has(n.key)) continue
-        const children = n.subMenu ? removeKeysFromTree(n.subMenu, keysToRemove) : []
-        out.push({ ...n, subMenu: children })
-    }
-    return out
-}
-
 const MobileNav = ({
     translationSetup = appConfig.activeNavTranslation,
 }: MobileNavProps) => {
@@ -69,24 +31,7 @@ const MobileNav = ({
 
     const direction = useThemeStore((s) => s.direction)
     const currentRouteKey = useRouteKeyStore((s) => s.currentRouteKey)
-
     const { user } = useAuth()
-    const role = RBAC.extractUserRole(user)
-
-    const userAuthority: string[] = role ? [role] : []
-
-    const ALWAYS_HIDE = useMemo(
-        () => new Set<string>(['concepts.properties', 'concepts.residents']),
-        [],
-    )
-
-    const navTree = useMemo(() => {
-        const base =
-            role === 'SUPERADMIN'
-                ? filterNavForSuperAdmin(navigationConfig)
-                : navigationConfig
-        return removeKeysFromTree(base, ALWAYS_HIDE)
-    }, [role, ALWAYS_HIDE])
 
     return (
         <>
@@ -107,9 +52,9 @@ const MobileNav = ({
                         <div className="flex flex-col h-full">
                             <VerticalMenuContent
                                 collapsed={false}
-                                navigationTree={navTree}
+                                navigationTree={navigationConfig}
                                 routeKey={currentRouteKey}
-                                userAuthority={userAuthority}
+                                userAuthority={user}
                                 direction={direction}
                                 translationSetup={translationSetup}
                                 onMenuItemClick={handleDrawerClose}
