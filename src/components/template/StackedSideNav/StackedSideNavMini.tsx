@@ -117,7 +117,6 @@ const StackedSideNavMini = (props: StackedSideNavMiniProps) => {
                     {navigationTree.map((nav) => (
                         <AuthorityCheck
                             key={nav.key}
-                            authority={nav.authority}
                             roles={nav.roles}
                             permissions={nav.permissions}
                             userAuthority={userAuthority}
