@@ -15,9 +15,12 @@ const AUTHORITY_TO_ROLE: Record<string, Role> = {
 function inferPermissionsFromPath(path: string): Permission[] {
     if (path.startsWith('/dashboard')) return [Permission.VIEW_DASHBOARD]
     if (path.startsWith('/companies')) return [Permission.VIEW_COMPANIES]
-    if (path.startsWith('/workspaces')) return [Permission.VIEW_WORKSPACES]
+    if (path.startsWith('/locations')) return [Permission.VIEW_LOCATIONS]
     if (path.startsWith('/access-management')) return [Permission.VIEW_ACCESS_MANAGEMENT]
     if (path.startsWith('/support-tickets')) return [Permission.VIEW_SUPPORT_TICKETS]
+    if (path.startsWith('/documents')) return [Permission.VIEW_DOCUMENTS]
+    if (path.startsWith('/notifications')) return [Permission.VIEW_NOTIFICATIONS]
+    if (path.startsWith('/audit-log')) return [Permission.VIEW_AUDIT_LOG]
 
     return []
 }
