@@ -55,7 +55,6 @@ const AllRoutes = (props: AllRoutesProps) => {
                         element={
                             <AuthorityGuard
                                 userAuthority={user}
-                                authority={route.authority}
                                 roles={route.roles}
                                 permissions={route.permissions}
                                 requireAllPermissions={route.requireAllPermissions}
