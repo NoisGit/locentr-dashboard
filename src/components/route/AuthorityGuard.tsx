@@ -2,19 +2,41 @@ import { PropsWithChildren } from 'react'
 import { Navigate } from 'react-router-dom'
 import useAuthority from '@/utils/hooks/useAuthority'
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
+import { RBAC } from '@/utils/rbac/rbacCore'
+import type { Role, Permission } from '@/utils/rbac/types'
 
 type AuthorityGuardProps = PropsWithChildren<{
     userAuthority?: unknown
     authority?: unknown
+    roles?: Role[]
+    permissions?: Permission[]
+    requireAllPermissions?: boolean
 }>
 
-const AuthorityGuard = ({ userAuthority, authority, children }: AuthorityGuardProps) => {
-    const roleMatched = useAuthority(
-        userAuthority as string[] | unknown,
-        authority as string[] | unknown,
-    )
+const AuthorityGuard = ({
+    userAuthority,
+    authority,
+    roles = [],
+    permissions = [],
+    requireAllPermissions = true,
+    children,
+}: AuthorityGuardProps) => {
+    if (RBAC.isSuperAdmin(userAuthority)) {
+        return <>{children}</>
+    }
 
-    if (!roleMatched) {
+    const hasRequiredRole = roles.length === 0 || RBAC.hasAnyRole(userAuthority, roles)
+    const hasRequiredPermissions =
+        permissions.length === 0 ||
+        RBAC.checkPermissions(userAuthority, permissions, {
+            requireAll: requireAllPermissions,
+        }).allowed
+
+    const hasRbacAccess = hasRequiredRole && hasRequiredPermissions
+    const hasLegacyAccess = useAuthority(userAuthority, authority)
+    const allowed = roles.length || permissions.length ? hasRbacAccess : hasLegacyAccess
+
+    if (!allowed) {
         return <Navigate to={DASHBOARDS_PREFIX_PATH} replace />
     }
 
