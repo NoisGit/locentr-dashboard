@@ -20,7 +20,7 @@ interface LayoutProps extends CommonProps {
     onDropdownClose: () => void
     routeKey: string
     routeParentKey?: string
-    userAuthority: string[]
+    userAuthority: unknown
 }
 
 interface HorizontalMenuDropdownContentProps extends LayoutProps {
@@ -132,6 +132,23 @@ const MenuLink = ({
     </HorizontalMenuNavLink>
 )
 
+function NavigationAuthorityCheck({
+    nav,
+    userAuthority,
+    children,
+}: CommonProps & { nav: NavigationTree; userAuthority: unknown }) {
+    return (
+        <AuthorityCheck
+            userAuthority={userAuthority}
+            authority={nav.authority}
+            roles={nav.roles}
+            permissions={nav.permissions}
+        >
+            {children}
+        </AuthorityCheck>
+    )
+}
+
 const ColumnsLayout = (
     props: LayoutProps & {
         columns: 1 | 2 | 3 | 4 | 5
@@ -159,10 +176,10 @@ const ColumnsLayout = (
                 {navigationTree.map((nav) => {
                     if (nav.subMenu.length > 0) {
                         return (
-                            <AuthorityCheck
+                            <NavigationAuthorityCheck
                                 key={nav.key}
+                                nav={nav}
                                 userAuthority={userAuthority}
-                                authority={nav.authority}
                             >
                                 <div className="max-w-[250px]">
                                     {showColumnTitle && (
@@ -171,10 +188,10 @@ const ColumnsLayout = (
                                         </div>
                                     )}
                                     {nav.subMenu.map((subNav) => (
-                                        <AuthorityCheck
+                                        <NavigationAuthorityCheck
                                             key={subNav.key}
+                                            nav={subNav}
                                             userAuthority={userAuthority}
-                                            authority={subNav.authority}
                                         >
                                             <div key={subNav.key}>
                                                 <MenuLink
@@ -204,10 +221,10 @@ const ColumnsLayout = (
                                                     onClick={onDropdownClose}
                                                 />
                                             </div>
-                                        </AuthorityCheck>
+                                        </NavigationAuthorityCheck>
                                     ))}
                                 </div>
-                            </AuthorityCheck>
+                            </NavigationAuthorityCheck>
                         )
                     }
                     return null
@@ -225,10 +242,10 @@ const ColumnsLayout = (
                             nav.type === NAV_ITEM_TYPE_ITEM
                         ) {
                             return (
-                                <AuthorityCheck
+                                <NavigationAuthorityCheck
                                     key={nav.key}
+                                    nav={nav}
                                     userAuthority={userAuthority}
-                                    authority={nav.authority}
                                 >
                                     <MenuLink
                                         key={nav.key}
@@ -248,7 +265,7 @@ const ColumnsLayout = (
                                         active={nav.key === routeKey}
                                         onClick={onDropdownClose}
                                     />
-                                </AuthorityCheck>
+                                </NavigationAuthorityCheck>
                             )
                         }
                         return null
@@ -272,10 +289,10 @@ const DefaultLayout = ({
         return (
             <div className={classNames(cascade === 0 && 'p-3')}>
                 {navTree.map((nav) => (
-                    <AuthorityCheck
+                    <NavigationAuthorityCheck
                         key={nav.key}
+                        nav={nav}
                         userAuthority={userAuthority}
-                        authority={nav.authority}
                     >
                         <ul>
                             {nav.type === NAV_ITEM_TYPE_ITEM && (
@@ -313,7 +330,7 @@ const DefaultLayout = ({
                                 </Dropdown>
                             )}
                         </ul>
-                    </AuthorityCheck>
+                    </NavigationAuthorityCheck>
                 ))}
             </div>
         )
@@ -343,10 +360,10 @@ const TabLayout = ({
                 {navigationTree.map((nav) => {
                     if (nav.subMenu.length > 0) {
                         return (
-                            <AuthorityCheck
+                            <NavigationAuthorityCheck
                                 key={nav.key}
+                                nav={nav}
                                 userAuthority={userAuthority}
-                                authority={nav.authority}
                             >
                                 <div className="min-w-[250px]">
                                     <div key={nav.key}>
@@ -394,7 +411,7 @@ const TabLayout = ({
                                         </MenuItem>
                                     </div>
                                 </div>
-                            </AuthorityCheck>
+                            </NavigationAuthorityCheck>
                         )
                     }
                     return null
@@ -416,10 +433,10 @@ const TabLayout = ({
                         {navigationTree
                             .find((nav) => nav.key === activeKey)
                             ?.subMenu.map((nav) => (
-                                <AuthorityCheck
+                                <NavigationAuthorityCheck
                                     key={nav.key}
+                                    nav={nav}
                                     userAuthority={userAuthority}
-                                    authority={nav.authority}
                                 >
                                     <HorizontalMenuNavLink
                                         path={nav.path}
@@ -444,7 +461,7 @@ const TabLayout = ({
                                             </span>
                                         </div>
                                     </HorizontalMenuNavLink>
-                                </AuthorityCheck>
+                                </NavigationAuthorityCheck>
                             ))}
                     </div>
                 </div>
