@@ -22,7 +22,7 @@ export interface VerticalMenuContentProps {
     onMenuItemClick?: () => void
     direction?: Direction
     translationSetup?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
 }
 
 const { MenuGroup } = Menu
@@ -116,6 +116,8 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
                             <AuthorityCheck
                                 userAuthority={userAuthority}
                                 authority={nav.authority}
+                                roles={nav.roles}
+                                permissions={nav.permissions}
                             >
                                 <MenuGroup
                                     key={nav.key}
