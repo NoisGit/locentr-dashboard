@@ -19,7 +19,7 @@ interface CollapsedItemProps extends CommonProps {
         fallback?: string | Record<string, string | number>,
     ) => string
     renderAsIcon?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
     currentKey?: string
     parentKeys?: string[]
 }
@@ -33,7 +33,7 @@ interface DefaultItemProps {
         fallback?: string | Record<string, string | number>,
     ) => string
     indent?: boolean
-    userAuthority: string[]
+    userAuthority: unknown
     showIcon?: boolean
     showTitle?: boolean
 }
@@ -51,7 +51,12 @@ const CollapsedItem = ({
     currentKey,
 }: CollapsedItemProps) => {
     return (
-        <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
+        <AuthorityCheck
+            userAuthority={userAuthority}
+            authority={nav.authority}
+            roles={nav.roles}
+            permissions={nav.permissions}
+        >
             {renderAsIcon ? (
                 <Tooltip
                     title={t(nav.translateKey, nav.title)}
@@ -97,7 +102,12 @@ const DefaultItem = (props: DefaultItemProps) => {
     } = props
 
     return (
-        <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
+        <AuthorityCheck
+            userAuthority={userAuthority}
+            authority={nav.authority}
+            roles={nav.roles}
+            permissions={nav.permissions}
+        >
             <MenuItem key={nav.key} eventKey={nav.key} dotIndent={indent}>
                 <Link
                     to={nav.path}
