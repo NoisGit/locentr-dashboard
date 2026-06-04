@@ -34,7 +34,6 @@ const HorizontalMenuContent = (props: HorizontalMenuContentProps) => {
                 <AuthorityCheck
                     key={nav.key}
                     userAuthority={userAuthority}
-                    authority={nav.authority}
                     roles={nav.roles}
                     permissions={nav.permissions}
                 >
