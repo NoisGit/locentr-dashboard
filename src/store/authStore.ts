@@ -20,7 +20,6 @@ type AuthAction = {
   resetAuth: () => void
 }
 
-// Nombre para el refresh token (alínealo si ya tienes constante propia)
 const REFRESH_TOKEN_NAME_IN_STORAGE = 'refresh_token'
 
 const getPersistStorage = () => {
@@ -35,7 +34,8 @@ const initialState: AuthState = {
     avatar: '',
     userName: '',
     email: '',
-    authority: [],
+    role: null,
+    permissions: [],
   },
 }
 
@@ -53,7 +53,6 @@ export const useSessionUser = create<AuthState & AuthAction>()(
         })),
       resetAuth: () =>
         set(() => {
-          // limpia tokens también
           const storage = getPersistStorage()
           try {
             storage.removeItem(TOKEN_NAME_IN_STORAGE)
@@ -69,12 +68,11 @@ export const useSessionUser = create<AuthState & AuthAction>()(
   ),
 )
 
-// Manejo de tokens (access + refresh)
 export const useToken = () => {
   const storage = getPersistStorage()
 
   const setToken = (token: string) => {
-    storage.setItem(TOKEN_NAME_IN_STORAGE, token) // ej: "Bearer <access_token>"
+    storage.setItem(TOKEN_NAME_IN_STORAGE, token)
   }
   const getToken = () => storage.getItem(TOKEN_NAME_IN_STORAGE)
 
