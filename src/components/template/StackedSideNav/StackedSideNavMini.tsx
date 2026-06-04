@@ -30,7 +30,7 @@ interface StackedSideNavMiniProps extends CommonProps {
     routeKey: string
     activeKeys: string[]
     onSetActiveKey: (activeKey: string[]) => void
-    userAuthority: string[]
+    userAuthority: unknown
     mode: Mode
     direction: Direction
     navigationTree: NavigationTree[]
@@ -118,6 +118,8 @@ const StackedSideNavMini = (props: StackedSideNavMiniProps) => {
                         <AuthorityCheck
                             key={nav.key}
                             authority={nav.authority}
+                            roles={nav.roles}
+                            permissions={nav.permissions}
                             userAuthority={userAuthority}
                         >
                             <div title={t(nav.translateKey, nav.title)}>
