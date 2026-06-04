@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { SUPERADMIN, ADMIN_GROUP } from '@/constants/roles.constant'
+import { Role, Permission } from '@/utils/rbac/types'
 import type { Routes } from '@/@types/routes'
 
 const locationsRoute: Routes = [
@@ -7,13 +7,15 @@ const locationsRoute: Routes = [
         key: 'locations.list',
         path: '/locations',
         component: lazy(() => import('@/views/locations/LocationsList/LocationsList')),
-        authority: [SUPERADMIN, ...ADMIN_GROUP],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_LOCATIONS],
     },
     {
         key: 'locations.create',
         path: '/locations/create',
         component: lazy(() => import('@/views/locations/LocationsCreate/LocationsCreate')),
-        authority: [SUPERADMIN, ...ADMIN_GROUP],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.CREATE_LOCATION],
         meta: {
             header: {
                 title: 'Crear ubicación',
@@ -27,7 +29,8 @@ const locationsRoute: Routes = [
         key: 'locations.edit',
         path: '/locations/:id/edit',
         component: lazy(() => import('@/views/locations/LocationsEdit/LocationsEdit')),
-        authority: [SUPERADMIN, ...ADMIN_GROUP],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.EDIT_LOCATION],
         meta: {
             header: {
                 title: 'Editar ubicación',
@@ -41,7 +44,8 @@ const locationsRoute: Routes = [
         key: 'locations.details',
         path: '/locations/:id',
         component: lazy(() => import('@/views/locations/LocationsDetails/LocationsDetails')),
-        authority: [SUPERADMIN, ...ADMIN_GROUP],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_LOCATIONS],
         meta: { pageContainerType: 'contained' },
     },
 ]
