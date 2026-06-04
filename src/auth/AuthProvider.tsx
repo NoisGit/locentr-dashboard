@@ -1,5 +1,4 @@
-// src/auth/AuthProvider.tsx
-import { useRef, useImperativeHandle, useEffect, useRef as useRef2, forwardRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useSWRConfig } from 'swr'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
@@ -10,7 +9,7 @@ import { normalizeUser } from '@/services/UsersService'
 import { apiListCompanies } from '@/services/CompaniesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
-import { RBAC } from '@/utils/rbac'
+import { RBAC, Role } from '@/utils/rbac'
 import type {
   SignInCredential,
   AuthResult,
@@ -32,69 +31,30 @@ const IsolatedNavigator = forwardRef<IsolatedNavigatorRef>(function IsolatedNavi
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
+
 function toStr(v: unknown): string {
   if (typeof v === 'string') return v
   if (typeof v === 'number' || typeof v === 'boolean') return String(v)
   return ''
 }
-function normalizeRoleToken(s: string): string {
-  return s.trim().toLowerCase().replace(/[^a-z]/g, '')
-}
-function readRoleTokens(user: unknown): string[] {
-  if (!isRecord(user)) return []
-  const candidates: unknown[] = []
-  const keys = ['roles', 'role', 'authorities', 'authority', 'permissions', 'scopes'] as const
-  for (const k of keys) {
-    if (k in user) candidates.push((user as Record<string, unknown>)[k])
-  }
-  const out: string[] = []
-  for (const c of candidates) {
-    if (typeof c === 'string') {
-      out.push(c)
-      continue
-    }
-    if (Array.isArray(c)) {
-      for (const item of c) {
-        if (typeof item === 'string') out.push(item)
-        else if (isRecord(item)) {
-          const maybe =
-            toStr(item.name) ||
-            toStr(item.role) ||
-            toStr(item.key) ||
-            toStr(item.code) ||
-            toStr(item.authority) ||
-            toStr(item.value) ||
-            ''
-          if (maybe) out.push(maybe)
-        }
-      }
-      continue
-    }
-    if (isRecord(c)) {
-      const maybe =
-        toStr(c.name) ||
-        toStr(c.role) ||
-        toStr(c.key) ||
-        toStr(c.code) ||
-        toStr(c.authority) ||
-        toStr(c.value) ||
-        ''
-      if (maybe) out.push(maybe)
-    }
-  }
-  return out
-}
-function hasDashboardAccess(user: unknown): boolean {
-  const tokens = readRoleTokens(user).map(normalizeRoleToken)
-  if (!tokens.length) return false
-  const allow = ['superadmin', 'admin']
-  return tokens.some((t) => allow.some((a) => t.includes(a)))
-}
+
 function ensureBearerPrefix(token: string, tokenType?: string): string {
   const type = tokenType && tokenType.trim() ? tokenType : 'Bearer'
   const finalType = /^bearer$/i.test(type) ? 'Bearer' : type
   if (/^bearer\s+/i.test(token)) return token
   return `${finalType} ${token}`.trim()
+}
+
+function hasAppAccess(user: unknown): boolean {
+  const rbacUser = RBAC.createAuthUser(user)
+  if (!rbacUser) return false
+
+  return RBAC.hasAnyRole(rbacUser, [
+    Role.SUPERADMIN,
+    Role.ADMIN,
+    Role.OPERATOR,
+    Role.CLIENT,
+  ])
 }
 
 function AuthProvider({ children }: AuthProviderProps) {
@@ -109,8 +69,8 @@ function AuthProvider({ children }: AuthProviderProps) {
   const { mutate, cache } = useSWRConfig()
 
   const navigatorRef = useRef<IsolatedNavigatorRef>(null)
-  const hydratingRef = useRef2(false)
-  const prefetchedRef = useRef2(false)
+  const hydratingRef = useRef(false)
+  const prefetchedRef = useRef(false)
 
   const resetPerUserState = async () => {
     try { resetCompanies() } catch { }
@@ -147,16 +107,22 @@ function AuthProvider({ children }: AuthProviderProps) {
       setRefreshToken(tokens.refreshToken)
     }
     setSessionSignedIn(true)
+
     if (u) {
       const normalized = normalizeUser(u)
       const rbacUser = RBAC.createAuthUser(normalized)
 
-      setUser(rbacUser as AppUser)
+      if (rbacUser) {
+        setUser(rbacUser as AppUser)
+      } else {
+        setUser(normalized as AppUser)
+      }
+
       void prefetchCompaniesOnce()
-    } else {
-      const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
-      setUser(emptyUser)
+      return
     }
+
+    setUser({ userName: '', email: '', avatar: '', role: null, permissions: [] } as AppUser)
   }
 
   const handleSignOut = () => {
@@ -165,8 +131,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     } catch { }
 
     clearToken()
-    const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
-    setUser(emptyUser)
+    setUser({ userName: '', email: '', avatar: '', role: null, permissions: [] } as AppUser)
     setSessionSignedIn(false)
     prefetchedRef.current = false
     void resetPerUserState()
@@ -180,7 +145,12 @@ function AuthProvider({ children }: AuthProviderProps) {
       const normalized = normalizeUser(me)
       const rbacUser = RBAC.createAuthUser(normalized)
 
-      setUser(rbacUser as unknown as AppUser)
+      if (rbacUser) {
+        setUser(rbacUser as unknown as AppUser)
+      } else {
+        setUser(normalized as unknown as AppUser)
+      }
+
       void prefetchCompaniesOnce()
     } finally {
       hydratingRef.current = false
@@ -194,9 +164,11 @@ function AuthProvider({ children }: AuthProviderProps) {
         toStr((resp as Record<string, unknown>)?.token) ||
         toStr((resp as Record<string, unknown>)?.access_token) ||
         toStr((resp as Record<string, unknown>)?.accessToken)
+
       if (!rawToken) {
         return { status: 'failed', message: 'No fue posible iniciar sesión' }
       }
+
       const tokenType =
         toStr((resp as Record<string, unknown>)?.token_type) ||
         toStr((resp as Record<string, unknown>)?.tokenType)
@@ -207,6 +179,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       let userLike: unknown =
         (resp as Record<string, unknown>)?.user ??
         (resp as Record<string, unknown>)?.data
+
       if (!userLike) {
         setToken(headerToken)
         if (rawRefreshToken) {
@@ -216,16 +189,17 @@ function AuthProvider({ children }: AuthProviderProps) {
           userLike = await apiMe<unknown>()
         } catch { }
       }
-      if (!hasDashboardAccess(userLike)) {
+
+      if (!hasAppAccess(userLike)) {
         clearToken()
-        const emptyUser = { userName: '', email: '', avatar: '' } as unknown as AppUser
-        setUser(emptyUser)
+        setUser({ userName: '', email: '', avatar: '', role: null, permissions: [] } as AppUser)
         setSessionSignedIn(false)
         return {
           status: 'failed',
           message: 'Acceso denegado: tu rol no tiene permiso para ingresar.',
         }
       }
+
       handleSignIn({ accessToken: headerToken, refreshToken: rawRefreshToken }, (userLike ?? undefined) as AppUser)
       void hydrateUserFromApi()
       redirect()
@@ -258,7 +232,10 @@ function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const oAuthSignIn = (callback: (payload: OauthSignInCallbackPayload) => void) => {
-    callback({ onSignIn: handleSignIn, redirect })
+    callback({
+      onSignIn: handleSignIn,
+      redirect,
+    })
   }
 
   useEffect(() => {
@@ -267,13 +244,15 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const hasMinimalUser = isRecord(user) && typeof user.email === 'string' && user.email.length > 0
-    if (token && !hasMinimalUser) hydrateUserFromApi()
+    if (token && !hasMinimalUser) void hydrateUserFromApi()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   useEffect(() => {
     if (authenticated && isRecord(user)) {
       void prefetchCompaniesOnce()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, user])
 
   return (
