@@ -1,4 +1,3 @@
-// src/services/axios/AxiosRequestIntrceptorConfigCallback.ts
 import appConfig from '@/configs/app.config'
 import cookiesStorage from '@/utils/cookiesStorage'
 import {
@@ -111,14 +110,14 @@ export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
 
     if (!config.params || typeof config.params !== 'object') config.params = {}
     const params = config.params as Record<string, unknown>
-    if (!('companyId' in params) && !('company_id' in params)) {
-      params.companyId = companyId
+    if (!('company_id' in params)) {
+      params.company_id = companyId
     }
 
     if ((method === 'post' || method === 'put' || method === 'patch') && config.data && typeof config.data === 'object') {
       const body = config.data as Record<string, unknown>
-      if (!('companyId' in body) && !('company_id' in body)) {
-        body.companyId = companyId
+      if (!('company_id' in body)) {
+        body.company_id = companyId
       }
     }
   }
