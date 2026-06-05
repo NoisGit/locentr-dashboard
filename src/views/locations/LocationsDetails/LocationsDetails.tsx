@@ -44,15 +44,15 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function formatFileSize(size?: number | null) {
-    if (!size) return 'Unknown size'
+    if (!size) return 'Tamaño desconocido'
     if (size < 1024) return `${size} B`
     if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`
     return `${(size / 1024 / 1024).toFixed(1)} MB`
 }
 
 function formatDate(date?: string | null) {
-    if (!date) return 'No date'
-    return new Intl.DateTimeFormat('en', {
+    if (!date) return 'Sin fecha'
+    return new Intl.DateTimeFormat('es-CL', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -64,8 +64,8 @@ const LocationsDetails = () => {
     const navigate = useNavigate()
     const locationIdText = useMemo(() => (id ? String(id).replace(/\/+$/, '') : ''), [id])
     const locationId = Number(locationIdText)
-    const [policeLink, setPoliceLink] = useState('')
-    const [isGeneratingPoliceLink, setIsGeneratingPoliceLink] = useState(false)
+    const [externalLink, setExternalLink] = useState('')
+    const [isGeneratingExternalLink, setIsGeneratingExternalLink] = useState(false)
 
     useEffect(() => {
         if (locationIdText) {
@@ -130,32 +130,32 @@ const LocationsDetails = () => {
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Document download link could not be generated.')}
+                    {getErrorMessage(error, 'No se pudo generar el enlace de descarga.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
         }
     }
 
-    const handleGeneratePoliceLink = async () => {
+    const handleGenerateExternalLink = async () => {
         if (!Number.isFinite(locationId)) return
 
         try {
-            setIsGeneratingPoliceLink(true)
+            setIsGeneratingExternalLink(true)
             const response = await apiCreatePoliceLogbookAccess({ location_id: locationId })
-            setPoliceLink(response.relative_path)
-            toast.push(<Notification type="success">Police logbook link generated.</Notification>, {
+            setExternalLink(response.relative_path)
+            toast.push(<Notification type="success">Enlace externo generado.</Notification>, {
                 placement: 'top-center',
             })
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Police logbook link could not be generated.')}
+                    {getErrorMessage(error, 'No se pudo generar el enlace externo.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
         } finally {
-            setIsGeneratingPoliceLink(false)
+            setIsGeneratingExternalLink(false)
         }
     }
 
@@ -164,14 +164,14 @@ const LocationsDetails = () => {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <h3>{data?.name || 'Location details'}</h3>
+                        <h3>{data?.name || 'Detalle de ubicación'}</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Security, access and operational controls for this location.
+                            Control operativo, accesos y registros de esta ubicación.
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <Button icon={<TbArrowLeft />} onClick={() => navigate('/locations')}>
-                            Back
+                            Volver
                         </Button>
                         {locationIdText ? (
                             <Button
@@ -179,7 +179,7 @@ const LocationsDetails = () => {
                                 icon={<TbPencil />}
                                 onClick={() => navigate(`/locations/${locationIdText}/edit`)}
                             >
-                                Edit
+                                Editar
                             </Button>
                         ) : null}
                     </div>
@@ -187,51 +187,51 @@ const LocationsDetails = () => {
 
                 <Tabs defaultValue="overview">
                     <TabList>
-                        <TabNav value="overview">Overview</TabNav>
-                        <TabNav value="operators">Operators</TabNav>
-                        <TabNav value="access">Access</TabNav>
-                        <TabNav value="contacts">Contacts</TabNav>
-                        <TabNav value="documents">Documents</TabNav>
-                        <TabNav value="logbook">Logbook</TabNav>
-                        <TabNav value="police">Police QR</TabNav>
+                        <TabNav value="overview">Resumen</TabNav>
+                        <TabNav value="operators">Operadores</TabNav>
+                        <TabNav value="access">Accesos</TabNav>
+                        <TabNav value="contacts">Contactos</TabNav>
+                        <TabNav value="documents">Documentos</TabNav>
+                        <TabNav value="logbook">Bitácora</TabNav>
+                        <TabNav value="external">Acceso externo</TabNav>
                     </TabList>
 
                     <div className="pt-4">
                         <TabContent value="overview">
                             <Card>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><div className="text-xs text-gray-500">Name</div><div className="font-medium">{data?.name || 'No name'}</div></div>
-                                    <div><div className="text-xs text-gray-500">Address</div><div className="font-medium">{data?.address || 'No address'}</div></div>
-                                    <div><div className="text-xs text-gray-500">Country</div><div className="font-medium">{data?.country || 'No country'}</div></div>
-                                    <div><div className="text-xs text-gray-500">Status</div><div className="font-medium">{data?.isActive === false ? 'Inactive' : 'Active'}</div></div>
+                                    <div><div className="text-xs text-gray-500">Nombre</div><div className="font-medium">{data?.name || 'Sin nombre'}</div></div>
+                                    <div><div className="text-xs text-gray-500">Dirección</div><div className="font-medium">{data?.address || 'Sin dirección'}</div></div>
+                                    <div><div className="text-xs text-gray-500">País</div><div className="font-medium">{data?.country || 'Sin país'}</div></div>
+                                    <div><div className="text-xs text-gray-500">Estado</div><div className="font-medium">{data?.isActive === false ? 'Inactiva' : 'Activa'}</div></div>
                                 </div>
                             </Card>
                         </TabContent>
 
                         <TabContent value="operators">
                             <Card>
-                                <h5>Assigned operators</h5>
+                                <h5>Operadores asignados</h5>
                                 <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                     {operators?.items?.slice(0, 5).map((operator) => (
                                         <div key={operator.id} className="py-3 flex justify-between gap-3">
                                             <div><div className="font-medium">{operator.full_name}</div><div className="text-sm text-gray-500">{operator.email}</div></div>
-                                            <div className="text-sm">{operator.status ? 'Active' : 'Inactive'}</div>
+                                            <div className="text-sm">{operator.status ? 'Activo' : 'Inactivo'}</div>
                                         </div>
-                                    )) || <div className="text-sm text-gray-500">No operators found.</div>}
+                                    )) || <div className="text-sm text-gray-500">No hay operadores asignados.</div>}
                                 </div>
                             </Card>
                         </TabContent>
 
                         <TabContent value="access">
                             <Card>
-                                <h5>Access entries</h5>
+                                <h5>Entradas de acceso</h5>
                                 <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                     {accessEntries?.slice(0, 5).map((entry) => (
                                         <div key={entry.id} className="py-3 flex justify-between gap-3">
                                             <div><div className="font-medium">{entry.full_name}</div><div className="text-sm text-gray-500">{entry.id_number}</div></div>
                                             <div className="text-sm font-semibold">{entry.type_access_list}</div>
                                         </div>
-                                    )) || <div className="text-sm text-gray-500">No access entries found.</div>}
+                                    )) || <div className="text-sm text-gray-500">No hay accesos registrados.</div>}
                                 </div>
                             </Card>
                         </TabContent>
@@ -239,19 +239,19 @@ const LocationsDetails = () => {
                         <TabContent value="contacts">
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                                 <Card>
-                                    <h5>Emergency contacts</h5>
+                                    <h5>Contactos de emergencia</h5>
                                     <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                         {emergencyContacts?.items?.slice(0, 5).map((contact) => (
                                             <div key={contact.id} className="py-3 flex justify-between gap-3"><div className="font-medium">{contact.name}</div><div className="text-sm text-gray-500">{contact.phone}</div></div>
-                                        )) || <div className="text-sm text-gray-500">No emergency contacts found.</div>}
+                                        )) || <div className="text-sm text-gray-500">No hay contactos de emergencia.</div>}
                                     </div>
                                 </Card>
                                 <Card>
-                                    <h5>Service contacts</h5>
+                                    <h5>Contactos de servicio</h5>
                                     <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                         {serviceContacts?.items?.slice(0, 5).map((contact) => (
                                             <div key={contact.id} className="py-3 flex justify-between gap-3"><div><div className="font-medium">{contact.service_name}</div><div className="text-sm text-gray-500">{contact.person_name}</div></div><div className="text-sm text-gray-500">{contact.phone}</div></div>
-                                        )) || <div className="text-sm text-gray-500">No service contacts found.</div>}
+                                        )) || <div className="text-sm text-gray-500">No hay contactos de servicio.</div>}
                                     </div>
                                 </Card>
                             </div>
@@ -259,38 +259,38 @@ const LocationsDetails = () => {
 
                         <TabContent value="documents">
                             <Card>
-                                <h5>Documents</h5>
+                                <h5>Documentos</h5>
                                 <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                     {documents?.items?.slice(0, 5).map((document) => (
                                         <div key={document.id} className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between">
                                             <div><div className="font-medium">{document.name}</div><div className="text-sm text-gray-500">{document.file_name} · {formatFileSize(document.size_bytes)} · {formatDate(document.created_at)}</div></div>
-                                            <Button size="sm" onClick={() => handleDownloadDocument(document.id)}>Download</Button>
+                                            <Button size="sm" onClick={() => handleDownloadDocument(document.id)}>Descargar</Button>
                                         </div>
-                                    )) || <div className="text-sm text-gray-500">No documents found.</div>}
+                                    )) || <div className="text-sm text-gray-500">No hay documentos.</div>}
                                 </div>
                             </Card>
                         </TabContent>
 
                         <TabContent value="logbook">
                             <Card>
-                                <div className="flex items-center justify-between gap-3"><h5>Location logbook</h5><div className="text-sm font-semibold">{logbookSettings?.is_enabled ? 'Enabled' : 'Disabled'}</div></div>
+                                <div className="flex items-center justify-between gap-3"><h5>Bitácora de ubicación</h5><div className="text-sm font-semibold">{logbookSettings?.is_enabled ? 'Activa' : 'Inactiva'}</div></div>
                                 <div className="mt-3 divide-y divide-gray-100 dark:divide-gray-700">
                                     {logbookEntries?.items?.slice(0, 5).map((entry) => (
-                                        <div key={entry.id} className="py-3"><div className="font-medium">{entry.user_full_name || 'Unknown user'}</div><div className="text-sm text-gray-500">{entry.description}</div></div>
-                                    )) || <div className="text-sm text-gray-500">No logbook entries found.</div>}
+                                        <div key={entry.id} className="py-3"><div className="font-medium">{entry.user_full_name || 'Usuario desconocido'}</div><div className="text-sm text-gray-500">{entry.description}</div></div>
+                                    )) || <div className="text-sm text-gray-500">No hay registros en la bitácora.</div>}
                                 </div>
                             </Card>
                         </TabContent>
 
-                        <TabContent value="police">
+                        <TabContent value="external">
                             <Card>
                                 <div className="flex flex-col gap-4">
-                                    <div><h5>Police logbook access</h5><p className="text-sm text-gray-500 dark:text-gray-400">Generate a one-use public link for external review without dashboard login.</p></div>
+                                    <div><h5>Acceso externo a bitácora</h5><p className="text-sm text-gray-500 dark:text-gray-400">Genera un enlace de uso externo para revisión sin ingresar al dashboard.</p></div>
                                     <div className="flex flex-col md:flex-row md:items-center gap-3">
-                                        <Button variant="solid" icon={<TbQrcode />} loading={isGeneratingPoliceLink} onClick={handleGeneratePoliceLink}>Generate QR link</Button>
-                                        {policeLink ? <a className="inline-flex items-center gap-2 text-primary font-medium" href={policeLink} rel="noreferrer" target="_blank">Open generated link <TbExternalLink /></a> : null}
+                                        <Button variant="solid" icon={<TbQrcode />} loading={isGeneratingExternalLink} onClick={handleGenerateExternalLink}>Generar enlace</Button>
+                                        {externalLink ? <a className="inline-flex items-center gap-2 text-primary font-medium" href={externalLink} rel="noreferrer" target="_blank">Abrir enlace generado <TbExternalLink /></a> : null}
                                     </div>
-                                    {policeLink ? <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 text-sm break-all">{policeLink}</div> : null}
+                                    {externalLink ? <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 text-sm break-all">{externalLink}</div> : null}
                                 </div>
                             </Card>
                         </TabContent>
