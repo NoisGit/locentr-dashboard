@@ -13,10 +13,6 @@ export type ThemeConfig = {
     }
 }
 
-/**
- * Since some configurations need to be match with specific themes,
- * we recommend to use the configuration that generated from demo.
- */
 export const themeConfig: ThemeConfig = {
     themeSchema: '',
     direction: THEME_ENUM.DIR_LTR,
