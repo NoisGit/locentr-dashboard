@@ -1,81 +1,24 @@
-// src/components/template/UserDropdown.tsx
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
-import { Link } from 'react-router'
 import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
-// import { PiGearDuotone, PiPulseDuotone, PiQuestionDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
-import { getCoredeckRoleLabel } from '@/utils/rbac'
-import type { JSX } from 'react'
+import { getLocentrRoleLabel } from '@/utils/rbac'
 
-type DropdownList = {
-    label: string
-    path: string
-    icon: JSX.Element
-}
-
-/**
- * Ocultamos por ahora:
- * - Account Setting
- * - Activity Log
- * - Help
- * Para reactivar, descomenta los items y la import comentada de los íconos.
- */
-const dropdownItemList: DropdownList[] = [
-    // {
-    //     label: 'Account Setting',
-    //     path: '/concepts/account/settings',
-    //     icon: <PiGearDuotone />,
-    // },
-    // {
-    //     label: 'Activity Log',
-    //     path: '/concepts/account/activity-log',
-    //     icon: <PiPulseDuotone />,
-    // },
-    // {
-    //     label: 'Help',
-    //     path: '/concepts/help/manage-help',
-    //     icon: <PiQuestionDuotone />,
-    // },
-]
-
-const _UserDropdown = () => {
-    const u = useSessionUser((state) => state.user) as any
+const UserProfileDropdownContent = () => {
+    const user = useSessionUser((state) => state.user)
 
     const displayName =
-        u?.userName ||
-        u?.name ||
-        u?.fullName ||
-        u?.full_name ||
-        [u?.firstName || u?.first_name, u?.lastName || u?.last_name]
-            .filter(Boolean)
-            .join(' ') ||
-        'Anonymous'
+        user?.userName ||
+        user?.full_name ||
+        'Usuario'
 
-    const displayEmail =
-        u?.email ||
-        u?.email_address ||
-        u?.mail ||
-        ''
-
-    const displayRole =
-        u?.coredeckRoleLabel ||
-        getCoredeckRoleLabel(u?.role) ||
-        getCoredeckRoleLabel(Array.isArray(u?.authority) ? u.authority[0] : undefined)
-
-    const avatarSrc =
-        u?.avatar ||
-        u?.avatar_url ||
-        u?.photoURL ||
-        u?.photo_url
+    const displayEmail = user?.email || ''
+    const displayRole = user?.locentrRoleLabel || getLocentrRoleLabel(user?.role)
+    const avatarSrc = user?.avatar || ''
 
     const { signOut } = useAuth()
-
-    const handleSignOut = () => {
-        signOut()
-    }
 
     const avatarProps = avatarSrc
         ? { src: avatarSrc }
@@ -100,7 +43,7 @@ const _UserDropdown = () => {
                             {displayName}
                         </div>
                         <div className="text-xs">
-                            {displayEmail || 'No email available'}
+                            {displayEmail || 'Sin correo'}
                         </div>
                         {displayRole ? (
                             <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -113,36 +56,20 @@ const _UserDropdown = () => {
 
             <Dropdown.Item variant="divider" />
 
-            {dropdownItemList.map((item) => (
-                <Dropdown.Item
-                    key={item.label}
-                    eventKey={item.label}
-                    className="px-0"
-                >
-                    <Link className="flex h-full w-full px-2" to={item.path}>
-                        <span className="flex gap-2 items-center w-full">
-                            <span className="text-xl">{item.icon}</span>
-                            <span>{item.label}</span>
-                        </span>
-                    </Link>
-                </Dropdown.Item>
-            ))}
-
-            <Dropdown.Item variant="divider" />
-
             <Dropdown.Item
-                eventKey="Sign Out"
+                eventKey="sign-out"
                 className="gap-2"
-                onClick={handleSignOut}
+                onClick={signOut}
             >
                 <span className="text-xl">
                     <PiSignOutDuotone />
                 </span>
-                <span>Sign Out</span>
+                <span>Cerrar sesión</span>
             </Dropdown.Item>
         </Dropdown>
     )
 }
 
-const UserDropdown = withHeaderItem(_UserDropdown)
-export default UserDropdown
+const UserProfileDropdown = withHeaderItem(UserProfileDropdownContent)
+
+export default UserProfileDropdown
