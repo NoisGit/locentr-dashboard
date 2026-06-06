@@ -7,7 +7,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'dashboard',
         path: `${DASHBOARDS_PREFIX_PATH}`,
-        title: 'Dashboard',
+        title: 'Panel',
         translateKey: 'nav.dashboard.dashboard',
         icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
@@ -18,7 +18,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'companies',
         path: '/companies',
-        title: 'Companies',
+        title: 'Empresas',
         translateKey: 'nav.companies',
         icon: 'building',
         type: NAV_ITEM_TYPE_ITEM,
@@ -27,24 +27,24 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.companiesDesc',
-                label: 'Companies and subcompanies',
+                label: 'Empresas y subempresas',
             },
         },
         subMenu: [],
     },
     {
-        key: 'accessManagement',
-        path: '/access-management',
-        title: 'Access Management',
-        translateKey: 'nav.accessManagement',
+        key: 'users',
+        path: '/users',
+        title: 'Usuarios',
+        translateKey: 'nav.users',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
-        permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
+        roles: [Role.SUPERADMIN],
+        permissions: [Permission.VIEW_USERS],
         meta: {
             description: {
-                translateKey: 'nav.accessManagementDesc',
-                label: 'Users, access lists and access logs',
+                translateKey: 'nav.usersDesc',
+                label: 'Gestión de usuarios y roles',
             },
         },
         subMenu: [],
@@ -52,7 +52,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'locations',
         path: '/locations',
-        title: 'Locations',
+        title: 'Ubicaciones',
         translateKey: 'nav.locations',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
@@ -61,7 +61,24 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.locationsDesc',
-                label: 'Location management',
+                label: 'Gestión de ubicaciones',
+            },
+        },
+        subMenu: [],
+    },
+    {
+        key: 'accessManagement',
+        path: '/access-management',
+        title: 'Control de accesos',
+        translateKey: 'nav.accessManagement',
+        icon: 'customers',
+        type: NAV_ITEM_TYPE_ITEM,
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
+        meta: {
+            description: {
+                translateKey: 'nav.accessManagementDesc',
+                label: 'Listas de acceso y registros',
             },
         },
         subMenu: [],
@@ -69,7 +86,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'documents',
         path: '/documents',
-        title: 'Documents',
+        title: 'Documentos',
         translateKey: 'nav.documents',
         icon: 'documentation',
         type: NAV_ITEM_TYPE_ITEM,
@@ -78,7 +95,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.documentsDesc',
-                label: 'Company files and downloads',
+                label: 'Archivos de empresas y ubicaciones',
             },
         },
         subMenu: [],
@@ -86,7 +103,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'notifications',
         path: '/notifications',
-        title: 'Notifications',
+        title: 'Notificaciones',
         translateKey: 'nav.notifications',
         icon: 'notification',
         type: NAV_ITEM_TYPE_ITEM,
@@ -95,7 +112,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.notificationsDesc',
-                label: 'Unread alerts and broadcasts',
+                label: 'Alertas y comunicados',
             },
         },
         subMenu: [],
@@ -103,7 +120,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     {
         key: 'auditLog',
         path: '/audit-log',
-        title: 'Audit Log',
+        title: 'Auditoría',
         translateKey: 'nav.auditLog',
         icon: 'accountActivityLogs',
         type: NAV_ITEM_TYPE_ITEM,
@@ -112,7 +129,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.auditLogDesc',
-                label: 'Security and system activity',
+                label: 'Actividad de seguridad y sistema',
             },
         },
         subMenu: [],
@@ -126,6 +143,12 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         type: NAV_ITEM_TYPE_ITEM,
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_SUPPORT_TICKETS],
+        meta: {
+            description: {
+                translateKey: 'nav.ticketsDesc',
+                label: 'Soporte y solicitudes',
+            },
+        },
         subMenu: [],
     },
 ]
