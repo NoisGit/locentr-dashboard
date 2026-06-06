@@ -5,8 +5,8 @@ import Loading from '@/components/shared/Loading'
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import { ADMIN, SUPERADMIN } from '@/constants/roles.constant'
 import { useSessionUser } from '@/store/authStore'
+import { Role } from '@/utils/rbac/types'
 import {
     apiMarkNotificationAsRead,
     apiSendNotificationToAllUsers,
@@ -32,12 +32,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 const Notifications = () => {
     const role = useSessionUser((state) => state.user.role)
-    const authority = useSessionUser((state) => state.user.authority ?? [])
-    const canSendBroadcast =
-        role === SUPERADMIN ||
-        role === ADMIN ||
-        authority.includes(SUPERADMIN) ||
-        authority.includes(ADMIN)
+    const canSendBroadcast = role === Role.SUPERADMIN || role === Role.ADMIN
     const [title, setTitle] = useState('')
     const [message, setMessage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +43,7 @@ const Notifications = () => {
         if (!title.trim() || !message.trim()) {
             toast.push(
                 <Notification type="warning">
-                    Title and message are required.
+                    El título y el mensaje son obligatorios.
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -65,14 +60,14 @@ const Notifications = () => {
             setTitle('')
             toast.push(
                 <Notification type="success">
-                    Notification sent. Success: {response.success}. Failed: {response.failed}.
+                    Notificación enviada. Correctas: {response.success}. Fallidas: {response.failed}.
                 </Notification>,
                 { placement: 'top-center' },
             )
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Notification could not be sent.')}
+                    {getErrorMessage(error, 'No se pudo enviar la notificación.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -85,13 +80,13 @@ const Notifications = () => {
         try {
             await apiMarkNotificationAsRead(notificationId)
             await mutate()
-            toast.push(<Notification type="success">Notification marked as read.</Notification>, {
+            toast.push(<Notification type="success">Notificación marcada como leída.</Notification>, {
                 placement: 'top-center',
             })
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Notification could not be marked as read.')}
+                    {getErrorMessage(error, 'No se pudo marcar la notificación como leída.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -103,12 +98,12 @@ const Notifications = () => {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h3>Notifications</h3>
+                        <h3>Notificaciones</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Review unread notifications and send platform updates.
+                            Revisa notificaciones pendientes y envía comunicados de plataforma.
                         </p>
                     </div>
-                    <Button onClick={() => mutate()}>Refresh</Button>
+                    <Button onClick={() => mutate()}>Actualizar</Button>
                 </div>
 
                 <NotificationsStats
