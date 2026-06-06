@@ -8,10 +8,10 @@ export enum LocentrRole {
 }
 
 export const LOCENTR_ROLE_LABELS: Record<LocentrRole, string> = {
-    [LocentrRole.OWNER]: 'Owner',
-    [LocentrRole.ADMIN]: 'Admin',
-    [LocentrRole.MEMBER]: 'Member',
-    [LocentrRole.VIEWER]: 'Viewer',
+    [LocentrRole.OWNER]: 'Propietario',
+    [LocentrRole.ADMIN]: 'Administrador',
+    [LocentrRole.MEMBER]: 'Operador',
+    [LocentrRole.VIEWER]: 'Cliente',
 }
 
 const API_ROLE_ALIASES: Record<string, LocentrRole> = {
