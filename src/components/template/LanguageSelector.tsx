@@ -1,4 +1,3 @@
-// src/components/.../LanguageSelector.tsx
 import { useMemo } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
@@ -9,15 +8,13 @@ import { HiCheck } from 'react-icons/hi'
 import type { CommonProps } from '@/@types/common'
 
 const languageList = [
-    // { label: 'English', value: 'en', flag: 'US' },
-    { label: 'Espanol', value: 'es', flag: 'ES' },
-    // { label: 'Português', value: 'pt', flag: 'BR' },
+    { label: 'Español', value: 'es', flag: 'ES' },
+    { label: 'English', value: 'en', flag: 'US' },
 ]
 
 const _LanguageSelector = ({ className }: CommonProps) => {
     const { currentLang: locale, setLang } = useLocaleStore((state) => state)
 
-    // Fallback a ES si el locale actual no está en la lista visible
     const selectLangFlag = useMemo(() => {
         const found = languageList.find((lang) => lang.value === locale)
         return found?.flag ?? 'ES'
@@ -37,9 +34,9 @@ const _LanguageSelector = ({ className }: CommonProps) => {
         <Dropdown renderTitle={selectedLanguage} placement="bottom-end">
             {languageList.map((lang) => (
                 <Dropdown.Item
-                    key={lang.label}
+                    key={lang.value}
                     className="justify-between"
-                    eventKey={lang.label}
+                    eventKey={lang.value}
                     onClick={() => setLang(lang.value)}
                 >
                     <span className="flex items-center">
