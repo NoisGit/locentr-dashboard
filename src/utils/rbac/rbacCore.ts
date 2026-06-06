@@ -59,8 +59,6 @@ export function extractUserRole(user: unknown): Role | null {
         record.user_role,
         record.roleType,
         Array.isArray(record.roles) ? record.roles[0] : undefined,
-        Array.isArray(record.authority) ? record.authority[0] : undefined,
-        Array.isArray(record.authorities) ? record.authorities[0] : undefined,
     ]
 
     for (const candidate of roleCandidates) {
@@ -196,7 +194,7 @@ export function createAuthUser(userData: unknown): AuthUser | null {
     return {
         id: (record.id ?? record.userId ?? record.user_id ?? '') as string | number,
         email: (record.email ?? '') as string,
-        userName: (record.userName ?? record.username ?? record.name ?? '') as string,
+        userName: (record.userName ?? record.username ?? record.name ?? record.full_name ?? '') as string,
         role,
         locentrRole: getLocentrRole(role),
         locentrRoleLabel: getLocentrRoleLabel(role),
