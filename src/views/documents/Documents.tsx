@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import { useSessionUser } from '@/store/authStore'
-import { SUPERADMIN } from '@/constants/roles.constant'
+import { Role } from '@/utils/rbac/types'
 import { apiGetDocumentDownloadUrl } from '@/services/DocumentsService'
 import DocumentsList from './components/DocumentsList'
 import DocumentsStats from './components/DocumentsStats'
@@ -29,8 +29,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 const Documents = () => {
     const role = useSessionUser((state) => state.user.role)
-    const authority = useSessionUser((state) => state.user.authority ?? [])
-    const isSuperAdmin = role === SUPERADMIN || authority.includes(SUPERADMIN)
+    const isSuperAdmin = role === Role.SUPERADMIN
     const [search, setSearch] = useState('')
     const { data, isLoading, mutate } = useDocuments({ isSuperAdmin, search })
     const documents = data?.items ?? []
@@ -46,7 +45,7 @@ const Documents = () => {
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Document download link could not be generated.')}
+                    {getErrorMessage(error, 'No se pudo generar el enlace de descarga.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -58,12 +57,12 @@ const Documents = () => {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h3>Documents</h3>
+                        <h3>Documentos</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Manage company documents connected to Coredeck.
+                            Administra documentos asociados a empresas y ubicaciones.
                         </p>
                     </div>
-                    <Button onClick={() => mutate()}>Refresh</Button>
+                    <Button onClick={() => mutate()}>Actualizar</Button>
                 </div>
 
                 <DocumentsStats
@@ -75,7 +74,7 @@ const Documents = () => {
                 <AdaptiveCard>
                     <div className="mb-4 max-w-md">
                         <Input
-                            placeholder="Search documents"
+                            placeholder="Buscar documentos"
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                         />
