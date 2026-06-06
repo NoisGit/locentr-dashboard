@@ -1,4 +1,3 @@
-// src/services/axios/AxiosResponseIntrceptorErrorCallback.ts
 import { useSessionUser, useToken } from '@/store/authStore'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import appConfig from '@/configs/app.config'
@@ -12,83 +11,86 @@ const COMPANY_SELECT_PATH = '/auth/company-select'
 let isRedirecting = false
 
 function onAuthPath(pathname: string) {
-  return pathname.startsWith('/auth')
+    return pathname.startsWith('/auth')
 }
 
 function getPathname(raw?: string) {
-  try {
-    return new URL(raw ?? '', window.location.origin).pathname
-  } catch {
-    return window.location.pathname
-  }
+    try {
+        return new URL(raw ?? '', window.location.origin).pathname
+    } catch {
+        return window.location.pathname
+    }
 }
 
 function headerHasCompanyId(headers?: unknown): boolean {
-  if (!headers || typeof headers !== 'object') return false
+    if (!headers || typeof headers !== 'object') return false
 
-  return Object.keys(headers as Record<string, unknown>).some(
-    (key) => key.toLowerCase() === 'x-company-id',
-  )
+    return Object.keys(headers as Record<string, unknown>).some(
+        (key) => key.toLowerCase() === 'x-company-id',
+    )
+}
+
+const emptyUser = {
+    avatar: '',
+    userName: '',
+    email: '',
+    role: null,
+    permissions: [],
 }
 
 const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
-  const status = error.response?.status
-  const pathname = getPathname(error.config?.url)
+    const status = error.response?.status
+    const pathname = getPathname(error.config?.url)
 
-  if (status && UNAUTHORIZED_CODES.includes(status)) {
-    try {
-      const { clearToken } = useToken()
-      clearToken?.()
-    } catch { }
+    if (status && UNAUTHORIZED_CODES.includes(status)) {
+        try {
+            const { clearToken } = useToken()
+            clearToken?.()
+        } catch {}
 
-    try {
-      useSessionUser.getState().resetAuth()
-    } catch {
-      try {
-        useSessionUser.getState().setUser({
-          avatar: '',
-          userName: '',
-          email: '',
-          authority: [],
-        })
-        useSessionUser.getState().setSessionSignedIn(false)
-      } catch { }
+        try {
+            useSessionUser.getState().resetAuth()
+        } catch {
+            try {
+                useSessionUser.getState().setUser(emptyUser)
+                useSessionUser.getState().setSessionSignedIn(false)
+            } catch {}
+        }
+
+        try {
+            useCompaniesStore.getState().clearCompany()
+        } catch {}
+
+        let isLoggingOut = false
+        try {
+            isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
+        } catch {}
+
+        if (!onAuthPath(pathname) && !isRedirecting && !isLoggingOut) {
+            isRedirecting = true
+            const redirect = encodeURIComponent(`${pathname}${window.location.search}`)
+            const dest = `${appConfig.unAuthenticatedEntryPath}?${REDIRECT_URL_KEY}=${redirect}`
+            window.location.replace(dest)
+        }
     }
 
-    try {
-      useCompaniesStore.getState().clearCompany()
-    } catch { }
+    if (status && FORBIDDEN_CODES.includes(status)) {
+        const hadCompanyHeader = headerHasCompanyId(error.config?.headers)
 
-    let isLoggingOut = false
-    try {
-      isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
-    } catch { }
+        if (hadCompanyHeader) {
+            try {
+                useCompaniesStore.getState().clearCompany()
+            } catch {}
 
-    if (!onAuthPath(pathname) && !isRedirecting && !isLoggingOut) {
-      isRedirecting = true
-      const redirect = encodeURIComponent(`${pathname}${window.location.search}`)
-      const dest = `${appConfig.unAuthenticatedEntryPath}?${REDIRECT_URL_KEY}=${redirect}`
-      window.location.replace(dest)
+            const onAuth = onAuthPath(pathname)
+            if (!onAuth && !isRedirecting) {
+                isRedirecting = true
+                window.location.replace(COMPANY_SELECT_PATH)
+            }
+        }
     }
-  }
 
-  if (status && FORBIDDEN_CODES.includes(status)) {
-    const hadCompanyHeader = headerHasCompanyId(error.config?.headers)
-
-    if (hadCompanyHeader) {
-      try {
-        useCompaniesStore.getState().clearCompany()
-      } catch { }
-
-      const onAuth = onAuthPath(pathname)
-      if (!onAuth && !isRedirecting) {
-        isRedirecting = true
-        window.location.replace(COMPANY_SELECT_PATH)
-      }
-    }
-  }
-
-  return Promise.reject(error)
+    return Promise.reject(error)
 }
 
 export default AxiosResponseIntrceptorErrorCallback
