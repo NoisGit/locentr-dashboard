@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
-import Loading from '@/components/shared/Loading'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Notification from '@/components/ui/Notification'
@@ -31,12 +30,25 @@ const Documents = () => {
     const role = useSessionUser((state) => state.user.role)
     const isSuperAdmin = role === Role.SUPERADMIN
     const [search, setSearch] = useState('')
-    const { data, isLoading, mutate } = useDocuments({ isSuperAdmin, search })
+    const [pageIndex, setPageIndex] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const { data, isLoading, mutate } = useDocuments({
+        isSuperAdmin,
+        search,
+        pageIndex,
+        pageSize,
+    })
     const documents = data?.items ?? []
+    const total = data?.total ?? 0
     const totalSize = useMemo(
-        () => documents.reduce((total, document) => total + (document.size_bytes ?? 0), 0),
+        () => documents.reduce((totalBytes, document) => totalBytes + (document.size_bytes ?? 0), 0),
         [documents],
     )
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value)
+        setPageIndex(1)
+    }
 
     const handleDownloadDocument = async (documentId: number) => {
         try {
@@ -66,7 +78,7 @@ const Documents = () => {
                 </div>
 
                 <DocumentsStats
-                    total={data?.total ?? documents.length}
+                    total={total}
                     totalSize={totalSize}
                     visible={documents.length}
                 />
@@ -76,16 +88,23 @@ const Documents = () => {
                         <Input
                             placeholder="Buscar documentos"
                             value={search}
-                            onChange={(event) => setSearch(event.target.value)}
+                            onChange={(event) => handleSearchChange(event.target.value)}
                         />
                     </div>
 
-                    <Loading loading={isLoading}>
-                        <DocumentsList
-                            documents={documents}
-                            onDownload={handleDownloadDocument}
-                        />
-                    </Loading>
+                    <DocumentsList
+                        documents={documents}
+                        isLoading={isLoading}
+                        total={total}
+                        pageIndex={pageIndex}
+                        pageSize={pageSize}
+                        onDownload={handleDownloadDocument}
+                        onPaginationChange={setPageIndex}
+                        onSelectChange={(value) => {
+                            setPageSize(Number(value))
+                            setPageIndex(1)
+                        }}
+                    />
                 </AdaptiveCard>
             </div>
         </Container>
