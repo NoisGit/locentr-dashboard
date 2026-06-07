@@ -38,7 +38,7 @@ const Documents = () => {
         pageIndex,
         pageSize,
     })
-    const documents = data?.items ?? []
+    const documents = useMemo(() => data?.items ?? [], [data?.items])
     const total = data?.total ?? 0
     const totalSize = useMemo(
         () => documents.reduce((totalBytes, document) => totalBytes + (document.size_bytes ?? 0), 0),
