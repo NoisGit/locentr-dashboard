@@ -6,7 +6,6 @@ import type { AxiosError } from 'axios'
 
 const UNAUTHORIZED_CODES = [401, 419, 440]
 const FORBIDDEN_CODES = [403]
-const COMPANY_SELECT_PATH = '/auth/company-select'
 
 let isRedirecting = false
 
@@ -28,6 +27,14 @@ function headerHasCompanyId(headers?: unknown): boolean {
     return Object.keys(headers as Record<string, unknown>).some(
         (key) => key.toLowerCase() === 'x-company-id',
     )
+}
+
+function getSafeRedirectTarget(pathname: string) {
+    if (!pathname || onAuthPath(pathname) || pathname.startsWith('//')) {
+        return appConfig.authenticatedEntryPath
+    }
+
+    return `${pathname}${window.location.search}`
 }
 
 const emptyUser = {
@@ -68,7 +75,7 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
 
         if (!onAuthPath(pathname) && !isRedirecting && !isLoggingOut) {
             isRedirecting = true
-            const redirect = encodeURIComponent(`${pathname}${window.location.search}`)
+            const redirect = encodeURIComponent(getSafeRedirectTarget(pathname))
             const dest = `${appConfig.unAuthenticatedEntryPath}?${REDIRECT_URL_KEY}=${redirect}`
             window.location.replace(dest)
         }
@@ -81,12 +88,6 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
             try {
                 useCompaniesStore.getState().clearCompany()
             } catch {}
-
-            const onAuth = onAuthPath(pathname)
-            if (!onAuth && !isRedirecting) {
-                isRedirecting = true
-                window.location.replace(COMPANY_SELECT_PATH)
-            }
         }
     }
 
