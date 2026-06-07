@@ -1,59 +1,84 @@
+import { useMemo } from 'react'
 import Button from '@/components/ui/Button'
-import Card from '@/components/ui/Card'
+import DataTable from '@/components/shared/DataTable'
 import { formatNotificationDate } from '../utils'
+import type { ColumnDef } from '@/components/shared/DataTable'
 import type { NotificationMessage } from '@/services/NotificationsService'
 
 type UnreadNotificationsListProps = {
     notifications: NotificationMessage[]
+    isLoading: boolean
+    total: number
+    pageIndex: number
+    pageSize: number
     onMarkAsRead: (notificationId: number) => void
+    onPaginationChange: (page: number) => void
+    onSelectChange: (pageSize: number) => void
 }
 
 const UnreadNotificationsList = ({
     notifications,
+    isLoading,
+    total,
+    pageIndex,
+    pageSize,
     onMarkAsRead,
+    onPaginationChange,
+    onSelectChange,
 }: UnreadNotificationsListProps) => {
-    return (
-        <Card>
-            <div className="flex flex-col gap-4">
-                <div>
-                    <h5>Unread notifications</h5>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Notifications waiting for your review.
-                    </p>
-                </div>
-
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {notifications.map((notification) => (
-                        <div
-                            key={notification.id}
-                            className="flex flex-col gap-3 py-4 lg:flex-row lg:items-start lg:justify-between"
+    const columns: ColumnDef<NotificationMessage>[] = useMemo(
+        () => [
+            {
+                header: 'Título',
+                accessorKey: 'title',
+                cell: (props) => (
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        {props.row.original.title || 'Sin título'}
+                    </div>
+                ),
+            },
+            {
+                header: 'Mensaje',
+                accessorKey: 'message',
+                cell: (props) => (
+                    <span className="line-clamp-2">
+                        {props.row.original.message || 'Sin mensaje'}
+                    </span>
+                ),
+            },
+            {
+                header: 'Fecha',
+                accessorKey: 'created_at',
+                cell: (props) => formatNotificationDate(props.row.original.created_at),
+            },
+            {
+                header: '',
+                id: 'action',
+                cell: (props) => (
+                    <div className="flex justify-end">
+                        <Button
+                            size="sm"
+                            onClick={() => onMarkAsRead(props.row.original.id)}
                         >
-                            <div className="min-w-0">
-                                <div className="font-medium">{notification.title}</div>
-                                <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                    {notification.message}
-                                </div>
-                                <div className="mt-2 text-xs text-gray-400">
-                                    {formatNotificationDate(notification.created_at)}
-                                </div>
-                            </div>
-                            <Button
-                                size="sm"
-                                onClick={() => onMarkAsRead(notification.id)}
-                            >
-                                Mark as read
-                            </Button>
-                        </div>
-                    ))}
+                            Marcar leída
+                        </Button>
+                    </div>
+                ),
+            },
+        ],
+        [onMarkAsRead],
+    )
 
-                    {notifications.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                            No unread notifications found.
-                        </div>
-                    ) : null}
-                </div>
-            </div>
-        </Card>
+    return (
+        <DataTable
+            columns={columns}
+            data={notifications}
+            noData={!isLoading && notifications.length === 0}
+            loading={isLoading}
+            pagingData={{ total, pageIndex, pageSize }}
+            onPaginationChange={onPaginationChange}
+            onSelectChange={onSelectChange}
+        />
     )
 }
 
