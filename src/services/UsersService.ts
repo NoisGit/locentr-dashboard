@@ -23,6 +23,7 @@ export type UserRow = {
   first_name?: string
   last_name?: string
   plan_id?: number | null
+  company_id?: number | null
 }
 
 export type GetUsersListResponse = {
@@ -71,6 +72,7 @@ type UserLike = {
   status?: boolean
   is_active?: boolean
   plan_id?: number | null
+  company_id?: number | null
   avatar?: string
   avatar_url?: string
   photoURL?: string
@@ -133,6 +135,7 @@ function adaptUserRow(user: UserLike): UserRow {
     status: user.status,
     is_active: user.is_active,
     plan_id: user.plan_id,
+    company_id: user.company_id,
     avatar: user.avatar ?? user.avatar_url ?? user.photoURL ?? user.photo_url ?? '',
   }
 }
@@ -143,9 +146,11 @@ export function normalizeUser(user: unknown) {
   return {
     id: row.id,
     userName: row.name,
+    full_name: row.full_name || row.name,
     email: row.email,
     avatar: row.avatar,
     role: row.role,
+    company_id: row.company_id,
   }
 }
 
