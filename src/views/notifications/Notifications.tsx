@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
-import Loading from '@/components/shared/Loading'
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
@@ -36,8 +35,11 @@ const Notifications = () => {
     const [title, setTitle] = useState('')
     const [message, setMessage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const { data, isLoading, mutate } = useUnreadNotifications()
-    const notifications = data?.items ?? []
+    const [pageIndex, setPageIndex] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const { data, isLoading, mutate } = useUnreadNotifications({ pageIndex, pageSize })
+    const notifications = useMemo(() => data?.items ?? [], [data?.items])
+    const total = data?.total ?? 0
 
     const handleSendBroadcast = async () => {
         if (!title.trim() || !message.trim()) {
@@ -106,20 +108,24 @@ const Notifications = () => {
                     <Button onClick={() => mutate()}>Actualizar</Button>
                 </div>
 
-                <NotificationsStats
-                    total={data?.total ?? notifications.length}
-                    visible={notifications.length}
-                />
+                <NotificationsStats total={total} visible={notifications.length} />
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                     <div className="xl:col-span-2">
                         <AdaptiveCard>
-                            <Loading loading={isLoading}>
-                                <UnreadNotificationsList
-                                    notifications={notifications}
-                                    onMarkAsRead={handleMarkAsRead}
-                                />
-                            </Loading>
+                            <UnreadNotificationsList
+                                notifications={notifications}
+                                isLoading={isLoading}
+                                total={total}
+                                pageIndex={pageIndex}
+                                pageSize={pageSize}
+                                onMarkAsRead={handleMarkAsRead}
+                                onPaginationChange={setPageIndex}
+                                onSelectChange={(value) => {
+                                    setPageSize(Number(value))
+                                    setPageIndex(1)
+                                }}
+                            />
                         </AdaptiveCard>
                     </div>
                     <NotificationsBroadcastForm
