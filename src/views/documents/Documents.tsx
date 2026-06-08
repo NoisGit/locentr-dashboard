@@ -50,6 +50,15 @@ const Documents = () => {
         setPageIndex(1)
     }
 
+    const handlePaginationChange = (page: number) => {
+        setPageIndex(page)
+    }
+
+    const handlePageSizeChange = (value: number) => {
+        setPageSize(Number(value))
+        setPageIndex(1)
+    }
+
     const handleDownloadDocument = async (documentId: number) => {
         try {
             const response = await apiGetDocumentDownloadUrl(documentId)
@@ -99,11 +108,8 @@ const Documents = () => {
                         pageIndex={pageIndex}
                         pageSize={pageSize}
                         onDownload={handleDownloadDocument}
-                        onPaginationChange={setPageIndex}
-                        onSelectChange={(value) => {
-                            setPageSize(Number(value))
-                            setPageIndex(1)
-                        }}
+                        onPaginationChange={handlePaginationChange}
+                        onSelectChange={handlePageSizeChange}
                     />
                 </AdaptiveCard>
             </div>
