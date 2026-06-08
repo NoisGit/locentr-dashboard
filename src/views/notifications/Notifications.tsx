@@ -41,6 +41,15 @@ const Notifications = () => {
     const notifications = useMemo(() => data?.items ?? [], [data?.items])
     const total = data?.total ?? 0
 
+    const handlePaginationChange = (page: number) => {
+        setPageIndex(page)
+    }
+
+    const handlePageSizeChange = (value: number) => {
+        setPageSize(Number(value))
+        setPageIndex(1)
+    }
+
     const handleSendBroadcast = async () => {
         if (!title.trim() || !message.trim()) {
             toast.push(
@@ -120,11 +129,8 @@ const Notifications = () => {
                                 pageIndex={pageIndex}
                                 pageSize={pageSize}
                                 onMarkAsRead={handleMarkAsRead}
-                                onPaginationChange={setPageIndex}
-                                onSelectChange={(value) => {
-                                    setPageSize(Number(value))
-                                    setPageIndex(1)
-                                }}
+                                onPaginationChange={handlePaginationChange}
+                                onSelectChange={handlePageSizeChange}
                             />
                         </AdaptiveCard>
                     </div>
