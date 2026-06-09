@@ -11,4 +11,16 @@ type UseSupportTicketsListParams = {
 export default function useSupportTicketsList({
     pageIndex,
     pageSize,
-    status
+    status,
+}: UseSupportTicketsListParams) {
+    return useSWR(
+        ['support-tickets:list', pageIndex, pageSize, status],
+        () =>
+            apiGetAllSupportTickets({
+                page: pageIndex,
+                size: pageSize,
+                status,
+            }),
+        { revalidateOnFocus: false },
+    )
+}
