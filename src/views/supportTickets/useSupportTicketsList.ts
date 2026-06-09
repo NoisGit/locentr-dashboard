@@ -11,3 +11,4 @@ type UseSupportTicketsListParams = {
 export default function useSupportTicketsList({
     pageIndex,
     pageSize,
+    status
