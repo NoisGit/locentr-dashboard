@@ -1,8 +1,4 @@
-// src/configs/endpoint.config.ts
-import appConfig from '@/configs/app.config'
-
-const API_BASE = `${appConfig.apiPrefix}/api/v1`
-const AUTH_BASE = `${API_BASE}/auth`
+const AUTH_BASE = '/api/v1/auth'
 
 const endpointConfig = {
   signIn: `${AUTH_BASE}/login`,
