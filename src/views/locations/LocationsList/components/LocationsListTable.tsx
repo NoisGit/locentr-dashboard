@@ -7,6 +7,8 @@ import { TbPencil } from 'react-icons/tb'
 import useLocationsList from '../hooks/useLocationsList'
 import type { ColumnDef, OnSortParam } from '@/components/shared/DataTable'
 import type { Location } from '../types'
+import { useAuth } from '@/auth'
+import { Permission, RBAC } from '@/utils/rbac'
 
 const NameColumn = ({ row }: { row: Location }) => {
     return (
@@ -35,6 +37,8 @@ const ActionColumn = ({ onEdit }: { onEdit: () => void }) => (
 
 const LocationsListTable = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
+    const canEdit = RBAC.hasPermission(user, Permission.EDIT_LOCATION)
     const {
         locationsList,
         locationsListTotal,
@@ -63,12 +67,13 @@ const LocationsListTable = () => {
             {
                 header: '',
                 id: 'action',
-                cell: (props) => (
-                    <ActionColumn onEdit={() => navigate(`/buildings/${props.row.original.id}/edit`)} />
-                ),
+                cell: (props) =>
+                    canEdit ? (
+                        <ActionColumn onEdit={() => navigate(`/buildings/${props.row.original.id}/edit`)} />
+                    ) : null,
             },
         ],
-        [navigate],
+        [canEdit, navigate],
     )
 
     const handlePaginationChange = (page: number) => {

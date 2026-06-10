@@ -6,10 +6,14 @@ import { useSessionUser, useToken } from '@/store/authStore'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import { apiMe, apiSignIn, apiSignOut } from '@/services/AuthService'
 import { normalizeUser } from '@/services/UsersService'
-import { apiListCompanies } from '@/services/CompaniesService'
+import {
+    apiListCompanies,
+    filterCompaniesForUser,
+} from '@/services/CompaniesService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import { RBAC, Role } from '@/utils/rbac'
+import { captureEvent } from '@/services/TelemetryService'
 import type {
     SignInCredential,
     AuthResult,
@@ -39,6 +43,7 @@ const resetCachePrefixes = [
     'support-tickets:',
     'audit-log:',
     'dashboard:',
+    'location-logbook:',
 ]
 
 const IsolatedNavigator = forwardRef<IsolatedNavigatorRef>(
@@ -170,7 +175,13 @@ function AuthProvider({ children }: AuthProviderProps) {
         prefetchedRef.current = true
         try {
             const list = await apiListCompanies({ pageIndex: 1, pageSize: 200 })
-            setCompanies(list, 'all', { autoSelectIfSingle: true })
+            const currentUser = useSessionUser.getState().user
+            const visibleList = filterCompaniesForUser(
+                list,
+                currentUser.role,
+                currentUser.company_id,
+            )
+            setCompanies(visibleList, 'all', { autoSelectIfSingle: true })
         } catch {}
     }
 
@@ -281,9 +292,13 @@ function AuthProvider({ children }: AuthProviderProps) {
                 { accessToken: headerToken, refreshToken: rawRefreshToken },
                 userLike as AppUser,
             )
+            captureEvent('auth.sign_in_succeeded', {
+                role: RBAC.extractUserRole(userLike) ?? 'UNKNOWN',
+            })
             redirect()
             return { status: 'success', message: '' }
         } catch (error: unknown) {
+            captureEvent('auth.sign_in_failed', undefined, 'warning')
             clearToken()
             setUser(emptyUser)
             setSessionSignedIn(false)
@@ -296,6 +311,7 @@ function AuthProvider({ children }: AuthProviderProps) {
             await apiSignOut()
         } catch {}
         handleSignOut()
+        captureEvent('auth.sign_out')
         const url = new URL(window.location.href)
         url.searchParams.delete(REDIRECT_URL_KEY)
         window.history.replaceState({}, '', url.pathname)

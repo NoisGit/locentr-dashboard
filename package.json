@@ -7,11 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "prettier": "npx prettier src --check",
     "prettier:fix": "npm run prettier -- --write",
     "lint": "npx eslint",
     "lint:fix": "npm run lint -- --fix",
-    "format": "npm run prettier:fix && npm run lint:fix"
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "check": "npm run lint -- --quiet && npm run typecheck && npm run test:unit && npm run build"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.2",
@@ -29,8 +35,8 @@
     "@tiptap/react": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
     "@visx/pattern": "^3.13.0-alpha.0",
+    "apexcharts": "^5.14.0",
     "axios": "^1.17.0",
-    "axios-mock-adapter": "^2.0.0",
     "classnames": "^2.5.1",
     "d3-dsv": "^3.0.1",
     "d3-fetch": "^3.0.1",
@@ -43,6 +49,7 @@
     "js-cookie": "^3.0.8",
     "lodash": "^4.18.1",
     "marked": "^15.0.3",
+    "qrcode.react": "^4.2.0",
     "react": "19.0.0",
     "react-apexcharts": "^1.7.0",
     "react-csv": "^2.2.2",
@@ -64,6 +71,7 @@
     "simplebar-react": "^3.3.0",
     "swr": "^2.3.0",
     "tailwind-merge": "^2.5.2",
+    "web-vitals": "^5.3.0",
     "yet-another-react-lightbox": "^3.21.7",
     "zod": "^3.23.8",
     "zustand": "^5.0.2"
@@ -72,8 +80,12 @@
     "@eslint/compat": "^1.2.4",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.17.0",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/d3-fetch": "^3.0.7",
     "@types/d3-scale": "^4.0.8",
     "@types/js-cookie": "^3.0.6",
@@ -90,6 +102,7 @@
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^4.1.8",
     "color": "^4.2.3",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
@@ -100,6 +113,7 @@
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
+    "jsdom": "^29.1.1",
     "postcss": "^8.4.45",
     "postcss-nesting": "^13.0.0",
     "prettier": "^3.3.3",
@@ -107,7 +121,8 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.3.5",
-    "vite-plugin-dynamic-import": "^1.5.0"
+    "vite-plugin-dynamic-import": "^1.5.0",
+    "vitest": "^4.1.8"
   },
   "overrides": {
     "minimatch@3.1.5": {

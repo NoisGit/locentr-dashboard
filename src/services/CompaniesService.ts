@@ -1,5 +1,6 @@
 import ApiService from '@/services/ApiService'
 import type { UserCreateRequest } from '@/services/UsersService'
+import { Role } from '@/utils/rbac/types'
 
 export const COMPANIES_BASE = '/api/v1/companies'
 
@@ -41,6 +42,26 @@ export type CompanyUserCreateRequest = UserCreateRequest
 type ListCompaniesParams = {
     pageIndex?: number
     pageSize?: number
+}
+
+export type CompaniesPage = {
+    items: Company[]
+    total: number
+}
+
+export function filterCompaniesForUser(
+    companies: Company[],
+    role?: string | null,
+    companyId?: string | number | null,
+) {
+    if (role === Role.SUPERADMIN) return companies
+    if (companyId === undefined || companyId === null) return []
+
+    return companies.filter(
+        (company) =>
+            String(company.id) === String(companyId) ||
+            String(company.parent_company_id ?? '') === String(companyId),
+    )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -93,6 +114,16 @@ function firstArrayCandidate(value: unknown): unknown[] {
     return []
 }
 
+function readTotal(value: unknown, fallback: number) {
+    if (!isRecord(value)) return fallback
+
+    const nested = isRecord(value.data) ? value.data : undefined
+    const total = value.total ?? value.count ?? nested?.total ?? nested?.count
+    const parsed = Number(total)
+
+    return Number.isFinite(parsed) ? parsed : fallback
+}
+
 function unwrapRecord(value: unknown): unknown {
     if (!isRecord(value)) return value
 
@@ -125,9 +156,9 @@ function mapToCompany(value: unknown): Company | null {
     }
 }
 
-export async function apiListCompanies<T = Company[]>(
+export async function apiGetCompaniesPage(
     params: ListCompaniesParams = {},
-) {
+): Promise<CompaniesPage> {
     const { pageIndex = 1, pageSize = 200 } = params
 
     const response = await ApiService.fetchDataWithAxios<unknown>({
@@ -142,7 +173,17 @@ export async function apiListCompanies<T = Company[]>(
     const rawList = firstArrayCandidate(response)
     const list = rawList.map(mapToCompany).filter((item): item is Company => item !== null)
 
-    return list as T
+    return {
+        items: list,
+        total: readTotal(response, list.length),
+    }
+}
+
+export async function apiListCompanies<T = Company[]>(
+    params: ListCompaniesParams = {},
+) {
+    const page = await apiGetCompaniesPage(params)
+    return page.items as T
 }
 
 export async function apiGetCompanyById<T = Company>(id: string | number) {
@@ -201,6 +242,9 @@ export async function apiCreateUserAndAssignToCompany(
     companyId: string | number,
     data: CompanyUserCreateRequest,
 ) {
+    if (data.role === 'SUPERADMIN') {
+        throw new Error('SUPERADMIN no puede crearse desde el panel.')
+    }
     return ApiService.fetchDataWithAxios<void, CompanyUserCreateRequest>({
         url: `${companyUrl(companyId)}/create-users`,
         method: 'post',
@@ -210,6 +254,8 @@ export async function apiCreateUserAndAssignToCompany(
 
 const CompaniesApi = {
     apiListCompanies,
+    apiGetCompaniesPage,
+    filterCompaniesForUser,
     apiGetCompanyById,
     apiCreateCompany,
     apiCreateSubCompany,

@@ -1,4 +1,5 @@
 import { cloneElement } from 'react'
+import locentrHero from '@/assets/locentr-login-hero.jpg'
 import type { ReactNode } from 'react'
 import type { CommonProps } from '@/@types/common'
 
@@ -13,16 +14,16 @@ const Split = ({ children, content, ...rest }: SplitProps) => {
                 <div className="flex flex-col items-center gap-12">
                     <img
                         className="max-w-[450px] 2xl:max-w-[900px]"
-                        src="/img/others/auth-split-img.png"
+                        src={locentrHero}
+                        alt="Operación empresarial de Locentr"
                     />
                     <div className="text-center max-w-[550px]">
                         <h1 className="text-neutral">
-                            The easiest way to build your admin app
+                            Operación empresarial en un solo lugar
                         </h1>
                         <p className="text-neutral opacity-80 mx-auto mt-8 font-semibold">
-                            Experience seamless project management with Ecme.
-                            Simplify your workflow, and achieve your goals
-                            efficiently with our powerful and intuitive tools.
+                            Coordina empresas, edificios, accesos y equipos con
+                            trazabilidad y permisos por rol.
                         </p>
                     </div>
                 </div>

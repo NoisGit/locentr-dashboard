@@ -2,6 +2,7 @@ import ApiService from '@/services/ApiService'
 import type { AxiosRequestConfig } from 'axios'
 
 export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'OPERATOR' | 'CLIENT'
+export type CreatableUserRole = Exclude<UserRole, 'SUPERADMIN'>
 
 export type TableQueries = {
   pageIndex: number
@@ -183,6 +184,9 @@ export async function apiGetUsersList<
 }
 
 export async function apiCreateUser(payload: UserCreateRequest) {
+  if (payload.role === 'SUPERADMIN') {
+    throw new Error('SUPERADMIN no puede crearse desde el panel.')
+  }
   return req<UserRow>({ url: BASE_COLLECTION, method: 'post', data: payload })
 }
 

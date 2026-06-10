@@ -7,13 +7,13 @@ import Input from '@/components/ui/Input'
 import { Form } from '@/components/ui/Form'
 import FormItem from '@/components/ui/Form/FormItem'
 import useCompaniesList from './useCompaniesList'
+import { optionalText, requiredText } from '@/utils/validation/schemas'
 
 export type CompanyFormSchema = {
     name: string
     activity?: string
     id_number?: string
     type_document?: string
-    logo?: string
     parent_company_id?: string
 }
 
@@ -27,12 +27,11 @@ type CompanyFormProps = {
 }
 
 const validationSchema = z.object({
-    name: z.string().min(1, { message: 'El nombre de la empresa es obligatorio' }),
-    activity: z.string().optional(),
-    id_number: z.string().optional(),
-    type_document: z.string().optional(),
-    logo: z.string().optional(),
-    parent_company_id: z.string().optional(),
+    name: requiredText('El nombre de la empresa', 100),
+    activity: optionalText('La actividad', 160),
+    id_number: requiredText('El número de documento', 50),
+    type_document: requiredText('El tipo de documento', 30),
+    parent_company_id: optionalText('La empresa principal', 30),
 })
 
 const CompanyForm = ({
@@ -55,7 +54,6 @@ const CompanyForm = ({
             activity: '',
             id_number: '',
             type_document: '',
-            logo: '',
             parent_company_id: '',
             ...defaultValues,
         },
@@ -66,45 +64,94 @@ const CompanyForm = ({
             <Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                        <FormItem label="Nombre de la empresa" invalid={!!errors.name} errorMessage={errors.name?.message}>
+                        <FormItem
+                            asterisk
+                            label="Nombre de la empresa"
+                            invalid={!!errors.name}
+                            errorMessage={errors.name?.message}
+                        >
                             <Controller
                                 name="name"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                                render={({ field }) => (
+                                    <Input autoComplete="off" {...field} />
+                                )}
                             />
                         </FormItem>
                     </div>
 
-                    <FormItem label="Actividad" invalid={!!errors.activity} errorMessage={errors.activity?.message}>
+                    <FormItem
+                        label="Actividad"
+                        invalid={!!errors.activity}
+                        errorMessage={errors.activity?.message}
+                    >
                         <Controller
                             name="activity"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
+                            render={({ field }) => (
+                                <Input
+                                    autoComplete="off"
+                                    placeholder="Opcional"
+                                    {...field}
+                                />
+                            )}
                         />
                     </FormItem>
 
-                    <FormItem label="Identificación tributaria" invalid={!!errors.id_number} errorMessage={errors.id_number?.message}>
+                    <FormItem
+                        asterisk
+                        label="Número de documento"
+                        invalid={!!errors.id_number}
+                        errorMessage={errors.id_number?.message}
+                    >
                         <Controller
                             name="id_number"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
+                            render={({ field }) => (
+                                <Input autoComplete="off" {...field} />
+                            )}
                         />
                     </FormItem>
 
-                    <FormItem label="Tipo de documento" invalid={!!errors.type_document} errorMessage={errors.type_document?.message}>
+                    <FormItem
+                        asterisk
+                        label="Tipo de documento"
+                        invalid={!!errors.type_document}
+                        errorMessage={errors.type_document?.message}
+                    >
                         <Controller
                             name="type_document"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
+                            render={({ field }) => (
+                                <select
+                                    className="input input-md h-11"
+                                    {...field}
+                                >
+                                    <option value="">Selecciona un tipo</option>
+                                    <option value="RUT">RUT</option>
+                                    <option value="NIT">NIT</option>
+                                    <option value="RFC">RFC</option>
+                                    <option value="CUIT">CUIT</option>
+                                    <option value="RUC">RUC</option>
+                                    <option value="TAX_ID">
+                                        Identificación fiscal
+                                    </option>
+                                </select>
+                            )}
                         />
                     </FormItem>
 
-                    <FormItem label="URL del logotipo" invalid={!!errors.logo} errorMessage={errors.logo?.message}>
-                        <Controller
-                            name="logo"
-                            control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
-                        />
+                    <FormItem
+                        label="Logotipo PNG"
+                        extra=" La API todavía no entrega una URL firmada para subir el archivo."
+                    >
+                        <Button
+                            className="w-full justify-start"
+                            type="button"
+                            disabled
+                        >
+                            Seleccionar archivo PNG
+                        </Button>
                     </FormItem>
 
                     {mode === 'subcompany' ? (
@@ -135,7 +182,9 @@ const CompanyForm = ({
                                                 .map((company) => (
                                                     <option
                                                         key={company.id}
-                                                        value={String(company.id)}
+                                                        value={String(
+                                                            company.id,
+                                                        )}
                                                     >
                                                         {company.name}
                                                     </option>
@@ -152,7 +201,11 @@ const CompanyForm = ({
                     <Button type="button" onClick={onCancel}>
                         Cancelar
                     </Button>
-                    <Button variant="solid" type="submit" loading={!!submitting}>
+                    <Button
+                        variant="solid"
+                        type="submit"
+                        loading={!!submitting}
+                    >
                         {submitLabel}
                     </Button>
                 </div>

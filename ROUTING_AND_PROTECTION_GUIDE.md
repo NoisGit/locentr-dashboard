@@ -136,10 +136,34 @@ Organizations as a separate domain
 Projects
 Template demo pages
 Legacy concepts routes
-Legacy mock server
+No mock server is used by the active application
 ```
 
-`Locations` is the official domain. Do not add `/workspaces` routes or `WorkspacesService` unless the product architecture changes later.
+`Buildings` is the product-facing name and `/buildings` is the canonical route.
+The backend contract remains `/api/v1/locations`. Do not add `Workspaces` as a domain.
+
+Canonical routes:
+
+```txt
+/dashboard
+/companies
+/users
+/buildings
+/access
+/documents
+/audit
+/tickets
+/logbook
+```
+
+Legacy aliases kept during migration:
+
+```txt
+/locations
+/access-management
+/audit-log
+/support-tickets
+```
 
 ## Route protection flow
 

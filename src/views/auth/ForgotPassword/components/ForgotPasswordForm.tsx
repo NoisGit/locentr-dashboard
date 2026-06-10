@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ZodType } from 'zod'
 import type { CommonProps } from '@/@types/common'
+import { emailSchema } from '@/utils/validation/schemas'
 
 interface ForgotPasswordFormProps extends CommonProps {
     emailSent: boolean
@@ -20,7 +21,7 @@ type ForgotPasswordFormSchema = {
 }
 
 const validationSchema: ZodType<ForgotPasswordFormSchema> = z.object({
-    email: z.string().email({ message: 'Ingresa un correo válido' }).min(5),
+    email: emailSchema,
 })
 
 const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
@@ -40,19 +41,18 @@ const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
         const { email } = values
 
         try {
-            const resp = await apiForgotPassword<boolean>({ email })
-            if (resp) {
-                setSubmitting(false)
-                setEmailSent?.(true)
-            }
+            setSubmitting(true)
+            await apiForgotPassword<void>({ email })
+            setEmailSent?.(true)
         } catch (errors) {
             setMessage?.(
-                typeof errors === 'string' ? errors : 'Ocurrió un error. Intenta nuevamente.',
+                typeof errors === 'string'
+                    ? errors
+                    : 'Ocurrió un error. Intenta nuevamente.',
             )
+        } finally {
             setSubmitting(false)
         }
-
-        setSubmitting(false)
     }
 
     return (

@@ -2,6 +2,7 @@ import { useSessionUser, useToken } from '@/store/authStore'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
+import { captureEvent } from '@/services/TelemetryService'
 import type { AxiosError } from 'axios'
 
 const UNAUTHORIZED_CODES = [401, 419, 440]
@@ -48,6 +49,20 @@ const emptyUser = {
 const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
     const status = error.response?.status
     const pathname = getPathname(error.config?.url)
+    const requestId = error.config?.headers?.['x-request-id']
+
+    if (!status || status === 429 || status >= 500) {
+        captureEvent(
+            'api.request_failed',
+            {
+                method: error.config?.method?.toUpperCase(),
+                endpoint: pathname,
+                requestId: typeof requestId === 'string' ? requestId : undefined,
+                status: status ?? 0,
+            },
+            'error',
+        )
+    }
 
     if (status && UNAUTHORIZED_CODES.includes(status)) {
         try {

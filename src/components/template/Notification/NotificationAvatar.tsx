@@ -7,8 +7,6 @@ import {
     HiOutlineBan,
 } from 'react-icons/hi'
 
-const imagePath = '/img/avatars/'
-
 const GeneratedAvatar = ({ target }: { target: string }) => {
     const color = useRandomBgColor()
     return (
@@ -28,7 +26,7 @@ const NotificationAvatar = (props: {
     switch (type) {
         case 0:
             if (image) {
-                return <Avatar shape="circle" src={`${imagePath}${image}`} />
+                return <Avatar shape="circle" src={image} />
             } else {
                 return <GeneratedAvatar target={target} />
             }

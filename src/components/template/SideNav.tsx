@@ -77,7 +77,6 @@ const SideNav = ({
             </Link>
 
             <div className={classNames('side-nav-content flex-1', contentClass)}>
-                {/* @ts-expect-error: ScrollBar typing does not declare children */}
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
                     <VerticalMenuContent
                         collapsed={sideNavCollapse}

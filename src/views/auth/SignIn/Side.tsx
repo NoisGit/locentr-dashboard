@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { TbLock, TbShieldCheck } from 'react-icons/tb'
 import type { ReactNode } from 'react'
 
-const Side = ({ children }: { children: ReactNode }) => {
+const Side = ({ children }: { children?: ReactNode }) => {
     const reduceMotion = useReducedMotion()
     const transition = reduceMotion
         ? { duration: 0 }

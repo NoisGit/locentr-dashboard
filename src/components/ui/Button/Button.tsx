@@ -5,24 +5,14 @@ import { useInputGroup } from '../InputGroup/context'
 import { CONTROL_SIZES, SIZES } from '../utils/constants'
 import { Spinner } from '../Spinner'
 import type { CommonProps, TypeAttributes } from '../@types/common'
-import type {
-    ReactNode,
-    ComponentPropsWithRef,
-    MouseEvent,
-    ElementType,
-} from 'react'
+import type { ReactNode, ComponentPropsWithRef, MouseEvent, ElementType } from 'react'
 
-export interface ButtonProps
-    extends CommonProps,
-        Omit<ComponentPropsWithRef<'button'>, 'onClick'> {
+export interface ButtonProps extends CommonProps, Omit<ComponentPropsWithRef<'button'>, 'onClick'> {
     asElement?: ElementType
     active?: boolean
     block?: boolean
     clickFeedback?: boolean
-    customColorClass?: (state: {
-        active: boolean
-        unclickable: boolean
-    }) => string
+    customColorClass?: (state: { active: boolean; unclickable: boolean }) => string
     disabled?: boolean
     icon?: string | ReactNode
     loading?: boolean
@@ -155,12 +145,7 @@ const Button = (props: ButtonProps) => {
         return getBtnColor(btn)
     }
 
-    const getBtnColor = ({
-        bgColor,
-        hoverColor,
-        activeColor,
-        textColor,
-    }: ButtonColor) => {
+    const getBtnColor = ({ bgColor, hoverColor, activeColor, textColor }: ButtonColor) => {
         return `${bgColor} ${
             unclickable ? disabledClass : hoverColor + ' ' + activeColor
         } ${textColor}`
@@ -222,13 +207,9 @@ const Button = (props: ButtonProps) => {
         if (icon && children && !loading) {
             return (
                 <span className="flex gap-1 items-center justify-center">
-                    {iconAlignment === 'start' && (
-                        <span className="text-lg">{icon}</span>
-                    )}
+                    {iconAlignment === 'start' && <span className="text-lg">{icon}</span>}
                     <span>{children}</span>
-                    {iconAlignment === 'end' && (
-                        <span className="text-lg">{icon}</span>
-                    )}
+                    {iconAlignment === 'end' && <span className="text-lg">{icon}</span>}
                 </span>
             )
         }
@@ -241,6 +222,8 @@ const Button = (props: ButtonProps) => {
             ref={ref}
             className={classes}
             {...rest}
+            disabled={Component === 'button' ? unclickable : undefined}
+            aria-disabled={unclickable || undefined}
             onClick={handleClick}
         >
             {renderChildren()}

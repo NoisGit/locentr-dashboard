@@ -11,20 +11,7 @@ import { apiGetDocumentDownloadUrl } from '@/services/DocumentsService'
 import DocumentsList from './components/DocumentsList'
 import DocumentsStats from './components/DocumentsStats'
 import { useDocuments } from './hooks/useDocuments'
-
-function getErrorMessage(error: unknown, fallback: string) {
-    const requestError = error as {
-        response?: { data?: { message?: string; detail?: string } }
-        message?: string
-    }
-
-    return (
-        requestError?.response?.data?.message ||
-        requestError?.response?.data?.detail ||
-        requestError?.message ||
-        fallback
-    )
-}
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const Documents = () => {
     const role = useSessionUser((state) => state.user.role)
@@ -41,7 +28,12 @@ const Documents = () => {
     const documents = useMemo(() => data?.items ?? [], [data?.items])
     const total = data?.total ?? 0
     const totalSize = useMemo(
-        () => documents.reduce((totalBytes, document) => totalBytes + (document.size_bytes ?? 0), 0),
+        () =>
+            documents.reduce(
+                (totalBytes, document) =>
+                    totalBytes + (document.size_bytes ?? 0),
+                0,
+            ),
         [documents],
     )
 
@@ -66,7 +58,10 @@ const Documents = () => {
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'No se pudo generar el enlace de descarga.')}
+                    {getApiErrorMessage(
+                        error,
+                        'No se pudo generar el enlace de descarga.',
+                    )}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -80,11 +75,30 @@ const Documents = () => {
                     <div>
                         <h3>Documentos</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Administra documentos asociados a empresas y ubicaciones.
+                            Administra documentos asociados a empresas y
+                            ubicaciones.
                         </p>
                     </div>
-                    <Button onClick={() => mutate()}>Actualizar</Button>
+                    <div className="flex flex-wrap gap-2">
+                        {isSuperAdmin ? (
+                            <Button
+                                disabled
+                                title="La API aún no entrega una URL firmada para subir el archivo."
+                            >
+                                Subir documento
+                            </Button>
+                        ) : null}
+                        <Button onClick={() => mutate()}>Actualizar</Button>
+                    </div>
                 </div>
+
+                {isSuperAdmin ? (
+                    <p className="border-l-2 border-warning pl-3 text-sm text-gray-500 dark:text-gray-400">
+                        La descarga está activa. La carga de archivos quedará
+                        habilitada cuando `locentr-api` entregue un destino
+                        firmado que acepte el binario.
+                    </p>
+                ) : null}
 
                 <DocumentsStats
                     total={total}
@@ -97,7 +111,9 @@ const Documents = () => {
                         <Input
                             placeholder="Buscar documentos"
                             value={search}
-                            onChange={(event) => handleSearchChange(event.target.value)}
+                            onChange={(event) =>
+                                handleSearchChange(event.target.value)
+                            }
                         />
                     </div>
 

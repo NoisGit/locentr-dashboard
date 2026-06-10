@@ -17,6 +17,7 @@ import {
     type SupportTicketCommentsResponse,
 } from '@/services/SupportTicketsService'
 import { normalizeUserInput } from '@/utils/security/input'
+import { getApiErrorMessage } from '@/utils/apiError'
 import { TbArrowLeft, TbMessageCircle, TbSend } from 'react-icons/tb'
 
 const statusLabel: Record<string, string> = {
@@ -43,20 +44,6 @@ function getComments(data?: SupportTicketCommentsResponse) {
     return data?.items ?? data?.list ?? []
 }
 
-function getErrorMessage(error: unknown) {
-    const requestError = error as {
-        response?: { data?: { message?: string; detail?: string } }
-        message?: string
-    }
-
-    return (
-        requestError.response?.data?.message ||
-        requestError.response?.data?.detail ||
-        requestError.message ||
-        'No fue posible enviar la respuesta.'
-    )
-}
-
 const SupportTicketDetails = () => {
     const { ticketId = '' } = useParams()
     const navigate = useNavigate()
@@ -64,7 +51,11 @@ const SupportTicketDetails = () => {
     const [reply, setReply] = useState('')
     const [isSending, setIsSending] = useState(false)
 
-    const { data: ticket, error: ticketError, isLoading: ticketLoading } = useSWR(
+    const {
+        data: ticket,
+        error: ticketError,
+        isLoading: ticketLoading,
+    } = useSWR(
         ticketId ? ['support-ticket:detail', ticketId] : null,
         ([, currentTicketId]) => apiGetSupportTicketById(currentTicketId),
         { revalidateOnFocus: false },
@@ -82,16 +73,19 @@ const SupportTicketDetails = () => {
 
     const comments = useMemo(
         () =>
-            getComments(commentsData).slice().sort((left, right) => {
-                return (
-                    new Date(left.created_at).getTime() -
-                    new Date(right.created_at).getTime()
-                )
-            }),
+            getComments(commentsData)
+                .slice()
+                .sort((left, right) => {
+                    return (
+                        new Date(left.created_at).getTime() -
+                        new Date(right.created_at).getTime()
+                    )
+                }),
         [commentsData],
     )
     const currentUserId = String(currentUser.id ?? currentUser.userId ?? '')
-    const isClosed = ticket?.status === 'CLOSED' || ticket?.status === 'CANCELED'
+    const isClosed =
+        ticket?.status === 'CLOSED' || ticket?.status === 'CANCELED'
 
     const handleReply = async () => {
         const content = normalizeUserInput(reply, 2000)
@@ -108,7 +102,12 @@ const SupportTicketDetails = () => {
             )
         } catch (error) {
             toast.push(
-                <Notification type="danger">{getErrorMessage(error)}</Notification>,
+                <Notification type="danger">
+                    {getApiErrorMessage(
+                        error,
+                        'No fue posible enviar la respuesta.',
+                    )}
+                </Notification>,
                 { placement: 'top-center' },
             )
         } finally {
@@ -122,11 +121,8 @@ const SupportTicketDetails = () => {
                 <EmptyState
                     title="No fue posible abrir el ticket"
                     description="La solicitud no está disponible o no tienes acceso para verla."
-                    action={
-                        <Button onClick={() => navigate('/tickets')}>
-                            Volver a tickets
-                        </Button>
-                    }
+                    actionLabel="Volver a tickets"
+                    onAction={() => navigate('/tickets')}
                 />
             </Container>
         )
@@ -150,12 +146,14 @@ const SupportTicketDetails = () => {
                                 {ticket?.title || 'Solicitud de soporte'}
                             </h2>
                             <p className="mt-2 max-w-3xl whitespace-pre-wrap text-gray-600 dark:text-gray-300">
-                                {ticket?.description || 'Sin descripción disponible.'}
+                                {ticket?.description ||
+                                    'Sin descripción disponible.'}
                             </p>
                         </div>
                         <div className="flex shrink-0 flex-col items-start gap-1 md:items-end">
                             <span className="rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary">
-                                {statusLabel[ticket?.status || ''] || 'Sin estado'}
+                                {statusLabel[ticket?.status || ''] ||
+                                    'Sin estado'}
                             </span>
                             <span className="text-xs text-gray-400">
                                 Creado {formatDate(ticket?.created_at)}
@@ -188,49 +186,58 @@ const SupportTicketDetails = () => {
                                 />
                             ) : null}
                             <div className="flex flex-col gap-3">
-                                {comments.map((comment: SupportTicketComment) => {
-                                    const isOwn =
-                                        currentUserId &&
-                                        String(comment.created_by) === currentUserId
+                                {comments.map(
+                                    (comment: SupportTicketComment) => {
+                                        const isOwn =
+                                            currentUserId &&
+                                            String(comment.created_by) ===
+                                                currentUserId
 
-                                    return (
-                                        <article
-                                            key={comment.id}
-                                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div
-                                                className={`max-w-[min(720px,92%)] rounded-2xl px-4 py-3 ${
-                                                    isOwn
-                                                        ? 'rounded-br-md bg-primary text-white'
-                                                        : 'rounded-bl-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
-                                                }`}
+                                        return (
+                                            <article
+                                                key={comment.id}
+                                                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                                             >
                                                 <div
-                                                    className={`mb-1 text-xs font-semibold ${
+                                                    className={`max-w-[min(720px,92%)] rounded-2xl px-4 py-3 ${
                                                         isOwn
-                                                            ? 'text-white/75'
-                                                            : 'text-gray-500 dark:text-gray-400'
+                                                            ? 'rounded-br-md bg-primary text-white'
+                                                            : 'rounded-bl-md border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
                                                     }`}
                                                 >
-                                                    {isOwn ? 'Tú' : 'Equipo de soporte'}
+                                                    <div
+                                                        className={`mb-1 text-xs font-semibold ${
+                                                            isOwn
+                                                                ? 'text-white/75'
+                                                                : 'text-gray-500 dark:text-gray-400'
+                                                        }`}
+                                                    >
+                                                        {isOwn
+                                                            ? 'Tú'
+                                                            : 'Equipo de soporte'}
+                                                    </div>
+                                                    <p className="whitespace-pre-wrap break-words">
+                                                        {comment.content}
+                                                    </p>
+                                                    <div
+                                                        className={`mt-2 text-[11px] ${
+                                                            isOwn
+                                                                ? 'text-white/65'
+                                                                : 'text-gray-400'
+                                                        }`}
+                                                    >
+                                                        {formatDate(
+                                                            comment.created_at,
+                                                        )}
+                                                        {comment.edited_at
+                                                            ? ' · Editado'
+                                                            : ''}
+                                                    </div>
                                                 </div>
-                                                <p className="whitespace-pre-wrap break-words">
-                                                    {comment.content}
-                                                </p>
-                                                <div
-                                                    className={`mt-2 text-[11px] ${
-                                                        isOwn
-                                                            ? 'text-white/65'
-                                                            : 'text-gray-400'
-                                                    }`}
-                                                >
-                                                    {formatDate(comment.created_at)}
-                                                    {comment.edited_at ? ' · Editado' : ''}
-                                                </div>
-                                            </div>
-                                        </article>
-                                    )
-                                })}
+                                            </article>
+                                        )
+                                    },
+                                )}
                             </div>
                         </Loading>
                     </section>
@@ -249,7 +256,9 @@ const SupportTicketDetails = () => {
                                         : 'Escribe una respuesta clara y detallada'
                                 }
                                 value={reply}
-                                onChange={(event) => setReply(event.target.value)}
+                                onChange={(event) =>
+                                    setReply(event.target.value)
+                                }
                             />
                             <Button
                                 variant="solid"

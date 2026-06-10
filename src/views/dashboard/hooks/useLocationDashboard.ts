@@ -18,7 +18,7 @@ const useLocationDashboard = () => {
     const { data, error, isLoading, mutate } = useSWR<DashboardStatsResponse>(
         locationId ? ['dashboard:location', locationId] : null,
         ([, currentLocationId]) =>
-            apiGetLocationDashboardStats(currentLocationId),
+            apiGetLocationDashboardStats(String(currentLocationId)),
         { revalidateOnFocus: false },
     )
 

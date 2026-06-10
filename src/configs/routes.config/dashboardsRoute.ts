@@ -85,7 +85,7 @@ const dashboardsRoute: Routes = [
         key: 'documents.list',
         path: '/documents',
         component: lazy(() => import('@/views/documents')),
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_DOCUMENTS],
         meta: { pageContainerType: 'contained' },
     },
@@ -98,17 +98,25 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
     {
+        key: 'logbook.list',
+        path: '/logbook',
+        component: lazy(() => import('@/views/logbook/Logbook')),
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_LOCATION_LOGBOOK],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
         key: 'users.list',
         path: '/users',
         component: lazy(() => import('@/views/users/UsersList/UsersList')),
-        roles: [Role.SUPERADMIN],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_USERS],
     },
     {
         key: 'users.create',
         path: '/users/create',
         component: lazy(() => import('@/views/users/UsersCreate/UsersCreate')),
-        roles: [Role.SUPERADMIN],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.CREATE_USER],
         meta: {
             header: {
@@ -123,7 +131,7 @@ const dashboardsRoute: Routes = [
         key: 'users.edit',
         path: '/users/:id/edit',
         component: lazy(() => import('@/views/users/UserEditView')),
-        roles: [Role.SUPERADMIN],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.EDIT_USER],
         meta: {
             header: {
@@ -138,7 +146,7 @@ const dashboardsRoute: Routes = [
         key: 'users.details',
         path: '/users/:id',
         component: lazy(() => import('@/views/users/UserDetailsView')),
-        roles: [Role.SUPERADMIN],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_USERS],
         meta: { pageContainerType: 'contained' },
     },

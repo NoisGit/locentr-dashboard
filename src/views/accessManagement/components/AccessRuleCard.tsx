@@ -13,7 +13,7 @@ const AccessRuleCard = ({ entry, type, onRemove }: AccessRuleCardProps) => {
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
                 <div className="font-semibold">
-                    {entry.full_name || entry.name || entry.id_number || 'Registro sin nombre'}
+                    {entry.full_name || entry.id_number || 'Registro sin nombre'}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                     Documento: {entry.id_number || 'No informado'} {entry.vehicle_plate ? `• Patente: ${entry.vehicle_plate}` : ''}

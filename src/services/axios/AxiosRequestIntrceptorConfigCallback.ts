@@ -12,6 +12,7 @@ import {
 } from '@/store/companies/CompaniesStore'
 import { RBAC } from '@/utils/rbac'
 import { Role } from '@/utils/rbac/types'
+import { createRequestId } from '@/services/TelemetryService'
 import type { InternalAxiosRequestConfig } from 'axios'
 
 const AUTH_PREFIX = '/api/v1/auth'
@@ -77,6 +78,11 @@ function isSuperAdmin(): boolean {
 export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
     config: InternalAxiosRequestConfig<T>,
 ) {
+    config.headers = config.headers ?? {}
+    if (!config.headers['x-request-id']) {
+        config.headers['x-request-id'] = createRequestId()
+    }
+
     const strategy = appConfig.accessTokenPersistStrategy
 
     let stored = ''

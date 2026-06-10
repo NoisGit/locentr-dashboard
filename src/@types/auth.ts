@@ -38,6 +38,7 @@ export type User = {
     email?: string | null
     role?: string | null
     role_id?: string | number | null
+    company_id?: string | number | null
     permissions?: Permission[]
     isSuperAdmin?: boolean
     locentrRole?: string | null

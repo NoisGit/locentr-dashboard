@@ -23,14 +23,6 @@ export const apexLineChartDefaultOption: ApexOptions = {
         itemMargin: {
             vertical: 10,
         },
-        tooltipHoverFormatter: function (val, opts) {
-            return (
-                val +
-                ' - ' +
-                opts.w.globals.series[opts.seriesIndex][opts.dataPointIndex] +
-                ''
-            )
-        },
     },
     xaxis: {
         categories: [],
@@ -80,14 +72,6 @@ export const apexBarChartDefaultOption: ApexOptions = {
     legend: {
         itemMargin: {
             vertical: 10,
-        },
-        tooltipHoverFormatter: function (val, opts) {
-            return (
-                val +
-                ' - ' +
-                opts.w.globals.series[opts.seriesIndex][opts.dataPointIndex] +
-                ''
-            )
         },
     },
     xaxis: {

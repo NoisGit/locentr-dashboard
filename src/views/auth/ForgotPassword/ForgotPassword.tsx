@@ -11,7 +11,7 @@ type ForgotPasswordProps = {
 }
 
 export const ForgotPasswordBase = ({
-    signInUrl = '/sign-in',
+    signInUrl = '/auth/sign-in',
 }: ForgotPasswordProps) => {
     const [emailSent, setEmailSent] = useState(false)
     const [message, setMessage] = useTimeOutMessage()
@@ -29,14 +29,16 @@ export const ForgotPasswordBase = ({
                     <>
                         <h3 className="mb-2">Revisa tu correo</h3>
                         <p className="font-semibold heading-text">
-                            Enviamos las instrucciones para recuperar tu contraseña.
+                            Enviamos las instrucciones para recuperar tu
+                            contraseña.
                         </p>
                     </>
                 ) : (
                     <>
                         <h3 className="mb-2">Recuperar contraseña</h3>
                         <p className="font-semibold heading-text">
-                            Ingresa tu correo para recibir un enlace de recuperación.
+                            Ingresa tu correo para recibir un enlace de
+                            recuperación.
                         </p>
                     </>
                 )}

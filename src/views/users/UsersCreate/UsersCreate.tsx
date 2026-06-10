@@ -4,22 +4,45 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import UsersForm, { type UserFormSchema } from '../UsersForm/UsersForm'
 import { apiCreateUser } from '@/services/UsersService'
+import { apiCreateUserAndAssignToCompany } from '@/services/CompaniesService'
+import {
+    isVirtualCompanyId,
+    useCompaniesStore,
+} from '@/store/companies/CompaniesStore'
 
 const UsersCreate = () => {
     const navigate = useNavigate()
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
 
     const handleFormSubmit = async (values: UserFormSchema) => {
         try {
             setIsSubmitting(true)
-            await apiCreateUser({
-                username: values.username.trim(),
+            const username = values.username
+                .trim()
+                .toLowerCase()
+                .replace(/@locentr\.com$/i, '')
+            const payload = {
+                username,
                 full_name: values.full_name.trim(),
-                email: values.email.trim(),
+                email: `${username}@locentr.com`,
                 password: values.password?.trim() || '',
                 role: values.role,
                 status: values.status ?? true,
-            })
+            }
+
+            if (
+                selectedCompanyId !== undefined &&
+                selectedCompanyId !== null &&
+                !isVirtualCompanyId(selectedCompanyId)
+            ) {
+                await apiCreateUserAndAssignToCompany(
+                    selectedCompanyId,
+                    payload,
+                )
+            } else {
+                await apiCreateUser(payload)
+            }
             toast.push(<Notification type="success">Usuario creado correctamente.</Notification>, {
                 placement: 'top-center',
             })

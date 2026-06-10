@@ -15,6 +15,7 @@ import {
     TbHelpCircle,
     TbHistory,
     TbMapPin,
+    TbNotebook,
     TbShieldCheck,
     TbShieldLock,
     TbUsersGroup,
@@ -72,6 +73,13 @@ const operationalAreas: OperationalArea[] = [
         permission: Permission.VIEW_AUDIT_LOG,
         icon: <TbHistory />,
     },
+    {
+        title: 'Libro de novedades',
+        description: 'Hechos relevantes registrados por edificio.',
+        path: '/logbook',
+        permission: Permission.VIEW_LOCATION_LOGBOOK,
+        icon: <TbNotebook />,
+    },
 ]
 
 const Dashboard = () => {
@@ -117,7 +125,7 @@ const Dashboard = () => {
                                 Hola, {displayName}
                             </h1>
                             <p className="max-w-2xl text-sm font-normal leading-6 text-white/75 sm:text-base sm:leading-7">
-                                Supervisa la actividad de tus ubicaciones y accede a cada módulo según tus permisos.
+                                Supervisa la actividad de tus edificios y accede a cada módulo según tus permisos.
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">

@@ -10,12 +10,13 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
 import type { ReactNode } from 'react'
+import CountrySelect from '@/components/shared/CountrySelect'
+import { optionalText, requiredText } from '@/utils/validation/schemas'
 
 export type LocationFormSchema = {
     name: string
     address: string
     country?: string
-    logo?: string
 }
 
 type LocationsFormProps = {
@@ -29,10 +30,9 @@ type LocationsFormProps = {
 }
 
 const validationSchema = z.object({
-    name: z.string().min(1, { message: 'El nombre es obligatorio' }),
-    address: z.string().min(1, { message: 'La dirección es obligatoria' }),
-    country: z.string().optional(),
-    logo: z.string().optional(),
+    name: requiredText('El nombre', 100),
+    address: requiredText('La dirección', 255),
+    country: optionalText('El país', 80),
 })
 
 const LocationsForm = ({
@@ -53,12 +53,12 @@ const LocationsForm = ({
             name: '',
             address: '',
             country: '',
-            logo: '',
             ...defaultValues,
         },
     })
 
-    const finalSubmitLabel = submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear ubicación')
+    const finalSubmitLabel =
+        submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear edificio')
 
     return (
         <Form
@@ -70,38 +70,51 @@ const LocationsForm = ({
                 <Card className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="md:col-span-2">
-                            <FormItem label="Nombre" invalid={!!errors.name} errorMessage={errors.name?.message}>
+                            <FormItem
+                                label="Nombre"
+                                invalid={!!errors.name}
+                                errorMessage={errors.name?.message}
+                            >
                                 <Controller
                                     name="name"
                                     control={control}
-                                    render={({ field }) => <Input autoComplete="off" {...field} />}
+                                    render={({ field }) => (
+                                        <Input autoComplete="off" {...field} />
+                                    )}
                                 />
                             </FormItem>
                         </div>
 
                         <div className="md:col-span-2">
-                            <FormItem label="Dirección" invalid={!!errors.address} errorMessage={errors.address?.message}>
+                            <FormItem
+                                label="Dirección"
+                                invalid={!!errors.address}
+                                errorMessage={errors.address?.message}
+                            >
                                 <Controller
                                     name="address"
                                     control={control}
-                                    render={({ field }) => <Input autoComplete="off" {...field} />}
+                                    render={({ field }) => (
+                                        <Input autoComplete="off" {...field} />
+                                    )}
                                 />
                             </FormItem>
                         </div>
 
-                        <FormItem label="País" invalid={!!errors.country} errorMessage={errors.country?.message}>
+                        <FormItem
+                            label="País"
+                            invalid={!!errors.country}
+                            errorMessage={errors.country?.message}
+                        >
                             <Controller
                                 name="country"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
-                            />
-                        </FormItem>
-
-                        <FormItem label="Logo" invalid={!!errors.logo} errorMessage={errors.logo?.message}>
-                            <Controller
-                                name="logo"
-                                control={control}
-                                render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
+                                render={({ field }) => (
+                                    <CountrySelect
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
                         </FormItem>
                     </div>
@@ -121,7 +134,11 @@ const LocationsForm = ({
                         >
                             Descartar
                         </Button>
-                        <Button variant="solid" type="submit" loading={!!submitting}>
+                        <Button
+                            variant="solid"
+                            type="submit"
+                            loading={!!submitting}
+                        >
                             {finalSubmitLabel}
                         </Button>
                     </div>

@@ -30,7 +30,6 @@ const CompanySubCreate = () => {
                 activity: cleanValue(values.activity),
                 id_number: cleanValue(values.id_number),
                 type_document: cleanValue(values.type_document),
-                logo: cleanValue(values.logo),
                 parent_company_id: toOptionalNumber(values.parent_company_id),
             })
 

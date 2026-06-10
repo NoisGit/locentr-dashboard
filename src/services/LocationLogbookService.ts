@@ -1,4 +1,5 @@
 import ApiService from '@/services/ApiService'
+import appConfig from '@/configs/app.config'
 
 export const LOCATION_LOGBOOK_BASE = '/api/v1/location-logbook'
 
@@ -61,6 +62,21 @@ function cleanLocationId(locationId: string | number) {
     return encodeURIComponent(String(locationId).replace(/\/+$/, ''))
 }
 
+export function resolvePoliceAccessUrl(path: string) {
+    if (/^https?:\/\//i.test(path)) return path
+
+    const apiBase = new URL(appConfig.apiPrefix, window.location.origin)
+    const versionPrefix = LOCATION_LOGBOOK_BASE.replace(
+        /\/location-logbook$/,
+        '',
+    )
+    const normalizedPath = path.startsWith('/api/')
+        ? path
+        : `${versionPrefix}/${path.replace(/^\/+/, '')}`
+
+    return new URL(normalizedPath, apiBase.origin).toString()
+}
+
 export async function apiGetLocationLogbookSettings(
     locationId: string | number,
 ) {
@@ -98,7 +114,9 @@ export async function apiListLocationLogbookEntries(
     locationId: string | number,
     params: ListLocationLogbookEntriesParams = {},
 ) {
-    return ApiService.fetchDataWithAxios<PaginatedResponse<LocationLogbookEntry>>({
+    return ApiService.fetchDataWithAxios<
+        PaginatedResponse<LocationLogbookEntry>
+    >({
         url: `${LOCATION_LOGBOOK_BASE}/locations/${cleanLocationId(locationId)}/entries`,
         method: 'get',
         params: {
@@ -111,7 +129,10 @@ export async function apiListLocationLogbookEntries(
 export async function apiCreatePoliceLogbookAccess(
     data: PoliceAccessCreateRequest,
 ) {
-    return ApiService.fetchDataWithAxios<PoliceLinkResponse, PoliceAccessCreateRequest>({
+    return ApiService.fetchDataWithAxios<
+        PoliceLinkResponse,
+        PoliceAccessCreateRequest
+    >({
         url: `${LOCATION_LOGBOOK_BASE}/police-access`,
         method: 'post',
         data,
@@ -124,6 +145,7 @@ const LocationLogbookApi = {
     apiCreateLocationLogbookEntry,
     apiListLocationLogbookEntries,
     apiCreatePoliceLogbookAccess,
+    resolvePoliceAccessUrl,
 }
 
 export default LocationLogbookApi

@@ -7,6 +7,8 @@ import { TbPencil } from 'react-icons/tb'
 import useUsersList from '../hooks/useUsersList'
 import type { ColumnDef, OnSortParam } from '@/components/shared/DataTable'
 import type { UserRow } from '@/services/UsersService'
+import { useAuth } from '@/auth'
+import { Permission, RBAC } from '@/utils/rbac'
 
 const NameColumn = ({ row }: { row: UserRow }) => {
     return (
@@ -35,6 +37,8 @@ const ActionColumn = ({ onEdit }: { onEdit: () => void }) => (
 
 const UsersListTable = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
+    const canEdit = RBAC.hasPermission(user, Permission.EDIT_USER)
     const {
         usersList,
         usersListTotal,
@@ -56,11 +60,6 @@ const UsersListTable = () => {
                 cell: (props) => <span>{props.row.original.email || 'Sin email'}</span>,
             },
             {
-                header: 'Teléfono',
-                accessorKey: 'phone',
-                cell: (props) => <span>{props.row.original.phone || 'Sin teléfono'}</span>,
-            },
-            {
                 header: 'Rol',
                 accessorKey: 'role',
                 cell: (props) => <span>{props.row.original.role || 'Sin rol'}</span>,
@@ -68,12 +67,13 @@ const UsersListTable = () => {
             {
                 header: '',
                 id: 'action',
-                cell: (props) => (
-                    <ActionColumn onEdit={() => navigate(`/users/${props.row.original.id}/edit`)} />
-                ),
+                cell: (props) =>
+                    canEdit ? (
+                        <ActionColumn onEdit={() => navigate(`/users/${props.row.original.id}/edit`)} />
+                    ) : null,
             },
         ],
-        [navigate],
+        [canEdit, navigate],
     )
 
     const handlePaginationChange = (page: number) => {

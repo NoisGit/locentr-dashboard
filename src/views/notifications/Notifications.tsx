@@ -14,20 +14,7 @@ import NotificationsBroadcastForm from './components/NotificationsBroadcastForm'
 import NotificationsStats from './components/NotificationsStats'
 import UnreadNotificationsList from './components/UnreadNotificationsList'
 import { useUnreadNotifications } from './hooks/useUnreadNotifications'
-
-function getErrorMessage(error: unknown, fallback: string) {
-    const requestError = error as {
-        response?: { data?: { message?: string; detail?: string } }
-        message?: string
-    }
-
-    return (
-        requestError?.response?.data?.message ||
-        requestError?.response?.data?.detail ||
-        requestError?.message ||
-        fallback
-    )
-}
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const Notifications = () => {
     const role = useSessionUser((state) => state.user.role)
@@ -37,7 +24,10 @@ const Notifications = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize, setPageSize] = useState(10)
-    const { data, isLoading, mutate } = useUnreadNotifications({ pageIndex, pageSize })
+    const { data, isLoading, mutate } = useUnreadNotifications({
+        pageIndex,
+        pageSize,
+    })
     const notifications = useMemo(() => data?.items ?? [], [data?.items])
     const total = data?.total ?? 0
 
@@ -71,14 +61,18 @@ const Notifications = () => {
             setTitle('')
             toast.push(
                 <Notification type="success">
-                    Notificación enviada. Correctas: {response.success}. Fallidas: {response.failed}.
+                    Notificación enviada. Correctas: {response.success}.
+                    Fallidas: {response.failed}.
                 </Notification>,
                 { placement: 'top-center' },
             )
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'No se pudo enviar la notificación.')}
+                    {getApiErrorMessage(
+                        error,
+                        'No se pudo enviar la notificación.',
+                    )}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -91,13 +85,21 @@ const Notifications = () => {
         try {
             await apiMarkNotificationAsRead(notificationId)
             await mutate()
-            toast.push(<Notification type="success">Notificación marcada como leída.</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="success">
+                    Notificación marcada como leída.
+                </Notification>,
+                {
+                    placement: 'top-center',
+                },
+            )
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'No se pudo marcar la notificación como leída.')}
+                    {getApiErrorMessage(
+                        error,
+                        'No se pudo marcar la notificación como leída.',
+                    )}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -111,13 +113,17 @@ const Notifications = () => {
                     <div>
                         <h3>Notificaciones</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Revisa notificaciones pendientes y envía comunicados de plataforma.
+                            Revisa notificaciones pendientes y envía comunicados
+                            de plataforma.
                         </p>
                     </div>
                     <Button onClick={() => mutate()}>Actualizar</Button>
                 </div>
 
-                <NotificationsStats total={total} visible={notifications.length} />
+                <NotificationsStats
+                    total={total}
+                    visible={notifications.length}
+                />
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                     <div className="xl:col-span-2">

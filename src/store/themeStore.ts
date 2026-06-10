@@ -11,6 +11,10 @@ type ThemeAction = {
     setSideNavCollapse: (payload: boolean) => void
     setDirection: (payload: Direction) => void
     setPanelExpand: (payload: boolean) => void
+    setLayout: (payload: ThemeState['layout']['type']) => void
+    setPreviousLayout: (
+        payload: ThemeState['layout']['previousType'],
+    ) => void
 }
 
 const ACTIVE_LAYOUT = themeConfig.layout.type
@@ -38,11 +42,20 @@ export const useThemeStore = create<ThemeState & ThemeAction>()(
                 })),
             setDirection: (payload) => set(() => ({ direction: payload })),
             setPanelExpand: (payload) => set(() => ({ panelExpand: payload })),
+            setLayout: (payload) =>
+                set((state) => ({
+                    layout: { ...state.layout, type: payload },
+                })),
+            setPreviousLayout: (payload) =>
+                set((state) => ({
+                    layout: { ...state.layout, previousType: payload },
+                })),
         }),
         {
             name: 'theme',
-            merge: (persisted, current) =>
-                normalizeThemeState({
+            merge: (persisted, current) => ({
+                ...current,
+                ...normalizeThemeState({
                     ...current,
                     ...(persisted as Partial<ThemeState>),
                     layout: {
@@ -50,6 +63,7 @@ export const useThemeStore = create<ThemeState & ThemeAction>()(
                         ...((persisted as Partial<ThemeState>)?.layout ?? {}),
                     },
                 }),
+            }),
         },
     ),
 )

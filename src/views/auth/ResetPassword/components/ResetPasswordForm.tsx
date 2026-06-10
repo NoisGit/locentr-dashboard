@@ -8,8 +8,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ZodType } from 'zod'
 import type { CommonProps } from '@/@types/common'
+import { passwordSchema } from '@/utils/validation/schemas'
 
 interface ResetPasswordFormProps extends CommonProps {
+    resetToken: string
     resetComplete: boolean
     setResetComplete?: (compplete: boolean) => void
     setMessage?: (message: string) => void
@@ -22,10 +24,8 @@ type ResetPasswordFormSchema = {
 
 const validationSchema: ZodType<ResetPasswordFormSchema> = z
     .object({
-        newPassword: z.string({ required_error: 'Ingresa tu nueva contraseña' }),
-        confirmPassword: z.string({
-            required_error: 'Confirma tu nueva contraseña',
-        }),
+        newPassword: passwordSchema,
+        confirmPassword: passwordSchema,
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
         message: 'Las contraseñas no coinciden',
@@ -35,8 +35,14 @@ const validationSchema: ZodType<ResetPasswordFormSchema> = z
 const ResetPasswordForm = (props: ResetPasswordFormProps) => {
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
 
-    const { className, setMessage, setResetComplete, resetComplete, children } =
-        props
+    const {
+        className,
+        resetToken,
+        setMessage,
+        setResetComplete,
+        resetComplete,
+        children,
+    } = props
 
     const {
         handleSubmit,
@@ -47,26 +53,32 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
     })
 
     const onResetPassword = async (values: ResetPasswordFormSchema) => {
-        const { newPassword } = values
+        const { newPassword, confirmPassword } = values
+
+        if (!resetToken) {
+            setMessage?.(
+                'El enlace de recuperación no contiene un token válido. Solicita uno nuevo.',
+            )
+            return
+        }
 
         try {
-            const resp = await apiResetPassword<boolean>({
-                password: newPassword,
+            setSubmitting(true)
+            await apiResetPassword<void>({
+                reset_token: resetToken,
+                new_password: newPassword,
+                confirm_new_password: confirmPassword,
             })
-            if (resp) {
-                setSubmitting(false)
-                setResetComplete?.(true)
-            }
+            setResetComplete?.(true)
         } catch (errors) {
             setMessage?.(
                 typeof errors === 'string'
                     ? errors
                     : 'No fue posible restablecer la contraseña',
             )
+        } finally {
             setSubmitting(false)
         }
-
-        setSubmitting(false)
     }
 
     return (
@@ -110,11 +122,18 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                     <Button
                         block
                         loading={isSubmitting}
+                        disabled={!resetToken}
                         variant="solid"
                         type="submit"
                     >
                         {isSubmitting ? 'Guardando...' : 'Guardar contraseña'}
                     </Button>
+                    {!resetToken ? (
+                        <p className="mt-3 text-sm text-error">
+                            Solicita un nuevo enlace de recuperación para
+                            continuar.
+                        </p>
+                    ) : null}
                 </Form>
             ) : (
                 <>{children}</>

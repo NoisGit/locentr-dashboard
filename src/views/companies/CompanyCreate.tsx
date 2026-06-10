@@ -22,7 +22,6 @@ const CompanyCreate = () => {
                 activity: cleanValue(values.activity),
                 id_number: cleanValue(values.id_number),
                 type_document: cleanValue(values.type_document),
-                logo: cleanValue(values.logo),
             })
 
             toast.push(<Notification type="success">Empresa creada correctamente.</Notification>, {

@@ -16,9 +16,8 @@ const LocationsCreate = () => {
                 name: values.name.trim(),
                 address: values.address.trim(),
                 country: values.country?.trim() || null,
-                logo: values.logo?.trim() || null,
             })
-            toast.push(<Notification type="success">Ubicación creada correctamente.</Notification>, {
+            toast.push(<Notification type="success">Edificio creado correctamente.</Notification>, {
                 placement: 'top-center',
             })
             navigate('/buildings')
@@ -27,7 +26,7 @@ const LocationsCreate = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'No se pudo crear la ubicación.'
+                'No se pudo crear el edificio.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',

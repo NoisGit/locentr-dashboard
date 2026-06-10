@@ -60,8 +60,8 @@ function applyOpacityToRgb(color: string, opacity: number): string | null {
     }
 }
 
-export default function tasksPreProcess(
-    tasks: ExtendedTask[],
+export default function tasksPreProcess<T extends Record<string, unknown>>(
+    tasks: ExtendedTask<T>[],
     colorsMap: Record<string, string>,
 ) {
     const coloredTask = tasks.map((task) => {

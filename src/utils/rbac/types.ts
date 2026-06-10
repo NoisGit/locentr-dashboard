@@ -80,7 +80,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         Permission.VIEW_SUPPORT_TICKETS,
         Permission.EDIT_SUPPORT_TICKET,
         Permission.VIEW_DOCUMENTS,
-        Permission.CREATE_DOCUMENT,
         Permission.VIEW_NOTIFICATIONS,
         Permission.SEND_NOTIFICATION,
         Permission.VIEW_AUDIT_LOG,
@@ -109,7 +108,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         Permission.REVOKE_ACCESS_ENTRY,
         Permission.VIEW_SUPPORT_TICKETS,
         Permission.CREATE_SUPPORT_TICKET,
-        Permission.VIEW_DOCUMENTS,
+        Permission.VIEW_LOCATION_LOGBOOK,
         Permission.VIEW_NOTIFICATIONS,
     ],
 }

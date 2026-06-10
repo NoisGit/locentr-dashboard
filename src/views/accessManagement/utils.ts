@@ -1,22 +1,15 @@
 import type { AccessScopeParams } from '@/services/AccessManagementService'
 import type { ScopeType } from './types'
+import { getApiErrorMessage } from '@/utils/apiError'
 
-export function getItems<T>(data: { items?: T[]; list?: T[] } | undefined): T[] {
+export function getItems<T>(
+    data: { items?: T[]; list?: T[] } | undefined,
+): T[] {
     return data?.items || data?.list || []
 }
 
 export function getErrorMessage(error: unknown, fallback: string) {
-    const requestError = error as {
-        response?: { data?: { message?: string; detail?: string } }
-        message?: string
-    }
-
-    return (
-        requestError?.response?.data?.message ||
-        requestError?.response?.data?.detail ||
-        requestError?.message ||
-        fallback
-    )
+    return getApiErrorMessage(error, fallback)
 }
 
 export function buildScopeParams(

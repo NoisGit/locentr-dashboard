@@ -4,20 +4,21 @@ import Button from '@/components/ui/Button'
 import ActionLink from '@/components/shared/ActionLink'
 import ResetPasswordForm from './components/ResetPasswordForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 
 type ResetPasswordProps = {
     signInUrl?: string
 }
 
 export const ResetPasswordBase = ({
-    signInUrl = '/sign-in',
+    signInUrl = '/auth/sign-in',
 }: ResetPasswordProps) => {
     const [resetComplete, setResetComplete] = useState(false)
-
     const [message, setMessage] = useTimeOutMessage()
-
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const resetToken =
+        searchParams.get('token') || searchParams.get('reset_token') || ''
 
     const handleContinue = () => {
         navigate(signInUrl)
@@ -37,7 +38,8 @@ export const ResetPasswordBase = ({
                     <>
                         <h3 className="mb-1">Crea una nueva contraseña</h3>
                         <p className="font-semibold heading-text">
-                            Utiliza una contraseña segura y diferente a la anterior.
+                            Utiliza una contraseña segura y diferente a la
+                            anterior.
                         </p>
                     </>
                 )}
@@ -48,6 +50,7 @@ export const ResetPasswordBase = ({
                 </Alert>
             )}
             <ResetPasswordForm
+                resetToken={resetToken}
                 resetComplete={resetComplete}
                 setMessage={setMessage}
                 setResetComplete={setResetComplete}

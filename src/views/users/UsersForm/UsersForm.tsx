@@ -11,6 +11,15 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
 import type { UserRole } from '@/services/UsersService'
+import { useSessionUser } from '@/store/authStore'
+import { Role } from '@/utils/rbac/types'
+import {
+    emailSchema,
+    passwordSchema,
+    requiredText,
+    roleSchema,
+    usernameSchema,
+} from '@/utils/validation/schemas'
 
 export type UserFormSchema = {
     username: string
@@ -30,20 +39,23 @@ type UsersFormProps = {
     onDiscard?: () => void
 }
 
-const roleOptions = [
-    { label: 'SUPERADMIN', value: 'SUPERADMIN' },
-    { label: 'ADMIN', value: 'ADMIN' },
-    { label: 'OPERATOR', value: 'OPERATOR' },
-    { label: 'CLIENT', value: 'CLIENT' },
+const allCreatableRoleOptions = [
+    { label: 'Administrador', value: Role.ADMIN },
+    { label: 'Operador', value: Role.OPERATOR },
+    { label: 'Cliente', value: Role.CLIENT },
 ]
 
-const validationSchema = z.object({
-    username: z.string().min(1, { message: 'El username es obligatorio' }),
-    full_name: z.string().min(1, { message: 'El nombre es obligatorio' }),
-    email: z.string().email({ message: 'Ingresa un email válido' }),
+const baseValidationSchema = z.object({
+    username: usernameSchema,
+    full_name: requiredText('El nombre', 160),
+    email: emailSchema,
     password: z.string().optional(),
-    role: z.string().min(1, { message: 'El rol es obligatorio' }),
+    role: roleSchema,
     status: z.boolean().optional(),
+})
+
+const createValidationSchema = baseValidationSchema.extend({
+    password: passwordSchema,
 })
 
 const UsersForm = ({
@@ -54,12 +66,24 @@ const UsersForm = ({
     onFormSubmit,
     onDiscard,
 }: UsersFormProps) => {
+    const currentRole = useSessionUser((state) => state.user.role)
+    const roleOptions =
+        currentRole === Role.ADMIN
+            ? allCreatableRoleOptions.filter(
+                  (option) => option.value !== Role.ADMIN,
+              )
+            : allCreatableRoleOptions
+
     const {
         handleSubmit,
         control,
+        setValue,
+        watch,
         formState: { errors },
     } = useForm<UserFormSchema>({
-        resolver: zodResolver(validationSchema),
+        resolver: zodResolver(
+            mode === 'create' ? createValidationSchema : baseValidationSchema,
+        ),
         defaultValues: {
             username: '',
             full_name: '',
@@ -70,8 +94,11 @@ const UsersForm = ({
             ...defaultValues,
         },
     })
+    const username = watch('username')
+    const loginEmail = username ? `${username}@locentr.com` : ''
 
-    const finalSubmitLabel = submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear usuario')
+    const finalSubmitLabel =
+        submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear usuario')
 
     return (
         <Form
@@ -82,45 +109,105 @@ const UsersForm = ({
             <Container>
                 <Card className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormItem label="Username" invalid={!!errors.username} errorMessage={errors.username?.message}>
+                        <FormItem
+                            label="Usuario"
+                            invalid={!!errors.username}
+                            errorMessage={errors.username?.message}
+                            extra="Este será el identificador de acceso del usuario."
+                        >
                             <Controller
                                 name="username"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                                render={({ field }) => (
+                                    <Input
+                                        autoComplete="off"
+                                        placeholder="ej. javita"
+                                        suffix="@locentr.com"
+                                        {...field}
+                                        onChange={(event) => {
+                                            const value = event.target.value
+                                                .toLowerCase()
+                                                .replace(/@locentr\.com$/i, '')
+                                                .replace(/\s+/g, '')
+                                            field.onChange(value)
+                                            setValue(
+                                                'email',
+                                                value
+                                                    ? `${value}@locentr.com`
+                                                    : '',
+                                                { shouldValidate: true },
+                                            )
+                                        }}
+                                    />
+                                )}
                             />
                         </FormItem>
 
-                        <FormItem label="Nombre" invalid={!!errors.full_name} errorMessage={errors.full_name?.message}>
+                        <FormItem
+                            label="Nombre"
+                            invalid={!!errors.full_name}
+                            errorMessage={errors.full_name?.message}
+                        >
                             <Controller
                                 name="full_name"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                                render={({ field }) => (
+                                    <Input autoComplete="off" {...field} />
+                                )}
                             />
                         </FormItem>
 
-                        <FormItem label="Email" invalid={!!errors.email} errorMessage={errors.email?.message}>
+                        <FormItem
+                            label="Correo de acceso"
+                            invalid={!!errors.email}
+                            errorMessage={errors.email?.message}
+                        >
                             <Controller
                                 name="email"
                                 control={control}
-                                render={({ field }) => <Input autoComplete="off" {...field} />}
+                                render={({ field }) => (
+                                    <Input
+                                        readOnly
+                                        className="cursor-default"
+                                        placeholder="usuario@locentr.com"
+                                        {...field}
+                                        value={loginEmail || field.value}
+                                    />
+                                )}
                             />
                         </FormItem>
 
-                        <FormItem label="Rol" invalid={!!errors.role} errorMessage={errors.role?.message}>
+                        <FormItem
+                            label="Rol"
+                            invalid={!!errors.role}
+                            errorMessage={errors.role?.message}
+                        >
                             <Controller
                                 name="role"
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         options={roleOptions}
-                                        value={roleOptions.find((option) => option.value === field.value) ?? null}
-                                        onChange={(option) => field.onChange(option?.value ?? '')}
+                                        value={
+                                            roleOptions.find(
+                                                (option) =>
+                                                    option.value ===
+                                                    field.value,
+                                            ) ?? null
+                                        }
+                                        onChange={(option) =>
+                                            field.onChange(option?.value ?? '')
+                                        }
                                     />
                                 )}
                             />
                         </FormItem>
 
-                        <FormItem label="Contraseña" invalid={!!errors.password} errorMessage={errors.password?.message}>
+                        <FormItem
+                            label="Contraseña"
+                            invalid={!!errors.password}
+                            errorMessage={errors.password?.message}
+                        >
                             <Controller
                                 name="password"
                                 control={control}
@@ -128,7 +215,9 @@ const UsersForm = ({
                                     <Input
                                         autoComplete="new-password"
                                         type="password"
-                                        placeholder={mode === 'edit' ? 'Opcional' : ''}
+                                        placeholder={
+                                            mode === 'edit' ? 'Opcional' : ''
+                                        }
                                         {...field}
                                     />
                                 )}
@@ -151,7 +240,11 @@ const UsersForm = ({
                         >
                             Descartar
                         </Button>
-                        <Button variant="solid" type="submit" loading={!!submitting}>
+                        <Button
+                            variant="solid"
+                            type="submit"
+                            loading={!!submitting}
+                        >
                             {finalSubmitLabel}
                         </Button>
                     </div>

@@ -9,7 +9,7 @@ const AuditLogStats = ({ total, visible }: AuditLogStatsProps) => {
     return (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Card>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Eventos de auditoría</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Acciones registradas</div>
                 <div className="mt-2 text-2xl font-semibold">{total}</div>
             </Card>
             <Card>

@@ -18,14 +18,11 @@ const authRoute: Routes = [
         component: lazy(() => import('@/views/auth/ResetPassword')),
     },
     {
-        key: 'otpVerification',
-        path: '/auth/otp-verification',
-        component: lazy(() => import('@/views/auth/OtpVerification')),
-    },
-    {
         key: 'companySelect',
         path: '/auth/company-select',
-        component: lazy(() => import('@/views/auth/CompanySelect/CompanySelect')),
+        component: lazy(
+            () => import('@/views/auth/CompanySelect/CompanySelect'),
+        ),
     },
 ]
 

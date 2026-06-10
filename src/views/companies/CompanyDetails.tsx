@@ -13,12 +13,17 @@ import {
     apiGetCompanyById,
     type Company,
 } from '@/services/CompaniesService'
+import { useAuth } from '@/auth'
+import { Permission, RBAC, Role } from '@/utils/rbac'
 
 const CompanyDetails = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const companyId = useMemo(() => (id ? String(id).replace(/\/+$/, '') : ''), [id])
     const [isDeactivating, setIsDeactivating] = useState(false)
+    const { user } = useAuth()
+    const canEdit = RBAC.hasPermission(user, Permission.EDIT_COMPANY)
+    const canDeactivate = RBAC.hasRole(user, Role.SUPERADMIN)
 
     const { data, isLoading } = useSWR(
         companyId ? ['companies:detail', companyId] : null,
@@ -72,7 +77,7 @@ const CompanyDetails = () => {
                         <Button icon={<TbArrowLeft />} onClick={() => navigate('/companies')}>
                             Volver
                         </Button>
-                        {companyId ? (
+                        {companyId && canEdit ? (
                             <Button
                                 variant="solid"
                                 icon={<TbPencil />}
@@ -81,7 +86,7 @@ const CompanyDetails = () => {
                                 Editar
                             </Button>
                         ) : null}
-                        {companyId ? (
+                        {companyId && canDeactivate ? (
                             <Button
                                 icon={<TbPower />}
                                 loading={isDeactivating}

@@ -11,8 +11,13 @@ node_modules
 dist
 dist-ssr
 build
+coverage
+playwright-report
+test-results
 .local
 .env
+.env.*
+!.env.example
 
 Editor directories and files
 .vscode/*
@@ -27,6 +32,4 @@ Editor directories and files
 *.sw?
 .vite-cache/
 
-Lock files
-*lock*
-*.lock
+# Keep package-lock.json committed for reproducible CI installs.

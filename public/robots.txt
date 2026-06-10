@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# Portfolio preview. Enable indexing only after the production environment,
+# privacy policy and public demo data have been reviewed.

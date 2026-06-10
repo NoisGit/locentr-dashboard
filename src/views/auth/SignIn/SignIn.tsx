@@ -12,7 +12,7 @@ type SignInProps = {
 }
 
 export const SignInBase = ({
-    forgetPasswordUrl = '/forgot-password',
+    forgetPasswordUrl = '/auth/forgot-password',
     disableSubmit,
 }: SignInProps) => {
     const [message, setMessage] = useTimeOutMessage()
@@ -21,12 +21,7 @@ export const SignInBase = ({
     return (
         <>
             <div className="mb-8">
-                <Logo
-                    type="full"
-                    mode={mode}
-                    disableLink
-                    logoWidth={170}
-                />
+                <Logo type="full" mode={mode} disableLink logoWidth={170} />
             </div>
 
             <div className="mb-9">
@@ -35,7 +30,8 @@ export const SignInBase = ({
                 </span>
                 <h2 className="mb-3">Bienvenido a Locentr</h2>
                 <p className="max-w-sm font-normal leading-6 text-gray-500 dark:text-gray-400">
-                    Ingresa a tu espacio de trabajo para gestionar sedes, accesos y equipos.
+                    Ingresa a tu espacio de trabajo para gestionar sedes,
+                    accesos y equipos.
                 </p>
             </div>
 

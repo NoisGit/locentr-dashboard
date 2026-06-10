@@ -22,7 +22,6 @@ const LocationsEdit = () => {
         name: data?.name || '',
         address: data?.address || '',
         country: data?.country || '',
-        logo: data?.logo || '',
     }), [data])
 
     const formKey = useMemo(
@@ -39,9 +38,8 @@ const LocationsEdit = () => {
                 name: values.name.trim(),
                 address: values.address.trim(),
                 country: values.country?.trim() || null,
-                logo: values.logo?.trim() || null,
             })
-            toast.push(<Notification type="success">Ubicación actualizada correctamente.</Notification>, {
+            toast.push(<Notification type="success">Edificio actualizado correctamente.</Notification>, {
                 placement: 'top-center',
             })
             await mutate()
@@ -51,7 +49,7 @@ const LocationsEdit = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'No se pudo actualizar la ubicación.'
+                'No se pudo actualizar el edificio.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',

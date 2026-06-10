@@ -1,0 +1,10 @@
+{
+    "name": "Locentr",
+    "short_name": "Locentr",
+    "description": "Plataforma empresarial para gestionar empresas, edificios y operaciones.",
+    "display": "standalone",
+    "start_url": "/dashboard",
+    "background_color": "#f7faf9",
+    "theme_color": "#0b4f48",
+    "lang": "es"
+}

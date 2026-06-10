@@ -38,7 +38,6 @@ const CompanyEdit = () => {
                 activity: cleanValue(values.activity),
                 id_number: cleanValue(values.id_number),
                 type_document: cleanValue(values.type_document),
-                logo: cleanValue(values.logo),
             })
 
             toast.push(<Notification type="success">Empresa actualizada correctamente.</Notification>, {
@@ -70,7 +69,6 @@ const CompanyEdit = () => {
                     activity: data?.activity || '',
                     id_number: data?.id_number || '',
                     type_document: data?.type_document || '',
-                    logo: data?.logo || '',
                 }}
                 onSubmit={handleSubmit}
                 onCancel={() => navigate(companyId ? `/companies/${companyId}` : '/companies')}

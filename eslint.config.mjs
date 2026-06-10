@@ -21,7 +21,10 @@ export default tseslint.config(
         {
             ignores: [
                 '**/build/',
+                '**/coverage/',
                 '**/node_modules/',
+                '**/playwright-report/',
+                '**/test-results/',
                 '**/dist/',
                 '**/.prettierrc.js',
                 '**/.eslintrc.js',

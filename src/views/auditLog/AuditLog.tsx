@@ -29,7 +29,8 @@ const AuditLog = () => {
                     <div>
                         <h3>Auditoría</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Revisa actividad de seguridad y sistema registrada en Locentr.
+                            Historial interno de acciones importantes para trazabilidad y seguridad.
+                            Registra cambios en usuarios, empresas, edificios, documentos y accesos.
                         </p>
                     </div>
                     <Button onClick={() => mutate()}>Actualizar</Button>
