@@ -23,7 +23,7 @@ function getErrorMessage(error: unknown) {
         requestError?.response?.data?.message ||
         requestError?.response?.data?.detail ||
         requestError?.message ||
-        'No se pudo cargar la lista de ubicaciones.'
+        'No se pudo cargar la lista de edificios.'
     )
 }
 
@@ -38,7 +38,7 @@ const LocationsList = () => {
             <Container>
                 <AdaptiveCard>
                     <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-                        <h3 className="text-lg font-semibold">Error al cargar ubicaciones</h3>
+                        <h3 className="text-lg font-semibold">Error al cargar edificios</h3>
                         <p className="text-sm text-red-600 dark:text-red-400">{serverMsg}</p>
                         <Button variant="solid" onClick={() => mutate()}>
                             Reintentar
@@ -54,12 +54,12 @@ const LocationsList = () => {
             <Container>
                 <AdaptiveCard>
                     <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-                        <h3 className="text-lg font-semibold">No hay ubicaciones</h3>
+                        <h3 className="text-lg font-semibold">No hay edificios</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Cuando se creen ubicaciones aparecerán aquí.
+                            Cuando se creen edificios aparecerán aquí.
                         </p>
-                        <Button variant="solid" onClick={() => navigate('/locations/create')}>
-                            Crear ubicación
+                        <Button variant="solid" onClick={() => navigate('/buildings/create')}>
+                            Crear edificio
                         </Button>
                     </div>
                 </AdaptiveCard>
@@ -72,9 +72,9 @@ const LocationsList = () => {
             <AdaptiveCard>
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                        <h3>Ubicaciones</h3>
-                        <Button variant="solid" onClick={() => navigate('/locations/create')}>
-                            Crear ubicación
+                        <h3>Edificios</h3>
+                        <Button variant="solid" onClick={() => navigate('/buildings/create')}>
+                            Crear edificio
                         </Button>
                     </div>
                     <LocationsListTableTools />

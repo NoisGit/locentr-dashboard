@@ -1,5 +1,4 @@
 import Button from '@/components/ui/Button'
-import Card from '@/components/ui/Card'
 import Input from '@/components/ui/Input'
 import ScopeControls from './ScopeControls'
 import type { ListType, ScopeType } from '../types'
@@ -44,7 +43,7 @@ const AccessRuleForm = ({
     onSubmit,
 }: AccessRuleFormProps) => {
     return (
-        <Card>
+        <section className="border-y border-gray-200 py-5 dark:border-gray-800">
             <div className="flex flex-col gap-4">
                 <ScopeControls
                     companyId={companyId}
@@ -56,34 +55,36 @@ const AccessRuleForm = ({
                 />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <Input
-                        placeholder="ID number"
+                        placeholder="Documento de identidad"
                         value={idNumber}
                         onChange={(event) => setIdNumber(event.target.value)}
                     />
                     <Input
-                        placeholder="Full name"
+                        placeholder="Nombre completo"
                         value={fullName}
                         onChange={(event) => setFullName(event.target.value)}
                     />
                     <Input
-                        placeholder="Reason"
+                        placeholder="Motivo"
                         value={reason}
                         onChange={(event) => setReason(event.target.value)}
                     />
                     <Input
                         disabled={type === 'blacklist'}
-                        placeholder="Vehicle plate"
+                        placeholder="Patente del vehículo"
                         value={vehiclePlate}
                         onChange={(event) => setVehiclePlate(event.target.value)}
                     />
                 </div>
                 <div>
                     <Button variant="solid" loading={isSubmitting} onClick={onSubmit}>
-                        {type === 'whitelist' ? 'Save whitelist record' : 'Save blacklist record'}
+                        {type === 'whitelist'
+                            ? 'Agregar autorización'
+                            : 'Agregar restricción'}
                     </Button>
                 </div>
             </div>
-        </Card>
+        </section>
     )
 }
 

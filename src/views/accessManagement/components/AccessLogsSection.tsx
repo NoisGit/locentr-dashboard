@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import { apiGetAccessLogs, type AccessLog } from '@/services/AccessManagementService'
 import { getItems } from '../utils'
+import EmptyState from '@/components/shared/EmptyState'
 
 const AccessLogsSection = () => {
     const locationId = localStorage.getItem('current_location_id') || ''
@@ -16,15 +17,21 @@ const AccessLogsSection = () => {
     if (!locationId) {
         return (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-                Select a workspace/location to view access logs.
+                Selecciona una ubicación para consultar sus registros de acceso.
             </p>
         )
     }
 
-    if (isLoading) return <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+    if (isLoading) return <p className="text-sm text-gray-500 dark:text-gray-400">Cargando registros...</p>
 
     if (logs.length === 0) {
-        return <p className="text-sm text-gray-500 dark:text-gray-400">No access logs found.</p>
+        return (
+            <EmptyState
+                compact
+                title="Sin movimientos de acceso"
+                description="Las entradas y salidas registradas en esta ubicación aparecerán aquí."
+            />
+        )
     }
 
     return (
@@ -35,10 +42,11 @@ const AccessLogsSection = () => {
                     className="rounded-lg border border-gray-200 dark:border-gray-700 p-4"
                 >
                     <div className="font-semibold">
-                        {log.full_name || log.name || log.id_number || `Access #${log.id}`}
+                        {log.external_people?.name || 'Persona sin nombre'}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Status: {log.status || 'unknown'} {log.plate ? `• Plate: ${log.plate}` : ''}
+                        {log.exit_date ? 'Salida registrada' : 'Dentro del edificio'}
+                        {log.vehicle_plate ? ` • Patente: ${log.vehicle_plate}` : ''}
                     </div>
                 </div>
             ))}

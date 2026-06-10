@@ -20,7 +20,7 @@ type ForgotPasswordFormSchema = {
 }
 
 const validationSchema: ZodType<ForgotPasswordFormSchema> = z.object({
-    email: z.string().email().min(5),
+    email: z.string().email({ message: 'Ingresa un correo válido' }).min(5),
 })
 
 const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
@@ -47,7 +47,7 @@ const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
             }
         } catch (errors) {
             setMessage?.(
-                typeof errors === 'string' ? errors : 'Some error occured!',
+                typeof errors === 'string' ? errors : 'Ocurrió un error. Intenta nuevamente.',
             )
             setSubmitting(false)
         }
@@ -60,7 +60,7 @@ const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
             {!emailSent ? (
                 <Form onSubmit={handleSubmit(onForgotPassword)}>
                     <FormItem
-                        label="Email"
+                        label="Correo"
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -70,8 +70,8 @@ const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
                             render={({ field }) => (
                                 <Input
                                     type="email"
-                                    placeholder="Email"
-                                    autoComplete="off"
+                                    placeholder="nombre@empresa.com"
+                                    autoComplete="email"
                                     {...field}
                                 />
                             )}
@@ -83,7 +83,7 @@ const ForgotPasswordForm = (props: ForgotPasswordFormProps) => {
                         variant="solid"
                         type="submit"
                     >
-                        {isSubmitting ? 'Submiting...' : 'Submit'}
+                        {isSubmitting ? 'Enviando...' : 'Enviar instrucciones'}
                     </Button>
                 </Form>
             ) : (

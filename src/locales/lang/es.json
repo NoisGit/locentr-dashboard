@@ -7,7 +7,7 @@
         "companiesDesc": "Empresas y subempresas",
         "users": "Usuarios",
         "usersDesc": "Gestión de usuarios y roles",
-        "locations": "Ubicaciones",
+            "locations": "Edificios",
         "locationsDesc": "Gestión de ubicaciones",
         "accessManagement": "Control de accesos",
         "accessManagementDesc": "Listas de acceso y registros",

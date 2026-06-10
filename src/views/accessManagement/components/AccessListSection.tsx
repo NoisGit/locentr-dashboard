@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
+import EmptyState from '@/components/shared/EmptyState'
 import AccessRuleCard from './AccessRuleCard'
 import AccessRuleForm from './AccessRuleForm'
 import {
@@ -15,8 +16,19 @@ import {
 } from '@/services/AccessManagementService'
 import { buildScopeParams, getErrorMessage, getItems } from '../utils'
 import type { ListType, ScopeType } from '../types'
+import { normalizeUserInput } from '@/utils/security/input'
 
-const AccessListSection = ({ type }: { type: ListType }) => {
+type AccessListSectionProps = {
+    type: ListType
+    canCreate: boolean
+    canRemove: boolean
+}
+
+const AccessListSection = ({
+    type,
+    canCreate,
+    canRemove,
+}: AccessListSectionProps) => {
     const [scope, setScope] = useState<ScopeType>('location')
     const [locationId, setLocationId] = useState(localStorage.getItem('current_location_id') || '')
     const [companyId, setCompanyId] = useState('')
@@ -43,35 +55,30 @@ const AccessListSection = ({ type }: { type: ListType }) => {
     const entries = getItems<AccessListEntry>(data)
 
     const handleSubmit = async () => {
-        if (!idNumber.trim() || !fullName.trim()) return
-        if (scope === 'portfolio') {
-            toast.push(
-                <Notification type="warning">
-                    Admin portfolio scope requires backend confirmation before use.
-                </Notification>,
-                { placement: 'top-center' },
-            )
-            return
-        }
+        const safeIdNumber = normalizeUserInput(idNumber, 80)
+        const safeFullName = normalizeUserInput(fullName, 160)
+        const safeReason = normalizeUserInput(reason, 300)
+        const safeVehiclePlate = normalizeUserInput(vehiclePlate, 20).toUpperCase()
 
+        if (!safeIdNumber || !safeFullName) return
         try {
             setIsSubmitting(true)
             if (type === 'whitelist') {
                 await apiCreateWhitelist(
                     {
-                        id_number: idNumber.trim(),
-                        full_name: fullName.trim(),
-                        reason: reason.trim() || undefined,
-                        vehicle_plate: vehiclePlate.trim() || undefined,
+                        id_number: safeIdNumber,
+                        full_name: safeFullName,
+                        reason: safeReason || undefined,
+                        vehicle_plate: safeVehiclePlate || undefined,
                     },
                     scopeParams,
                 )
             } else {
                 await apiCreateBlacklist(
                     {
-                        id_number: idNumber.trim(),
-                        full_name: fullName.trim(),
-                        reason: reason.trim() || 'Access restriction',
+                        id_number: safeIdNumber,
+                        full_name: safeFullName,
+                        reason: safeReason || 'Restricción de acceso',
                     },
                     scopeParams,
                 )
@@ -82,13 +89,13 @@ const AccessListSection = ({ type }: { type: ListType }) => {
             setReason('')
             setVehiclePlate('')
             await mutate()
-            toast.push(<Notification type="success">Access rule saved.</Notification>, {
+            toast.push(<Notification type="success">Regla de acceso guardada.</Notification>, {
                 placement: 'top-center',
             })
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Access rule could not be saved.')}
+                    {getErrorMessage(error, 'No fue posible guardar la regla de acceso.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -107,13 +114,13 @@ const AccessListSection = ({ type }: { type: ListType }) => {
                 await apiRemoveBlacklist(entry.id_number, scopeParams)
             }
             await mutate()
-            toast.push(<Notification type="success">Access rule removed.</Notification>, {
+            toast.push(<Notification type="success">Regla de acceso eliminada.</Notification>, {
                 placement: 'top-center',
             })
         } catch (error) {
             toast.push(
                 <Notification type="danger">
-                    {getErrorMessage(error, 'Access rule could not be removed.')}
+                    {getErrorMessage(error, 'No fue posible eliminar la regla de acceso.')}
                 </Notification>,
                 { placement: 'top-center' },
             )
@@ -122,30 +129,36 @@ const AccessListSection = ({ type }: { type: ListType }) => {
 
     return (
         <div className="flex flex-col gap-4">
-            <AccessRuleForm
-                companyId={companyId}
-                fullName={fullName}
-                idNumber={idNumber}
-                isSubmitting={isSubmitting}
-                locationId={locationId}
-                reason={reason}
-                scope={scope}
-                setCompanyId={setCompanyId}
-                setFullName={setFullName}
-                setIdNumber={setIdNumber}
-                setLocationId={setLocationId}
-                setReason={setReason}
-                setScope={setScope}
-                setVehiclePlate={setVehiclePlate}
-                type={type}
-                vehiclePlate={vehiclePlate}
-                onSubmit={handleSubmit}
-            />
+            {canCreate ? (
+                <AccessRuleForm
+                    companyId={companyId}
+                    fullName={fullName}
+                    idNumber={idNumber}
+                    isSubmitting={isSubmitting}
+                    locationId={locationId}
+                    reason={reason}
+                    scope={scope}
+                    setCompanyId={setCompanyId}
+                    setFullName={setFullName}
+                    setIdNumber={setIdNumber}
+                    setLocationId={setLocationId}
+                    setReason={setReason}
+                    setScope={setScope}
+                    setVehiclePlate={setVehiclePlate}
+                    type={type}
+                    vehiclePlate={vehiclePlate}
+                    onSubmit={handleSubmit}
+                />
+            ) : null}
 
-            {isLoading ? <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p> : null}
+            {isLoading ? <p className="text-sm text-gray-500 dark:text-gray-400">Cargando registros...</p> : null}
 
             {!isLoading && entries.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No records found.</p>
+                <EmptyState
+                    compact
+                    title="No hay registros en esta lista"
+                    description="Los permisos o restricciones que agregues aparecerán aquí."
+                />
             ) : null}
 
             <div className="flex flex-col gap-3">
@@ -154,7 +167,7 @@ const AccessListSection = ({ type }: { type: ListType }) => {
                         key={`${entry.id_number || entry.id || entry.full_name}`}
                         entry={entry}
                         type={type}
-                        onRemove={handleRemove}
+                        onRemove={canRemove ? handleRemove : undefined}
                     />
                 ))}
             </div>

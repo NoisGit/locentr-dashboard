@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import locentrLogo from '@/assets/locentr-logo.svg'
+import locentrLogoDark from '@/assets/locentr-logo-dark.svg'
 import locentrIcon from '@/assets/locentr-icon.svg'
 import { APP_NAME } from '@/constants/app.constant'
 import { Link } from 'react-router-dom'
@@ -23,9 +24,14 @@ const Logo = (props: LogoProps) => {
         style,
         disableLink = false,
         onlyIcon = false,
+        mode = 'light',
     } = props
 
-    const logoSrc = onlyIcon ? locentrIcon : locentrLogo
+    const logoSrc = onlyIcon
+        ? locentrIcon
+        : mode === 'dark'
+          ? locentrLogoDark
+          : locentrLogo
 
     const alignment = onlyIcon
         ? 'flex items-center w-full pl-6'
@@ -53,7 +59,7 @@ const Logo = (props: LogoProps) => {
         </div>
     )
 
-    return disableLink ? logoContent : <Link to="/dashboards">{logoContent}</Link>
+    return disableLink ? logoContent : <Link to="/dashboard">{logoContent}</Link>
 }
 
 export default Logo

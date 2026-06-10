@@ -8,6 +8,7 @@ import type {
 
 type Auth = {
     authenticated: boolean
+    isAuthLoading: boolean
     user: User
     signIn: (values: SignInCredential) => AuthResult
     signOut: () => void
@@ -35,6 +36,7 @@ const defaultOAuthSignInPlaceHolder = (
 
 const AuthContext = createContext<Auth>({
     authenticated: false,
+    isAuthLoading: false,
     user: {},
     signIn: async () => defaultFunctionPlaceHolder(),
     signOut: () => {},

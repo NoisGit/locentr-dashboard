@@ -56,7 +56,7 @@ const CompanySwitcher = ({ className }: CompanySwitcherProps) => {
   return (
     <div className={className}>
       <Select
-        className="min-w-[220px]"
+        className="min-w-[170px] max-w-[190px]"
         size="sm"
         isSearchable={false}
         isLoading={loading}

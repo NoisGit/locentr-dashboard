@@ -170,14 +170,14 @@ const LocationsDetails = () => {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button icon={<TbArrowLeft />} onClick={() => navigate('/locations')}>
+                        <Button icon={<TbArrowLeft />} onClick={() => navigate('/buildings')}>
                             Volver
                         </Button>
                         {locationIdText ? (
                             <Button
                                 variant="solid"
                                 icon={<TbPencil />}
-                                onClick={() => navigate(`/locations/${locationIdText}/edit`)}
+                                onClick={() => navigate(`/buildings/${locationIdText}/edit`)}
                             >
                                 Editar
                             </Button>

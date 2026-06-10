@@ -12,10 +12,10 @@ const apiPrefix = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000')
 
 const appConfig: AppConfig = {
   apiPrefix,
-  authenticatedEntryPath: '/dashboards',
+  authenticatedEntryPath: '/dashboard',
   unAuthenticatedEntryPath: '/auth/sign-in',
   locale: 'es',
-  accessTokenPersistStrategy: 'localStorage',
+  accessTokenPersistStrategy: 'sessionStorage',
   enableMock: false,
   activeNavTranslation: true,
 }

@@ -4,12 +4,12 @@
   }
 
   .side-nav-content {
-    height: calc(100vh - theme("spacing.16"));
+    height: calc(100vh - 64px);
     @apply overflow-y-auto;
   }
 
   .side-nav-light {
-    @apply bg-white border-r border-gray-200;
+    @apply bg-[#f8faf9] border-r border-gray-200/80;
   }
 
   .side-nav-dark {
@@ -17,6 +17,6 @@
   }
 
   .side-nav-bg {
-    @apply border-r bg-white  border-gray-200 dark:bg-gray-800 dark:border-gray-700;
+    @apply border-r bg-[#f8faf9] border-gray-200/80 dark:bg-gray-900 dark:border-gray-800;
   }
 }

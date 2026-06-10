@@ -28,8 +28,8 @@ const dashboardsRoute: Routes = [
         permissions: [Permission.CREATE_COMPANY],
         meta: {
             header: {
-                title: 'Create company',
-                description: 'Create a new Locentr company.',
+                title: 'Crear empresa',
+                description: 'Registra una nueva empresa en Locentr.',
                 contained: true,
             },
             footer: false,
@@ -43,8 +43,8 @@ const dashboardsRoute: Routes = [
         permissions: [Permission.CREATE_COMPANY],
         meta: {
             header: {
-                title: 'Create subcompany',
-                description: 'Create a subcompany connected to a Locentr company.',
+                title: 'Crear subempresa',
+                description: 'Registra una subempresa vinculada a una empresa de Locentr.',
                 contained: true,
             },
             footer: false,
@@ -58,8 +58,8 @@ const dashboardsRoute: Routes = [
         permissions: [Permission.EDIT_COMPANY],
         meta: {
             header: {
-                title: 'Edit company',
-                description: 'Manage Locentr company information.',
+                title: 'Editar empresa',
+                description: 'Actualiza la información administrativa de la empresa.',
                 contained: true,
             },
             footer: false,
@@ -75,7 +75,7 @@ const dashboardsRoute: Routes = [
     },
     {
         key: 'accessManagement.list',
-        path: '/access-management',
+        path: '/access',
         component: lazy(() => import('@/views/accessManagement/AccessManagement')),
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
         permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
@@ -90,16 +90,8 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
     {
-        key: 'notifications.list',
-        path: '/notifications',
-        component: lazy(() => import('@/views/notifications')),
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
-        permissions: [Permission.VIEW_NOTIFICATIONS],
-        meta: { pageContainerType: 'contained' },
-    },
-    {
         key: 'auditLog.list',
-        path: '/audit-log',
+        path: '/audit',
         component: lazy(() => import('@/views/auditLog')),
         roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_AUDIT_LOG],
@@ -120,8 +112,8 @@ const dashboardsRoute: Routes = [
         permissions: [Permission.CREATE_USER],
         meta: {
             header: {
-                title: 'Create user',
-                description: 'Create users and assign roles inside Locentr.',
+                title: 'Crear usuario',
+                description: 'Registra usuarios y asigna sus roles dentro de Locentr.',
                 contained: true,
             },
             footer: false,
@@ -135,8 +127,8 @@ const dashboardsRoute: Routes = [
         permissions: [Permission.EDIT_USER],
         meta: {
             header: {
-                title: 'Edit user',
-                description: 'Manage user information and role.',
+                title: 'Editar usuario',
+                description: 'Actualiza la información y el rol del usuario.',
                 contained: true,
             },
             footer: false,
@@ -152,6 +144,46 @@ const dashboardsRoute: Routes = [
     },
     {
         key: 'supportTickets.list',
+        path: '/tickets',
+        component: lazy(() => import('@/views/supportTickets/SupportTicketsList')),
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
+        permissions: [Permission.VIEW_SUPPORT_TICKETS],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'supportTickets.details',
+        path: '/tickets/:ticketId',
+        component: lazy(() => import('@/views/supportTickets/SupportTicketDetails')),
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
+        permissions: [Permission.VIEW_SUPPORT_TICKETS],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'dashboard.legacy',
+        path: '/dashboards',
+        component: lazy(() => import('@/views/dashboard/Dashboard')),
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_DASHBOARD],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'accessManagement.legacy',
+        path: '/access-management',
+        component: lazy(() => import('@/views/accessManagement/AccessManagement')),
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'auditLog.legacy',
+        path: '/audit-log',
+        component: lazy(() => import('@/views/auditLog')),
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.VIEW_AUDIT_LOG],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
+        key: 'supportTickets.legacy',
         path: '/support-tickets',
         component: lazy(() => import('@/views/supportTickets/SupportTicketsList')),
         roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],

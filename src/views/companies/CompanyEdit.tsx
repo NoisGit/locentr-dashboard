@@ -41,7 +41,7 @@ const CompanyEdit = () => {
                 logo: cleanValue(values.logo),
             })
 
-            toast.push(<Notification type="success">Company updated successfully.</Notification>, {
+            toast.push(<Notification type="success">Empresa actualizada correctamente.</Notification>, {
                 placement: 'top-center',
             })
             navigate(`/companies/${companyId}`)
@@ -50,7 +50,7 @@ const CompanyEdit = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'Company could not be updated.'
+                'No fue posible actualizar la empresa.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',
@@ -63,7 +63,7 @@ const CompanyEdit = () => {
     return (
         <Loading loading={isLoading}>
             <CompanyForm
-                submitLabel="Save changes"
+                submitLabel="Guardar cambios"
                 submitting={isSubmitting}
                 defaultValues={{
                     name: data?.name || '',

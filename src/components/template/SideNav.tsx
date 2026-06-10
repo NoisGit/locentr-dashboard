@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import locentrLogo from '@/assets/locentr-logo.svg'
+import locentrLogoDark from '@/assets/locentr-logo-dark.svg'
 import locentrIcon from '@/assets/locentr-icon.svg'
 
 import { useThemeStore } from '@/store/themeStore'
@@ -41,11 +42,16 @@ const SideNav = ({
     contentClass,
 }: SideNavProps) => {
     const direction = useThemeStore((state) => state.direction)
+    const mode = useThemeStore((state) => state.mode)
     const sideNavCollapse = useThemeStore((state) => state.layout.sideNavCollapse)
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
     const { user } = useAuth()
 
-    const logoSrc = sideNavCollapse ? locentrIcon : locentrLogo
+    const logoSrc = sideNavCollapse
+        ? locentrIcon
+        : mode === 'dark'
+          ? locentrLogoDark
+          : locentrLogo
 
     return (
         <div
@@ -59,12 +65,12 @@ const SideNav = ({
         >
             <Link
                 to={appConfig.authenticatedEntryPath}
-                className="side-nav-header flex items-center justify-center w-full h-[90px]"
+                className="side-nav-header flex h-[64px] w-full items-center justify-center px-3"
             >
                 <img
                     src={logoSrc}
                     alt={`${APP_NAME} logo`}
-                    className={sideNavCollapse ? 'max-h-[38px]' : 'max-h-[40px]'}
+                    className={sideNavCollapse ? 'max-h-[30px]' : 'max-h-[32px] max-w-[136px]'}
                     style={{ margin: '0 auto', display: 'block', objectFit: 'contain' }}
                     draggable={false}
                 />

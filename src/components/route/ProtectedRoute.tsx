@@ -3,6 +3,7 @@ import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/auth'
+import Loading from '@/components/shared/Loading'
 
 const { unAuthenticatedEntryPath } = appConfig
 
@@ -13,8 +14,12 @@ function isOnAuthPath(pathname: string) {
 }
 
 export default function ProtectedRoute() {
-    const { authenticated } = useAuth()
+    const { authenticated, isAuthLoading } = useAuth()
     const { pathname } = useLocation()
+
+    if (isAuthLoading) {
+        return <Loading loading className="min-h-screen" />
+    }
 
     if (!authenticated) {
         if (isOnAuthPath(pathname)) return <Outlet />

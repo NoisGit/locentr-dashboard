@@ -12,7 +12,7 @@ import Select from '@/components/ui/Select'
 import Checkbox from '@/components/ui/Checkbox'
 import TableRowSkeleton from './loaders/TableRowSkeleton'
 import Loading from './Loading'
-import FileNotFound from '@/assets/svg/FileNotFound'
+import EmptyState from './EmptyState'
 import {
     useReactTable,
     getCoreRowModel,
@@ -38,6 +38,8 @@ type DataTableProps<T> = {
     data?: unknown[]
     loading?: boolean
     noData?: boolean
+    noDataTitle?: string
+    noDataDescription?: string
     instanceId?: string
     onCheckBoxChange?: (checked: boolean, row: T) => void
     onIndeterminateCheckBoxChange?: (checked: boolean, rows: Row<T>[]) => void
@@ -116,6 +118,8 @@ function DataTable<T>(props: DataTableProps<T>) {
         customNoDataIcon,
         loading,
         noData,
+        noDataTitle,
+        noDataDescription,
         onCheckBoxChange,
         onIndeterminateCheckBoxChange,
         onPaginationChange,
@@ -144,7 +148,7 @@ function DataTable<T>(props: DataTableProps<T>) {
         () =>
             pageSizes.map((number) => ({
                 value: number,
-                label: `${number} / page`,
+                label: `${number} por página`,
             })),
         [pageSizes],
     )
@@ -326,18 +330,12 @@ function DataTable<T>(props: DataTableProps<T>) {
                                     className="hover:bg-transparent"
                                     colSpan={finalColumns.length}
                                 >
-                                    <div className="flex flex-col items-center gap-4">
-                                        {customNoDataIcon ? (
-                                            customNoDataIcon
-                                        ) : (
-                                            <>
-                                                <FileNotFound />
-                                                <span className="font-semibold">
-                                                    No data found!
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
+                                    <EmptyState
+                                        compact
+                                        title={noDataTitle}
+                                        description={noDataDescription}
+                                        icon={customNoDataIcon}
+                                    />
                                 </Td>
                             </Tr>
                         ) : (

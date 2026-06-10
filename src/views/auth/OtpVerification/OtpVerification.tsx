@@ -12,10 +12,10 @@ export const OtpVerificationBase = () => {
         try {
             /** simulate api call with sleep */
             await sleep(500)
-            setOtpResend('We have sent you One Time Password.')
+            setOtpResend('Enviamos un nuevo código de verificación.')
         } catch (errors) {
             setMessage?.(
-                typeof errors === 'string' ? errors : 'Some error occured!',
+                typeof errors === 'string' ? errors : 'Ocurrió un error. Intenta nuevamente.',
             )
         }
     }
@@ -23,9 +23,9 @@ export const OtpVerificationBase = () => {
     return (
         <div>
             <div className="mb-8">
-                <h3 className="mb-2">OTP Verification</h3>
+                <h3 className="mb-2">Verificación de identidad</h3>
                 <p className="font-semibold heading-text">
-                    We have sent you One Time Password to your email.
+                    Enviamos un código de un solo uso a tu correo.
                 </p>
             </div>
             {message && (
@@ -48,12 +48,12 @@ export const OtpVerificationBase = () => {
                 setOtpVerified={setOtpVerified}
             />
             <div className="mt-4 text-center">
-                <span className="font-semibold">Din&apos;t receive OTP? </span>
+                <span className="font-semibold">¿No recibiste el código? </span>
                 <button
                     className="heading-text font-bold underline"
                     onClick={handleResendOtp}
                 >
-                    Resend OTP
+                    Reenviar código
                 </button>
             </div>
         </div>

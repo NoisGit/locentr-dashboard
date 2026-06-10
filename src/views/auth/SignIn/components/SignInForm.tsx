@@ -29,7 +29,7 @@ const validationSchema: ZodType<SignInFormSchema> = z.object({
 
 const SignInForm = (props: SignInFormProps) => {
   const [isSubmitting, setSubmitting] = useState(false)
-  const { disableSubmit = false, className, setMessage } = props
+  const { disableSubmit = false, className, passwordHint, setMessage } = props
   const { signIn } = useAuth()
 
   const {
@@ -64,7 +64,14 @@ const SignInForm = (props: SignInFormProps) => {
           <Controller
             name="email"
             control={control}
-            render={({ field }) => <Input type="email" autoComplete="off" {...field} />}
+            render={({ field }) => (
+              <Input
+                type="email"
+                autoComplete="email"
+                placeholder="nombre@empresa.com"
+                {...field}
+              />
+            )}
           />
         </FormItem>
 
@@ -77,9 +84,18 @@ const SignInForm = (props: SignInFormProps) => {
           <Controller
             name="password"
             control={control}
-            render={({ field }) => <PasswordInput type="password" autoComplete="off" {...field} />}
+            render={({ field }) => (
+              <PasswordInput
+                type="password"
+                autoComplete="current-password"
+                placeholder="Ingresa tu contraseña"
+                {...field}
+              />
+            )}
           />
         </FormItem>
+
+        {passwordHint}
 
         <Button block loading={isSubmitting} variant="solid" type="submit">
           {isSubmitting ? 'Ingresando…' : 'Ingresar'}

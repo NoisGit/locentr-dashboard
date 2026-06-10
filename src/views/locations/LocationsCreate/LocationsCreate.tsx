@@ -21,7 +21,7 @@ const LocationsCreate = () => {
             toast.push(<Notification type="success">Ubicación creada correctamente.</Notification>, {
                 placement: 'top-center',
             })
-            navigate('/locations')
+            navigate('/buildings')
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string; detail?: string } } }
             const message =
@@ -38,7 +38,7 @@ const LocationsCreate = () => {
     }
 
     const handleDiscard = () => {
-        navigate('/locations')
+        navigate('/buildings')
     }
 
     return (

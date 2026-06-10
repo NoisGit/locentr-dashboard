@@ -22,18 +22,20 @@ export const SignInBase = ({
         <>
             <div className="mb-8">
                 <Logo
-                    type="streamline"
+                    type="full"
                     mode={mode}
-                    imgClass="mx-auto"
-                    logoWidth={200}
+                    disableLink
+                    logoWidth={170}
                 />
             </div>
 
-            {/* 👇 centrado del bloque de texto */}
-            <div className="mb-10 text-center">
-                <h2 className="mb-2">Welcome back!</h2>
-                <p className="font-semibold heading-text">
-                    Please enter your credentials to sign in!
+            <div className="mb-9">
+                <span className="mb-3 block text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                    Plataforma de operaciones
+                </span>
+                <h2 className="mb-3">Bienvenido a Locentr</h2>
+                <p className="max-w-sm font-normal leading-6 text-gray-500 dark:text-gray-400">
+                    Ingresa a tu espacio de trabajo para gestionar sedes, accesos y equipos.
                 </p>
             </div>
 
@@ -47,46 +49,16 @@ export const SignInBase = ({
                 disableSubmit={disableSubmit}
                 setMessage={setMessage}
                 passwordHint={
-                    <div className="mb-7 mt-2">
+                    <div className="mb-7 mt-2 text-right">
                         <ActionLink
                             to={forgetPasswordUrl}
-                            className="font-semibold heading-text mt-2 underline"
-                            themeColor={false}
+                            className="font-semibold text-primary hover:text-primary-deep"
                         >
-                            Forgot password
+                            ¿Olvidaste tu contraseña?
                         </ActionLink>
                     </div>
                 }
             />
-            {/*
-            <div className="mt-8">
-                <div className="flex items-center gap-2 mb-6">
-                    <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
-                    <p className="font-semibold heading-text">
-                        or countinue with
-                    </p>
-                    <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
-                </div>
-                <OauthSignIn
-                    disableSubmit={disableSubmit}
-                    setMessage={setMessage}
-                />
-            </div>
-            */}
-            {/*
-            <div>
-                <div className="mt-6 text-center">
-                    <span>{`Don't have an account yet?`} </span>
-                    <ActionLink
-                        to={signUpUrl}
-                        className="heading-text font-bold"
-                        themeColor={false}
-                    >
-                        Sign up
-                    </ActionLink>
-                </div>
-            </div>
-            */}
         </>
     )
 }

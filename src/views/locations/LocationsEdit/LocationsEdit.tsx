@@ -45,7 +45,7 @@ const LocationsEdit = () => {
                 placement: 'top-center',
             })
             await mutate()
-            navigate('/locations')
+            navigate('/buildings')
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string; detail?: string } } }
             const message =
@@ -62,7 +62,7 @@ const LocationsEdit = () => {
     }
 
     const handleDiscard = () => {
-        navigate('/locations')
+        navigate('/buildings')
     }
 
     if (!isLoading && !data) return null

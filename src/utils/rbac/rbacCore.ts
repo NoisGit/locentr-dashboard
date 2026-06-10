@@ -43,7 +43,7 @@ export function extractUserRole(user: unknown): Role | null {
     const roleIdCandidates = [
         record.role_id,
         record.roleId,
-        typeof record.role === 'object'
+        record.role !== null && typeof record.role === 'object'
             ? (record.role as Record<string, unknown>).id
             : undefined,
     ]

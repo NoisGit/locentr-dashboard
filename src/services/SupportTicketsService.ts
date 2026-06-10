@@ -53,6 +53,13 @@ export type SupportTicketComment = {
     edited_at?: string | null
 }
 
+export type SupportTicketCommentsResponse =
+    | SupportTicketComment[]
+    | {
+          items?: SupportTicketComment[]
+          list?: SupportTicketComment[]
+      }
+
 export type SupportTicketCommentCreateRequest = {
     content: string
 }
@@ -121,7 +128,7 @@ export async function apiDeleteSupportTicket(ticketId: string | number) {
 }
 
 export async function apiListSupportTicketComments(ticketId: string | number) {
-    return ApiService.fetchDataWithAxios<SupportTicketComment[]>({
+    return ApiService.fetchDataWithAxios<SupportTicketCommentsResponse>({
         url: `${ticketUrl(ticketId)}/comments`,
         method: 'get',
     })

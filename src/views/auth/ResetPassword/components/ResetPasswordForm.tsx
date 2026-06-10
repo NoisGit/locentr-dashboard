@@ -22,13 +22,13 @@ type ResetPasswordFormSchema = {
 
 const validationSchema: ZodType<ResetPasswordFormSchema> = z
     .object({
-        newPassword: z.string({ required_error: 'Please enter your password' }),
+        newPassword: z.string({ required_error: 'Ingresa tu nueva contraseña' }),
         confirmPassword: z.string({
-            required_error: 'Confirm Password Required',
+            required_error: 'Confirma tu nueva contraseña',
         }),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
-        message: 'Your passwords do not match',
+        message: 'Las contraseñas no coinciden',
         path: ['confirmPassword'],
     })
 
@@ -61,7 +61,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
             setMessage?.(
                 typeof errors === 'string'
                     ? errors
-                    : 'Failed to reset password',
+                    : 'No fue posible restablecer la contraseña',
             )
             setSubmitting(false)
         }
@@ -74,7 +74,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
             {!resetComplete ? (
                 <Form onSubmit={handleSubmit(onResetPassword)}>
                     <FormItem
-                        label="Password"
+                        label="Nueva contraseña"
                         invalid={Boolean(errors.newPassword)}
                         errorMessage={errors.newPassword?.message}
                     >
@@ -83,7 +83,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                             control={control}
                             render={({ field }) => (
                                 <PasswordInput
-                                    autoComplete="off"
+                                    autoComplete="new-password"
                                     placeholder="••••••••••••"
                                     {...field}
                                 />
@@ -91,7 +91,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                         />
                     </FormItem>
                     <FormItem
-                        label="Confirm Password"
+                        label="Confirmar contraseña"
                         invalid={Boolean(errors.confirmPassword)}
                         errorMessage={errors.confirmPassword?.message}
                     >
@@ -100,8 +100,8 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                             control={control}
                             render={({ field }) => (
                                 <PasswordInput
-                                    autoComplete="off"
-                                    placeholder="Confirm Password"
+                                    autoComplete="new-password"
+                                    placeholder="Repite tu contraseña"
                                     {...field}
                                 />
                             )}
@@ -113,7 +113,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                         variant="solid"
                         type="submit"
                     >
-                        {isSubmitting ? 'Submiting...' : 'Submit'}
+                        {isSubmitting ? 'Guardando...' : 'Guardar contraseña'}
                     </Button>
                 </Form>
             ) : (

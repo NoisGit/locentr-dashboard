@@ -109,7 +109,6 @@ src/configs/navigation.config/*.ts
 /locations
 /access-management
 /documents
-/notifications
 /audit-log
 /support-tickets
 /auth
@@ -124,7 +123,6 @@ src/views/users
 src/views/locations
 src/views/accessManagement
 src/views/documents
-src/views/notifications
 src/views/auditLog
 src/views/supportTickets
 src/views/auth

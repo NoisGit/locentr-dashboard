@@ -10,21 +10,15 @@ const ModeSwitcher = () => {
   return (
     <button
       aria-label="Cambiar modo claro/oscuro"
-      className={`relative w-14 h-8 rounded-full transition-colors
-        ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}
-        style={{ minWidth: 56 }}
-        onClick={() => setMode(isDark ? 'light' : 'dark')}
+      className={`flex h-9 w-9 min-w-9 items-center justify-center rounded-xl border transition-colors
+        ${
+          isDark
+            ? 'border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-700'
+            : 'border-gray-200 bg-white text-gray-600 hover:border-primary/30 hover:text-primary'
+        }`}
+      onClick={() => setMode(isDark ? 'light' : 'dark')}
     >
-      <span
-        className={`
-          absolute top-1 left-1 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300
-          ${isDark ? 'translate-x-6 bg-gray-800' : 'translate-x-0 bg-yellow-400'}
-        `}
-      >
-        {isDark
-          ? <FiMoon className="text-white" size={20} />
-          : <FiSun className="text-yellow-500" size={20} />}
-      </span>
+      {isDark ? <FiMoon size={17} /> : <FiSun size={17} />}
     </button>
   )
 }

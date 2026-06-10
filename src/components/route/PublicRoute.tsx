@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import appConfig from '@/configs/app.config'
 import { useAuth } from '@/auth'
+import Loading from '@/components/shared/Loading'
 
 const { authenticatedEntryPath } = appConfig
 const AUTH_PREFIX = '/auth'
@@ -10,8 +11,12 @@ function isOnAuthPath(pathname: string) {
 }
 
 export default function PublicRoute() {
-    const { authenticated } = useAuth()
+    const { authenticated, isAuthLoading } = useAuth()
     const { pathname } = useLocation()
+
+    if (isAuthLoading) {
+        return <Loading loading className="min-h-screen" />
+    }
 
     if (!authenticated) return <Outlet />
 

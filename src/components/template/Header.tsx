@@ -46,9 +46,7 @@ const Header = (props: HeaderProps) => {
         )}
 
         <div className="header-action header-action-end flex items-center h-full">
-          {authenticated && (
-            <CompanySwitcher className="hidden md:block mr-3" />
-          )}
+          {authenticated && <CompanySwitcher className="hidden sm:block mr-2" />}
           {headerEnd}
         </div>
       </div>

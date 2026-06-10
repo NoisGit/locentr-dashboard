@@ -44,14 +44,14 @@ const UserDetailsView = () => {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <h3>User details</h3>
+                        <h3>Detalle de usuario</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Coredeck user profile information.
+                            Información de perfil, contacto y rol en Locentr.
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <Button icon={<TbArrowLeft />} onClick={() => navigate('/users')}>
-                            Back
+                            Volver
                         </Button>
                         {userId ? (
                             <Button
@@ -59,7 +59,7 @@ const UserDetailsView = () => {
                                 icon={<TbPencil />}
                                 onClick={() => navigate(`/users/${userId}/edit`)}
                             >
-                                Edit
+                                Editar
                             </Button>
                         ) : null}
                     </div>
@@ -68,20 +68,20 @@ const UserDetailsView = () => {
                 <Card>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Name</div>
-                            <div className="font-medium">{user.full_name || user.name || 'No name'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Nombre</div>
+                            <div className="font-medium">{user.full_name || user.name || 'Sin nombre'}</div>
                         </div>
                         <div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">Email</div>
-                            <div className="font-medium">{user.email || 'No email'}</div>
+                            <div className="font-medium">{user.email || 'Sin correo'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Phone</div>
-                            <div className="font-medium">{user.phone || user.phone_number || 'No phone'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Teléfono</div>
+                            <div className="font-medium">{user.phone || user.phone_number || 'Sin teléfono'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Role</div>
-                            <div className="font-medium">{role || user.role_name || 'No role'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Rol</div>
+                            <div className="font-medium">{role || user.role_name || 'Sin rol'}</div>
                         </div>
                     </div>
                 </Card>

@@ -21,7 +21,7 @@ type ForgotPasswordFormSchema = {
 const OTP_LENGTH = 6
 
 const validationSchema: ZodType<ForgotPasswordFormSchema> = z.object({
-    otp: z.string().min(OTP_LENGTH, { message: 'Please enter a valid OTP' }),
+    otp: z.string().min(OTP_LENGTH, { message: 'Ingresa un código válido' }),
 })
 
 const OtpVerificationForm = (props: OtpVerificationFormProps) => {
@@ -44,10 +44,10 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
             /** simulate api call with sleep */
             await sleep(1000)
             setSubmitting(false)
-            setOtpVerified?.('OTP verified!')
+            setOtpVerified?.('Código verificado correctamente.')
         } catch (errors) {
             setMessage?.(
-                typeof errors === 'string' ? errors : 'Some error occured!',
+                typeof errors === 'string' ? errors : 'Ocurrió un error. Intenta nuevamente.',
             )
             setSubmitting(false)
         }
@@ -82,7 +82,7 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
                     variant="solid"
                     type="submit"
                 >
-                    {isSubmitting ? 'Verifying...' : 'Verify OTP'}
+                    {isSubmitting ? 'Verificando...' : 'Verificar código'}
                 </Button>
             </Form>
         </div>

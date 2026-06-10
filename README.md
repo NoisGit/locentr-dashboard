@@ -2,7 +2,7 @@
 
 Locentr Dashboard is a React + TypeScript frontend for a portfolio SaaS operations platform.
 
-Locentr is centered around companies, subcompanies, locations, access management, documents, support tickets, notifications and audit logs.
+Locentr is centered around companies, subcompanies, locations, access management, documents, support tickets and audit logs.
 
 ## Project Status
 
@@ -34,7 +34,6 @@ Company
 │   └── Location logbook
 ├── Documents
 ├── Support tickets
-├── Notifications
 └── Audit log
 ```
 
@@ -77,6 +76,45 @@ Do not create `WorkspacesService` or new `/workspaces` routes unless the product
 | Validation | Zod |
 | Tables | TanStack Table |
 
+## Local Development
+
+Install dependencies and start the Vite development server:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL printed by Vite, normally:
+
+```text
+http://localhost:5173
+```
+
+Do not serve the repository root with VS Code Live Server. The source
+`index.html` imports `/src/main.tsx`, which must be transformed by Vite.
+
+To preview a production build:
+
+```bash
+npm run build
+npm run preview
+```
+
+Configure the API explicitly:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_PROXY_TARGET=http://127.0.0.1:8000
+```
+
+`VITE_API_BASE_URL` is the URL consumed by Axios. `VITE_API_PROXY_TARGET`
+only controls the optional Vite development proxy and must never contain
+credentials.
+
+VS Code Live Server is configured to serve `build/` only, so `npm run build`
+must be run before using it.
+
 ## Roles
 
 ```text
@@ -98,9 +136,12 @@ Frontend route protection improves UX, but backend authorization remains the sou
 | Locations | `/locations` | `LocationsService` | `/api/v1/locations` |
 | Access Management | `/access-management` | `AccessManagementService` | `/api/v1/whitelists`, `/api/v1/blacklists`, `/api/v1/access-logs` |
 | Documents | `/documents` | `DocumentsService` | `/api/v1/documents` |
-| Notifications | `/notifications` | `NotificationsService` | `/api/v1/notifications` |
 | Audit Log | `/audit-log` | `AuditLogService` | `/api/v1/audit-log` |
 | Support Tickets | `/support-tickets` | `SupportTicketsService` | `/api/v1/support-tickets` |
+
+Notifications remain disabled in routing and navigation until
+`locentr-api#27` registers the router and its OpenAPI methods match the
+frontend contract.
 
 ## Removed or Postponed Concepts
 

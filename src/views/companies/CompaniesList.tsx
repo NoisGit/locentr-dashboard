@@ -3,6 +3,7 @@ import Container from '@/components/shared/Container'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
+import EmptyState from '@/components/shared/EmptyState'
 import useCompaniesList from './useCompaniesList'
 
 const CompaniesList = () => {
@@ -14,9 +15,9 @@ const CompaniesList = () => {
             <Container>
                 <AdaptiveCard>
                     <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-                        <h3>Companies could not be loaded</h3>
+                        <h3>No fue posible cargar las empresas</h3>
                         <Button variant="solid" onClick={() => mutate()}>
-                            Retry
+                            Reintentar
                         </Button>
                     </div>
                 </AdaptiveCard>
@@ -30,25 +31,30 @@ const CompaniesList = () => {
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div>
-                            <h3>Companies</h3>
+                            <h3>Empresas</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Manage companies and subcompanies in Locentr.
+                                Gestiona empresas y subempresas vinculadas a la operación.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             <Button onClick={() => navigate('/companies/subcompany/create')}>
-                                Create subcompany
+                                Crear subempresa
                             </Button>
                             <Button variant="solid" onClick={() => navigate('/companies/create')}>
-                                Create company
+                                Crear empresa
                             </Button>
                         </div>
                     </div>
 
                     {isLoading ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Loading companies...</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Cargando empresas...</p>
                     ) : companies.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">No companies found.</p>
+                        <EmptyState
+                            title="Aún no hay empresas"
+                            description="Crea la primera empresa para comenzar a organizar ubicaciones y equipos."
+                            actionLabel="Crear empresa"
+                            onAction={() => navigate('/companies/create')}
+                        />
                     ) : (
                         <div className="flex flex-col divide-y divide-gray-200 dark:divide-gray-700">
                             {companies.map((company) => (
@@ -64,20 +70,20 @@ const CompaniesList = () => {
                                             {company.name}
                                         </Link>
                                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                                            {company.activity || 'No activity'}
+                                            {company.activity || 'Sin actividad informada'}
                                             {company.id_number ? ` • ${company.id_number}` : ''}
                                         </div>
                                         <div className="flex flex-wrap gap-2">
-                                            <Tag>{company.parent_company_id ? 'Subcompany' : 'Company'}</Tag>
-                                            <Tag>{company.is_active === false ? 'Inactive' : 'Active'}</Tag>
+                                            <Tag>{company.parent_company_id ? 'Subempresa' : 'Empresa'}</Tag>
+                                            <Tag>{company.is_active === false ? 'Inactiva' : 'Activa'}</Tag>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button size="sm" onClick={() => navigate(`/companies/${company.id}`)}>
-                                            View
+                                            Ver
                                         </Button>
                                         <Button size="sm" onClick={() => navigate(`/companies/${company.id}/edit`)}>
-                                            Edit
+                                            Editar
                                         </Button>
                                     </div>
                                 </div>

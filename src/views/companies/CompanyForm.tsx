@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Form } from '@/components/ui/Form'
 import FormItem from '@/components/ui/Form/FormItem'
+import useCompaniesList from './useCompaniesList'
 
 export type CompanyFormSchema = {
     name: string
@@ -26,7 +27,7 @@ type CompanyFormProps = {
 }
 
 const validationSchema = z.object({
-    name: z.string().min(1, { message: 'Company name is required' }),
+    name: z.string().min(1, { message: 'El nombre de la empresa es obligatorio' }),
     activity: z.string().optional(),
     id_number: z.string().optional(),
     type_document: z.string().optional(),
@@ -36,12 +37,13 @@ const validationSchema = z.object({
 
 const CompanyForm = ({
     mode = 'company',
-    submitLabel = 'Save company',
+    submitLabel = 'Guardar empresa',
     submitting,
     defaultValues,
     onSubmit,
     onCancel,
 }: CompanyFormProps) => {
+    const { companies, isLoading: companiesLoading } = useCompaniesList()
     const {
         control,
         handleSubmit,
@@ -64,7 +66,7 @@ const CompanyForm = ({
             <Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                        <FormItem label="Company name" invalid={!!errors.name} errorMessage={errors.name?.message}>
+                        <FormItem label="Nombre de la empresa" invalid={!!errors.name} errorMessage={errors.name?.message}>
                             <Controller
                                 name="name"
                                 control={control}
@@ -73,49 +75,73 @@ const CompanyForm = ({
                         </FormItem>
                     </div>
 
-                    <FormItem label="Activity" invalid={!!errors.activity} errorMessage={errors.activity?.message}>
+                    <FormItem label="Actividad" invalid={!!errors.activity} errorMessage={errors.activity?.message}>
                         <Controller
                             name="activity"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Optional" {...field} />}
+                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
                         />
                     </FormItem>
 
-                    <FormItem label="ID number" invalid={!!errors.id_number} errorMessage={errors.id_number?.message}>
+                    <FormItem label="Identificación tributaria" invalid={!!errors.id_number} errorMessage={errors.id_number?.message}>
                         <Controller
                             name="id_number"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Optional" {...field} />}
+                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
                         />
                     </FormItem>
 
-                    <FormItem label="Document type" invalid={!!errors.type_document} errorMessage={errors.type_document?.message}>
+                    <FormItem label="Tipo de documento" invalid={!!errors.type_document} errorMessage={errors.type_document?.message}>
                         <Controller
                             name="type_document"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Optional" {...field} />}
+                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
                         />
                     </FormItem>
 
-                    <FormItem label="Logo URL" invalid={!!errors.logo} errorMessage={errors.logo?.message}>
+                    <FormItem label="URL del logotipo" invalid={!!errors.logo} errorMessage={errors.logo?.message}>
                         <Controller
                             name="logo"
                             control={control}
-                            render={({ field }) => <Input autoComplete="off" placeholder="Optional" {...field} />}
+                            render={({ field }) => <Input autoComplete="off" placeholder="Opcional" {...field} />}
                         />
                     </FormItem>
 
                     {mode === 'subcompany' ? (
                         <div className="md:col-span-2">
                             <FormItem
-                                label="Parent company ID"
+                                label="Empresa principal"
                                 invalid={!!errors.parent_company_id}
                                 errorMessage={errors.parent_company_id?.message}
                             >
                                 <Controller
                                     name="parent_company_id"
                                     control={control}
-                                    render={({ field }) => <Input autoComplete="off" placeholder="Optional" {...field} />}
+                                    render={({ field }) => (
+                                        <select
+                                            className="input input-md h-11"
+                                            {...field}
+                                        >
+                                            <option value="">
+                                                {companiesLoading
+                                                    ? 'Cargando empresas...'
+                                                    : 'Selecciona una empresa'}
+                                            </option>
+                                            {companies
+                                                .filter(
+                                                    (company) =>
+                                                        !company.parent_company_id,
+                                                )
+                                                .map((company) => (
+                                                    <option
+                                                        key={company.id}
+                                                        value={String(company.id)}
+                                                    >
+                                                        {company.name}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                    )}
                                 />
                             </FormItem>
                         </div>
@@ -124,7 +150,7 @@ const CompanyForm = ({
 
                 <div className="flex justify-end gap-3 mt-6">
                     <Button type="button" onClick={onCancel}>
-                        Cancel
+                        Cancelar
                     </Button>
                     <Button variant="solid" type="submit" loading={!!submitting}>
                         {submitLabel}

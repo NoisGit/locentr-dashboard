@@ -12,29 +12,16 @@ type FooterProps = {
 
 const FooterContent = () => {
     return (
-        <div className="flex items-center justify-between flex-auto w-full">
+        <div className="flex w-full flex-auto items-center justify-between border-t border-gray-200/70 pt-5 dark:border-gray-800">
             <span>
-                Copyright &copy; {`${new Date().getFullYear()}`}{' '}
-                <span className="font-semibold">{`${APP_NAME}`}</span> All
-                rights reserved.
+                &copy; {`${new Date().getFullYear()}`}{' '}
+                <span className="font-semibold text-gray-700 dark:text-gray-200">
+                    {`${APP_NAME}`}
+                </span>
             </span>
-            <div className="">
-                <a
-                    className="text-gray"
-                    href="/#"
-                    onClick={(e) => e.preventDefault()}
-                >
-                    Term & Conditions
-                </a>
-                <span className="mx-2 text-muted"> | </span>
-                <a
-                    className="text-gray"
-                    href="/#"
-                    onClick={(e) => e.preventDefault()}
-                >
-                    Privacy & Policy
-                </a>
-            </div>
+            <span className="hidden text-xs text-gray-400 sm:block">
+                Operación segura y trazable
+            </span>
         </div>
     )
 }
@@ -46,7 +33,7 @@ export default function Footer({
     return (
         <footer
             className={classNames(
-                `footer flex flex-auto items-center h-16 ${PAGE_CONTAINER_GUTTER_X}`,
+                `footer flex flex-auto items-center min-h-20 ${PAGE_CONTAINER_GUTTER_X}`,
                 className,
             )}
         >

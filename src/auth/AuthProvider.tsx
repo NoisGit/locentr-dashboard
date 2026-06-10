@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useSWRConfig } from 'swr'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
@@ -129,7 +129,11 @@ function AuthProvider({ children }: AuthProviderProps) {
     const setUser = useSessionUser((s) => s.setUser)
     const setSessionSignedIn = useSessionUser((s) => s.setSessionSignedIn)
     const { token, setToken, setRefreshToken, clearToken } = useToken()
-    const authenticated = Boolean(token)
+    const hasValidUser = hasAppAccess(user)
+    const authenticated = Boolean(token) && hasValidUser
+    const [isAuthLoading, setIsAuthLoading] = useState(
+        Boolean(token) && !hasValidUser,
+    )
 
     const { setCompanies, reset: resetCompanies } = useCompaniesStore()
     const { mutate, cache } = useSWRConfig()
@@ -212,12 +216,25 @@ function AuthProvider({ children }: AuthProviderProps) {
     const hydrateUserFromApi = async () => {
         if (hydratingRef.current) return
         hydratingRef.current = true
+        setIsAuthLoading(true)
         try {
             const me = await apiMe<unknown>()
+
+            if (!hasAppAccess(me)) {
+                throw new Error('Authenticated user does not have a supported role.')
+            }
+
             applyUser(me)
             void prefetchCompaniesOnce()
+        } catch {
+            clearToken()
+            setUser(emptyUser)
+            setSessionSignedIn(false)
+            prefetchedRef.current = false
+            void resetPerUserState()
         } finally {
             hydratingRef.current = false
+            setIsAuthLoading(false)
         }
     }
 
@@ -303,9 +320,11 @@ function AuthProvider({ children }: AuthProviderProps) {
     }, [token, signedIn, setSessionSignedIn])
 
     useEffect(() => {
-        const hasMinimalUser =
-            isRecord(user) && typeof user.email === 'string' && user.email.length > 0
-        if (token && !hasMinimalUser) void hydrateUserFromApi()
+        if (token && !hasAppAccess(user)) {
+            void hydrateUserFromApi()
+        } else {
+            setIsAuthLoading(false)
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token])
 
@@ -317,7 +336,16 @@ function AuthProvider({ children }: AuthProviderProps) {
     }, [authenticated, user])
 
     return (
-        <AuthContext.Provider value={{ authenticated, user, signIn, signOut, oAuthSignIn }}>
+        <AuthContext.Provider
+            value={{
+                authenticated,
+                isAuthLoading,
+                user,
+                signIn,
+                signOut,
+                oAuthSignIn,
+            }}
+        >
             {children}
             <IsolatedNavigator ref={navigatorRef} />
         </AuthContext.Provider>

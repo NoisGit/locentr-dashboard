@@ -15,24 +15,23 @@ export const useLocaleStore = create<LocaleState>()(
         persist(
             (set) => ({
                 currentLang: appConfig.locale,
-                setLang: (lang: string) => {
-                    const formattedLang = lang.replace(
-                        /-([a-z])/g,
-                        function (g) {
-                            return g[1].toUpperCase()
-                        },
-                    )
+                setLang: () => {
+                    i18n.changeLanguage(appConfig.locale)
 
-                    i18n.changeLanguage(formattedLang)
-
-                    dateLocales[formattedLang]().then(() => {
-                        dayjs.locale(formattedLang)
+                    dateLocales[appConfig.locale]().then(() => {
+                        dayjs.locale(appConfig.locale)
                     })
 
-                    return set({ currentLang: lang })
+                    return set({ currentLang: appConfig.locale })
                 },
             }),
-            { name: 'locale' },
+            {
+                name: 'locale',
+                merge: (_persisted, current) => ({
+                    ...current,
+                    currentLang: appConfig.locale,
+                }),
+            },
         ),
     ),
 )

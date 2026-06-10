@@ -30,6 +30,7 @@ const MobileNav = ({
     const handleDrawerClose = () => setIsOpen(false)
 
     const direction = useThemeStore((s) => s.direction)
+    const mode = useThemeStore((s) => s.mode)
     const currentRouteKey = useRouteKeyStore((s) => s.currentRouteKey)
     const { user } = useAuth()
 
@@ -39,10 +40,10 @@ const MobileNav = ({
                 <MobileNavToggle toggled={isOpen} />
             </div>
             <Drawer
-                title={<Logo logoWidth={160} />}
+                title={<Logo logoWidth={145} mode={mode} />}
                 isOpen={isOpen}
                 bodyClass={classNames('p-0')}
-                width={330}
+                width={280}
                 placement={direction === DIR_RTL ? 'right' : 'left'}
                 onClose={handleDrawerClose}
                 onRequestClose={handleDrawerClose}

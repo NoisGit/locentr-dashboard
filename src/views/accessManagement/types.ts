@@ -1,4 +1,4 @@
-export type TabKey = 'users' | 'whitelist' | 'blacklist' | 'logs'
+export type TabKey = 'whitelist' | 'blacklist' | 'logs'
 
 export type ListType = 'whitelist' | 'blacklist'
 

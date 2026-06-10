@@ -12,7 +12,7 @@ const NameColumn = ({ row }: { row: Location }) => {
     return (
         <Link
             className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100"
-            to={`/locations/${row.id}`}
+            to={`/buildings/${row.id}`}
         >
             {row.name || 'Ubicación sin nombre'}
         </Link>
@@ -64,7 +64,7 @@ const LocationsListTable = () => {
                 header: '',
                 id: 'action',
                 cell: (props) => (
-                    <ActionColumn onEdit={() => navigate(`/locations/${props.row.original.id}/edit`)} />
+                    <ActionColumn onEdit={() => navigate(`/buildings/${props.row.original.id}/edit`)} />
                 ),
             },
         ],

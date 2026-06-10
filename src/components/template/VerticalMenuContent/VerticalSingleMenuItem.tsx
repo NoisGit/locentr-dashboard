@@ -70,6 +70,7 @@ const CollapsedItem = ({
                             className="h-full w-full flex items-center outline-hidden"
                             to={nav.path}
                             target={nav.isExternalLink ? '_blank' : ''}
+                            rel={nav.isExternalLink ? 'noopener noreferrer' : undefined}
                             onClick={() =>
                                 onLinkClick?.({
                                     key: nav.key,
@@ -111,6 +112,7 @@ const DefaultItem = (props: DefaultItemProps) => {
                     to={nav.path}
                     className="flex items-center gap-2 h-full w-full"
                     target={nav.isExternalLink ? '_blank' : ''}
+                    rel={nav.isExternalLink ? 'noopener noreferrer' : undefined}
                     onClick={() =>
                         onLinkClick?.({
                             key: nav.key,

@@ -30,7 +30,7 @@ const CompanyDetails = () => {
         if (!companyId) return
 
         const confirmed = window.confirm(
-            'This company will be deactivated. Its history will remain available if the account is reactivated later.',
+            'La empresa será desactivada. Su historial seguirá disponible si se reactiva más adelante.',
         )
 
         if (!confirmed) return
@@ -39,7 +39,7 @@ const CompanyDetails = () => {
             setIsDeactivating(true)
             await apiDeactivateCompany(companyId)
 
-            toast.push(<Notification type="success">Company deactivated successfully.</Notification>, {
+            toast.push(<Notification type="success">Empresa desactivada correctamente.</Notification>, {
                 placement: 'top-center',
             })
             navigate('/companies')
@@ -48,7 +48,7 @@ const CompanyDetails = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'Company could not be deactivated.'
+                'No fue posible desactivar la empresa.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',
@@ -63,14 +63,14 @@ const CompanyDetails = () => {
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <h3>{data?.name || 'Company details'}</h3>
+                        <h3>{data?.name || 'Detalle de empresa'}</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Company profile and Coredeck metadata.
+                            Información operativa y administrativa de la empresa.
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Button icon={<TbArrowLeft />} onClick={() => navigate('/companies')}>
-                            Back
+                            Volver
                         </Button>
                         {companyId ? (
                             <Button
@@ -78,7 +78,7 @@ const CompanyDetails = () => {
                                 icon={<TbPencil />}
                                 onClick={() => navigate(`/companies/${companyId}/edit`)}
                             >
-                                Edit
+                                Editar
                             </Button>
                         ) : null}
                         {companyId ? (
@@ -90,7 +90,7 @@ const CompanyDetails = () => {
                                 }
                                 onClick={handleDeactivate}
                             >
-                                Deactivate
+                                Desactivar
                             </Button>
                         ) : null}
                     </div>
@@ -99,40 +99,44 @@ const CompanyDetails = () => {
                 <Card>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Name</div>
-                            <div className="font-medium">{data?.name || 'No name'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Nombre</div>
+                            <div className="font-medium">{data?.name || 'Sin nombre'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Status</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Estado</div>
                             <div>
-                                <Tag>{data?.is_active === false ? 'Inactive' : 'Active'}</Tag>
+                                <Tag>{data?.is_active === false ? 'Inactiva' : 'Activa'}</Tag>
                             </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Type</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Tipo</div>
                             <div className="font-medium">
-                                {data?.parent_company_id ? 'Subcompany' : 'Company'}
+                                {data?.parent_company_id ? 'Subempresa' : 'Empresa'}
                             </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Parent company ID</div>
-                            <div className="font-medium">{data?.parent_company_id || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Estructura</div>
+                            <div className="font-medium">
+                                {data?.parent_company_id
+                                    ? 'Vinculada a una empresa principal'
+                                    : 'Empresa principal'}
+                            </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Activity</div>
-                            <div className="font-medium">{data?.activity || 'No activity'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Actividad</div>
+                            <div className="font-medium">{data?.activity || 'Sin actividad informada'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">ID number</div>
-                            <div className="font-medium">{data?.id_number || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Identificación tributaria</div>
+                            <div className="font-medium">{data?.id_number || 'No informada'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Document type</div>
-                            <div className="font-medium">{data?.type_document || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Tipo de documento</div>
+                            <div className="font-medium">{data?.type_document || 'No informado'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Created at</div>
-                            <div className="font-medium">{data?.created_at || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Fecha de creación</div>
+                            <div className="font-medium">{data?.created_at || 'No informada'}</div>
                         </div>
                     </div>
                 </Card>

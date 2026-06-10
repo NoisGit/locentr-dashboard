@@ -13,7 +13,7 @@ type CompanyOption = {
   value: string | number
 }
 
-const LOCATIONS_LIST_PATH = '/locations'
+const LOCATIONS_LIST_PATH = '/buildings'
 
 const CompanySelect = () => {
   const navigate = useNavigate()

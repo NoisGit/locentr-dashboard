@@ -34,7 +34,7 @@ const CompanySubCreate = () => {
                 parent_company_id: toOptionalNumber(values.parent_company_id),
             })
 
-            toast.push(<Notification type="success">Subcompany created successfully.</Notification>, {
+            toast.push(<Notification type="success">Subempresa creada correctamente.</Notification>, {
                 placement: 'top-center',
             })
             navigate('/companies')
@@ -43,7 +43,7 @@ const CompanySubCreate = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'Subcompany could not be created.'
+                'No fue posible crear la subempresa.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',
@@ -56,7 +56,7 @@ const CompanySubCreate = () => {
     return (
         <CompanyForm
             mode="subcompany"
-            submitLabel="Create subcompany"
+            submitLabel="Crear subempresa"
             submitting={isSubmitting}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/companies')}

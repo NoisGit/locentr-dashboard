@@ -51,8 +51,8 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'locations',
-        path: '/locations',
-        title: 'Ubicaciones',
+        path: '/buildings',
+        title: 'Edificios',
         translateKey: 'nav.locations',
         icon: 'landing',
         type: NAV_ITEM_TYPE_ITEM,
@@ -61,14 +61,14 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         meta: {
             description: {
                 translateKey: 'nav.locationsDesc',
-                label: 'Gestión de ubicaciones',
+                label: 'Sedes y edificios',
             },
         },
         subMenu: [],
     },
     {
         key: 'accessManagement',
-        path: '/access-management',
+        path: '/access',
         title: 'Control de accesos',
         translateKey: 'nav.accessManagement',
         icon: 'customers',
@@ -101,25 +101,8 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
-        key: 'notifications',
-        path: '/notifications',
-        title: 'Notificaciones',
-        translateKey: 'nav.notifications',
-        icon: 'notification',
-        type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
-        permissions: [Permission.VIEW_NOTIFICATIONS],
-        meta: {
-            description: {
-                translateKey: 'nav.notificationsDesc',
-                label: 'Alertas y comunicados',
-            },
-        },
-        subMenu: [],
-    },
-    {
         key: 'auditLog',
-        path: '/audit-log',
+        path: '/audit',
         title: 'Auditoría',
         translateKey: 'nav.auditLog',
         icon: 'accountActivityLogs',
@@ -136,7 +119,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
     },
     {
         key: 'tickets',
-        path: '/support-tickets',
+        path: '/tickets',
         title: 'Tickets',
         translateKey: 'nav.tickets',
         icon: 'documentation',

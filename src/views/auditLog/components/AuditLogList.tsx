@@ -50,11 +50,6 @@ const AuditLogList = ({
                 cell: (props) => props.row.original.user_name || 'Desconocido',
             },
             {
-                header: 'Registro',
-                accessorKey: 'record_id',
-                cell: (props) => props.row.original.record_id || 'Sin registro',
-            },
-            {
                 header: 'Fecha',
                 accessorKey: 'created_at',
                 cell: (props) => formatAuditLogDate(props.row.original.created_at),

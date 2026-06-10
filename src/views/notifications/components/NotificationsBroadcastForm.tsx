@@ -26,27 +26,27 @@ const NotificationsBroadcastForm = ({
         <Card>
             <div className="flex flex-col gap-4">
                 <div>
-                    <h5>Broadcast notification</h5>
+                    <h5>Comunicado general</h5>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Send a Coredeck notification to every user.
+                        Envía una notificación a todos los usuarios de la plataforma.
                     </p>
                 </div>
 
                 {!canSend ? (
                     <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                        Your role can review unread notifications, but cannot send broadcasts.
+                        Tu rol puede revisar notificaciones, pero no enviar comunicados generales.
                     </div>
                 ) : null}
 
                 {canSend ? (
                     <>
                         <Input
-                            placeholder="Notification title"
+                            placeholder="Título de la notificación"
                             value={title}
                             onChange={(event) => setTitle(event.target.value)}
                         />
                         <Textarea
-                            placeholder="Notification message"
+                            placeholder="Mensaje de la notificación"
                             rows={4}
                             value={message}
                             onChange={(event) => setMessage(event.target.value)}
@@ -57,7 +57,7 @@ const NotificationsBroadcastForm = ({
                                 variant="solid"
                                 onClick={onSubmit}
                             >
-                                Send to all users
+                                Enviar a todos los usuarios
                             </Button>
                         </div>
                     </>

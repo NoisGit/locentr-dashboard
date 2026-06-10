@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import Container from '@/components/shared/Container'
-import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import DataTable from '@/components/shared/DataTable'
+import Button from '@/components/ui/Button'
+import { TbArrowRight } from 'react-icons/tb'
 import useSupportTicketsList from './useSupportTicketsList'
 import type { ColumnDef } from '@/components/shared/DataTable'
 import type { SupportTicket } from '@/services/SupportTicketsService'
@@ -28,6 +30,7 @@ function formatTicketDate(value?: string) {
 }
 
 const SupportTicketsList = () => {
+    const navigate = useNavigate()
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize, setPageSize] = useState(10)
     const { data, isLoading } = useSupportTicketsList({ pageIndex, pageSize })
@@ -44,7 +47,7 @@ const SupportTicketsList = () => {
                     return (
                         <div className="min-w-0">
                             <div className="font-semibold text-gray-900 dark:text-gray-100">
-                                {ticket.title || `Ticket #${ticket.id}`}
+                                {ticket.title || 'Solicitud de soporte'}
                             </div>
                             <div className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
                                 {ticket.description || 'Sin descripción'}
@@ -63,8 +66,23 @@ const SupportTicketsList = () => {
                 accessorKey: 'created_at',
                 cell: (props) => formatTicketDate(props.row.original.created_at),
             },
+            {
+                header: '',
+                id: 'action',
+                cell: (props) => (
+                    <div className="flex justify-end">
+                        <Button
+                            size="sm"
+                            icon={<TbArrowRight />}
+                            onClick={() => navigate(`/tickets/${props.row.original.id}`)}
+                        >
+                            Abrir
+                        </Button>
+                    </div>
+                ),
+            },
         ],
-        [],
+        [navigate],
     )
 
     const handlePaginationChange = (page: number) => {
@@ -86,7 +104,7 @@ const SupportTicketsList = () => {
                     </p>
                 </div>
 
-                <AdaptiveCard>
+                <section className="border-t border-gray-200 pt-4 dark:border-gray-800">
                     <DataTable
                         columns={columns}
                         data={tickets}
@@ -100,7 +118,7 @@ const SupportTicketsList = () => {
                         onPaginationChange={handlePaginationChange}
                         onSelectChange={handlePageSizeChange}
                     />
-                </AdaptiveCard>
+                </section>
             </div>
         </Container>
     )

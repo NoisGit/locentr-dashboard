@@ -25,7 +25,7 @@ const CompanyCreate = () => {
                 logo: cleanValue(values.logo),
             })
 
-            toast.push(<Notification type="success">Company created successfully.</Notification>, {
+            toast.push(<Notification type="success">Empresa creada correctamente.</Notification>, {
                 placement: 'top-center',
             })
             navigate('/companies')
@@ -34,7 +34,7 @@ const CompanyCreate = () => {
             const message =
                 err?.response?.data?.message ||
                 err?.response?.data?.detail ||
-                'Company could not be created.'
+                'No fue posible crear la empresa.'
 
             toast.push(<Notification type="danger">{message}</Notification>, {
                 placement: 'top-center',
@@ -46,7 +46,7 @@ const CompanyCreate = () => {
 
     return (
         <CompanyForm
-            submitLabel="Create company"
+            submitLabel="Crear empresa"
             submitting={isSubmitting}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/companies')}
