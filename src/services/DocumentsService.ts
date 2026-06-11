@@ -40,6 +40,19 @@ export type DocumentDownloadResponse = {
     url: string
 }
 
+export type DocumentUploadIntentRequest = {
+    company_id: number
+    file_name: string
+    content_type: string
+    size_bytes: number
+}
+
+export type DocumentUploadIntentResponse = {
+    upload_url: string
+    object_name: string
+    expires_at: string
+}
+
 export type PaginatedResponse<T> = {
     items?: T[]
     total?: number
@@ -98,6 +111,19 @@ export async function apiGetDocumentDownloadUrl(documentId: string | number) {
     })
 }
 
+export async function apiCreateDocumentUploadIntent(
+    data: DocumentUploadIntentRequest,
+) {
+    return ApiService.fetchDataWithAxios<
+        DocumentUploadIntentResponse,
+        DocumentUploadIntentRequest
+    >({
+        url: `${DOCUMENTS_BASE}/upload-intent`,
+        method: 'post',
+        data,
+    })
+}
+
 export async function apiCreateDocument(data: DocumentCreateRequest) {
     return ApiService.fetchDataWithAxios<void, DocumentCreateRequest>({
         url: DOCUMENTS_BASE,
@@ -129,6 +155,7 @@ const DocumentsApi = {
     apiListMyCompanyDocuments,
     apiGetDocumentById,
     apiGetDocumentDownloadUrl,
+    apiCreateDocumentUploadIntent,
     apiCreateDocument,
     apiUpdateDocument,
     apiDeleteDocument,

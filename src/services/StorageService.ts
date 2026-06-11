@@ -1,4 +1,5 @@
 import ApiService from '@/services/ApiService'
+import axios from 'axios'
 
 export const STORAGE_BASE = '/api/v1/storage'
 
@@ -57,10 +58,34 @@ export async function apiGenerateDeleteUrl(data: StorageDeleteRequest) {
     })
 }
 
+export async function apiUploadPrivateDocument(
+    uploadUrl: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+) {
+    const response = await axios.put<{ object_name: string }>(uploadUrl, file, {
+        headers: {
+            'Content-Type': file.type,
+        },
+        onUploadProgress: (event) => {
+            if (!event.total || !onProgress) return
+            onProgress(Math.round((event.loaded / event.total) * 100))
+        },
+    })
+    return response.data
+}
+
+export async function apiDownloadPrivateDocument(url: string) {
+    const response = await axios.get<Blob>(url, { responseType: 'blob' })
+    return response.data
+}
+
 const StorageApi = {
     apiGenerateUploadUrl,
     apiGenerateUpdateUrl,
     apiGenerateDeleteUrl,
+    apiUploadPrivateDocument,
+    apiDownloadPrivateDocument,
 }
 
 export default StorageApi
