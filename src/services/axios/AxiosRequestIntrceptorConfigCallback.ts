@@ -17,6 +17,10 @@ import type { InternalAxiosRequestConfig } from 'axios'
 
 const AUTH_PREFIX = '/api/v1/auth'
 const COMPANIES_COLLECTION_PATHS = ['/api/v1/companies', '/api/v1/companies/']
+const PUBLIC_SUBSCRIPTION_PATHS = [
+    '/api/v1/subscriptions/plans',
+    '/api/v1/subscriptions/trial',
+]
 
 function getPathname(raw?: string): string {
     if (!raw) return ''
@@ -31,6 +35,7 @@ function shouldAttachCompany(pathname: string): boolean {
     if (!pathname) return false
     if (pathname === AUTH_PREFIX || pathname.startsWith(`${AUTH_PREFIX}/`)) return false
     if (COMPANIES_COLLECTION_PATHS.includes(pathname)) return false
+    if (PUBLIC_SUBSCRIPTION_PATHS.includes(pathname)) return false
     return true
 }
 

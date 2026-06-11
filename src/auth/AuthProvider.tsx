@@ -147,13 +147,18 @@ function AuthProvider({ children }: AuthProviderProps) {
     const hydratingRef = useRef(false)
     const prefetchedRef = useRef(false)
 
-    const resetPerUserState = async () => {
+    const resetCachedSessionState = () => {
+        prefetchedRef.current = false
         try {
             resetCompanies()
         } catch {}
         try {
             ;(cache as unknown as { clear?: () => void })?.clear?.()
         } catch {}
+    }
+
+    const resetPerUserState = async () => {
+        resetCachedSessionState()
         await mutate(
             (key) =>
                 Array.isArray(key) &&
@@ -197,6 +202,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const handleSignIn = (tokens: Token, u?: AppUser) => {
+        resetCachedSessionState()
         setToken(tokens.accessToken)
         if (tokens.refreshToken) {
             setRefreshToken(tokens.refreshToken)
@@ -220,7 +226,6 @@ function AuthProvider({ children }: AuthProviderProps) {
         clearToken()
         setUser(emptyUser)
         setSessionSignedIn(false)
-        prefetchedRef.current = false
         void resetPerUserState()
     }
 
@@ -241,7 +246,6 @@ function AuthProvider({ children }: AuthProviderProps) {
             clearToken()
             setUser(emptyUser)
             setSessionSignedIn(false)
-            prefetchedRef.current = false
             void resetPerUserState()
         } finally {
             hydratingRef.current = false

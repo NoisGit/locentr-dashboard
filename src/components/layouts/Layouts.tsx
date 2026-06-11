@@ -11,8 +11,10 @@ const Layout = ({ children }: CommonProps) => {
   const layoutType = useThemeStore((state) => state.layout.type)
   const { pathname } = useLocation()
 
-  // Cualquier ruta bajo /auth usa layout liviano (sin sidebar)
-  const isAuthRoute = pathname.startsWith('/auth')
+  const isPreLoginRoute =
+    pathname.startsWith('/auth') ||
+    pathname === '/pricing' ||
+    pathname === '/start-trial'
 
   return (
     <Suspense
@@ -22,7 +24,7 @@ const Layout = ({ children }: CommonProps) => {
         </div>
       }
     >
-      {isAuthRoute ? (
+      {isPreLoginRoute ? (
         <PreLoginLayout>{children}</PreLoginLayout>
       ) : (
         <PostLoginLayout layoutType={layoutType}>{children}</PostLoginLayout>

@@ -101,6 +101,17 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'billing',
+        path: '/settings/billing',
+        title: 'Plan y facturación',
+        translateKey: 'nav.billing',
+        icon: 'billing',
+        type: NAV_ITEM_TYPE_ITEM,
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.VIEW_SETTINGS],
+        subMenu: [],
+    },
+    {
         key: 'auditLog',
         path: '/audit',
         title: 'Auditoría',

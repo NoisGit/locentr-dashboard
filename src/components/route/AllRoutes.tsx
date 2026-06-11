@@ -22,14 +22,38 @@ function toAuthChildPath(path: string) {
     return path.replace(/^\/?auth\/?/, '')
 }
 
+function isAuthRoute(path: string) {
+    return path === '/auth' || path.startsWith('/auth/')
+}
+
 const AllRoutes = (props: AllRoutesProps) => {
     const { user } = useAuth()
+    const authRoutes = publicRoutes.filter((route) => isAuthRoute(route.path))
+    const standalonePublicRoutes = publicRoutes.filter(
+        (route) => !isAuthRoute(route.path),
+    )
 
     return (
         <Routes>
+            <Route element={<PublicRoute />}>
+                {standalonePublicRoutes.map((route) => (
+                    <Route
+                        key={route.key}
+                        path={route.path}
+                        element={
+                            <AppRoute
+                                routeKey={route.key}
+                                component={route.component}
+                                {...route.meta}
+                            />
+                        }
+                    />
+                ))}
+            </Route>
+
             <Route path="/auth/*" element={<PublicRoute />}>
                 <Route index element={<Navigate replace to="sign-in" />} />
-                {publicRoutes.map((route) => (
+                {authRoutes.map((route) => (
                     <Route
                         key={route.key}
                         path={toAuthChildPath(route.path)}

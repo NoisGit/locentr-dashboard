@@ -90,6 +90,14 @@ const dashboardsRoute: Routes = [
         meta: { pageContainerType: 'contained' },
     },
     {
+        key: 'billing.settings',
+        path: '/settings/billing',
+        component: lazy(() => import('@/views/billing')),
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.VIEW_SETTINGS],
+        meta: { pageContainerType: 'contained' },
+    },
+    {
         key: 'auditLog.list',
         path: '/audit',
         component: lazy(() => import('@/views/auditLog')),
