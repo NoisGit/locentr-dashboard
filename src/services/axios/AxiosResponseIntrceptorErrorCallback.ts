@@ -59,20 +59,22 @@ function withBearerPrefix(token: string, tokenType?: string) {
 }
 
 async function refreshAccessToken(client: AxiosInstance) {
-    const { refreshToken, setToken } = useToken()
+    const { refreshToken, setToken, setRefreshToken } = useToken()
     if (!refreshToken) throw new Error('No refresh token available.')
 
     if (!refreshPromise) {
         refreshPromise = client
             .post<{
                 access_token: string
+                refresh_token: string
                 token_type?: string
-            }>(endpointConfig.refreshAccessToken, { refresh_token: refreshToken }, {
+            }>(endpointConfig.refresh, { refresh_token: refreshToken }, {
                 _skipAuthRefresh: true,
             } as RetriableRequestConfig)
             .then(({ data }) => {
                 const token = withBearerPrefix(data.access_token, data.token_type)
                 setToken(token)
+                setRefreshToken(data.refresh_token)
                 return token
             })
             .finally(() => {

@@ -5,7 +5,6 @@ const endpointConfig = {
   signOut: `${AUTH_BASE}/logout`,
   me: `${AUTH_BASE}/me`,
   refresh: `${AUTH_BASE}/refresh`,
-  refreshAccessToken: `${AUTH_BASE}/refresh-access-token`,
   forgotPassword: `${AUTH_BASE}/forgot-password`,
   resetPassword: `${AUTH_BASE}/reset-password`,
 }
