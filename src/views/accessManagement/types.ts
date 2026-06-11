@@ -2,7 +2,7 @@ export type TabKey = 'whitelist' | 'blacklist' | 'logs'
 
 export type ListType = 'whitelist' | 'blacklist'
 
-export type ScopeType = 'location' | 'company' | 'portfolio'
+export type ScopeType = 'location' | 'company'
 
 export type TabItem = {
     key: TabKey

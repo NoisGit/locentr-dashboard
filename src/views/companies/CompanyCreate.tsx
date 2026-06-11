@@ -4,6 +4,7 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import CompanyForm, { type CompanyFormSchema } from './CompanyForm'
 import { apiCreateCompany } from '@/services/CompaniesService'
+import { getApiErrorMessage } from '@/utils/apiError'
 
 function cleanValue(value?: string) {
     const trimmed = value?.trim()
@@ -29,15 +30,12 @@ const CompanyCreate = () => {
             })
             navigate('/companies')
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string; detail?: string } } }
-            const message =
-                err?.response?.data?.message ||
-                err?.response?.data?.detail ||
-                'No fue posible crear la empresa.'
-
-            toast.push(<Notification type="danger">{message}</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No fue posible crear la empresa.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
         } finally {
             setIsSubmitting(false)
         }

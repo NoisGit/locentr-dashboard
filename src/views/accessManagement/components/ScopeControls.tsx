@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import useSWR from 'swr'
-import { apiListCompanies } from '@/services/CompaniesService'
+import { apiGetCompaniesPage, filterCompaniesForUser } from '@/services/CompaniesService'
 import { apiGetLocationsList } from '@/services/LocationsService'
 import type { ScopeOption, ScopeType } from '../types'
+import { useSessionUser } from '@/store/authStore'
 
 const scopeOptions: ScopeOption[] = [
     { value: 'location', label: 'Edificio' },
@@ -25,11 +27,14 @@ const ScopeControls = ({
     companyId,
     setCompanyId,
 }: ScopeControlsProps) => {
-    const { data: companies = [], isLoading: companiesLoading } = useSWR(
-        'access-scope:companies',
-        () => apiListCompanies({ pageIndex: 1, pageSize: 200 }),
+    const role = useSessionUser((state) => state.user.role)
+    const userCompanyId = useSessionUser((state) => state.user.company_id)
+    const { data: companiesPage, isLoading: companiesLoading } = useSWR(
+        ['access-scope:companies', role, userCompanyId],
+        () => apiGetCompaniesPage({ pageIndex: 1, pageSize: 200 }),
         { revalidateOnFocus: false },
     )
+    const companies = filterCompaniesForUser(companiesPage?.items ?? [], role, userCompanyId)
     const { data: locationsData, isLoading: locationsLoading } = useSWR(
         'access-scope:buildings',
         () =>
@@ -41,10 +46,40 @@ const ScopeControls = ({
     )
     const locations = locationsData?.list ?? []
 
+    useEffect(() => {
+        if (!locationsLoading && !locationId) {
+            const suggestedId = localStorage.getItem('current_location_id') || ''
+            if (locations.some((location) => String(location.id) === suggestedId)) {
+                setLocationId(suggestedId)
+                return
+            }
+        }
+
+        if (
+            !locationsLoading &&
+            locationId &&
+            !locations.some((location) => String(location.id) === locationId)
+        ) {
+            setLocationId('')
+        }
+    }, [locationId, locations, locationsLoading, setLocationId])
+
+    useEffect(() => {
+        if (
+            !companiesLoading &&
+            companyId &&
+            !companies.some((company) => String(company.id) === companyId)
+        ) {
+            setCompanyId('')
+        }
+    }, [companies, companiesLoading, companyId, setCompanyId])
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400">Alcance</label>
+                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    Alcance
+                </label>
                 <select
                     className="input input-md h-11"
                     value={scope}
@@ -70,10 +105,6 @@ const ScopeControls = ({
                     <option value="">
                         {locationsLoading ? 'Cargando edificios...' : 'Selecciona un edificio'}
                     </option>
-                    {locationId &&
-                    !locations.some((location) => String(location.id) === locationId) ? (
-                        <option value={locationId}>Edificio seleccionado</option>
-                    ) : null}
                     {locations.map((location) => (
                         <option key={location.id} value={String(location.id)}>
                             {location.name || 'Edificio sin nombre'}

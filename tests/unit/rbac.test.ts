@@ -18,5 +18,25 @@ describe('RBAC', () => {
         expect(user?.role).toBe(Role.OPERATOR)
         expect(hasPermission(user, Permission.VIEW_LOCATION_LOGBOOK)).toBe(true)
         expect(hasPermission(user, Permission.CREATE_COMPANY)).toBe(false)
+        expect(hasPermission(user, Permission.VIEW_ACCESS_MANAGEMENT)).toBe(false)
+        expect(hasPermission(user, Permission.VIEW_ACCESS_LOGS)).toBe(false)
+    })
+
+    it('matches sensitive frontend permissions with backend roles', () => {
+        const admin = createAuthUser({
+            id: 1,
+            email: 'admin@locentr.com',
+            role: 'ADMIN',
+        })
+        const client = createAuthUser({
+            id: 2,
+            email: 'cliente@locentr.com',
+            role: 'CLIENT',
+        })
+
+        expect(hasPermission(admin, Permission.DEACTIVATE_LOCATION)).toBe(true)
+        expect(hasPermission(admin, Permission.VIEW_AUDIT_LOG)).toBe(false)
+        expect(hasPermission(client, Permission.VIEW_ACCESS_LOGS)).toBe(true)
+        expect(hasPermission(client, Permission.VIEW_SUPPORT_TICKETS)).toBe(false)
     })
 })

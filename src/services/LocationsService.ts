@@ -1,4 +1,5 @@
 import ApiService from '@/services/ApiService'
+import { assertCsvUpload } from '@/utils/security/files'
 
 export const LOCATIONS_BASE = '/api/v1/locations/'
 
@@ -6,7 +7,6 @@ export type TableQueries = {
     pageIndex: number
     pageSize: number
     query?: string
-    sort?: { key?: string; order?: 'asc' | 'desc' }
     companyId?: number | string | ''
 }
 
@@ -155,7 +155,7 @@ function pickItemsAndTotal(raw: unknown): { items: unknown[]; total: number } {
     const total = Number(
         raw.total ??
             raw.count ??
-            (isRecord(raw.data) ? raw.data.total ?? raw.data.count : undefined) ??
+            (isRecord(raw.data) ? (raw.data.total ?? raw.data.count) : undefined) ??
             items?.length ??
             0,
     )
@@ -235,10 +235,7 @@ export async function apiGetLocationById(id: string | number) {
     return mapLocationRow(response)
 }
 
-export async function apiUpdateLocation(
-    id: string | number,
-    payload: Partial<LocationPayload>,
-) {
+export async function apiUpdateLocation(id: string | number, payload: Partial<LocationPayload>) {
     return ApiService.fetchDataWithAxios<void, Partial<LocationPayload>>({
         url: `${LOCATIONS_BASE}${cleanId(id)}`,
         method: 'put',
@@ -276,6 +273,7 @@ export async function apiAssignUserToLocation(
 }
 
 export async function apiBulkImportOperators(locationId: string | number, file: File) {
+    assertCsvUpload(file)
     const formData = new FormData()
     formData.append('file', file)
 

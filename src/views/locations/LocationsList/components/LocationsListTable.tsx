@@ -5,7 +5,7 @@ import Tooltip from '@/components/ui/Tooltip'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import useLocationsList from '../hooks/useLocationsList'
-import type { ColumnDef, OnSortParam } from '@/components/shared/DataTable'
+import type { ColumnDef } from '@/components/shared/DataTable'
 import type { Location } from '../types'
 import { useAuth } from '@/auth'
 import { Permission, RBAC } from '@/utils/rbac'
@@ -39,13 +39,8 @@ const LocationsListTable = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const canEdit = RBAC.hasPermission(user, Permission.EDIT_LOCATION)
-    const {
-        locationsList,
-        locationsListTotal,
-        tableData,
-        isLoading,
-        setTableData,
-    } = useLocationsList()
+    const { locationsList, locationsListTotal, tableData, isLoading, setTableData } =
+        useLocationsList()
 
     const columns: ColumnDef<Location>[] = useMemo(
         () => [
@@ -69,7 +64,9 @@ const LocationsListTable = () => {
                 id: 'action',
                 cell: (props) =>
                     canEdit ? (
-                        <ActionColumn onEdit={() => navigate(`/buildings/${props.row.original.id}/edit`)} />
+                        <ActionColumn
+                            onEdit={() => navigate(`/buildings/${props.row.original.id}/edit`)}
+                        />
                     ) : null,
             },
         ],
@@ -89,12 +86,6 @@ const LocationsListTable = () => {
         setTableData(nextTableData)
     }
 
-    const handleSort = (sort: OnSortParam) => {
-        const nextTableData = cloneDeep(tableData)
-        nextTableData.sort = sort
-        setTableData(nextTableData)
-    }
-
     return (
         <DataTable
             columns={columns}
@@ -108,7 +99,6 @@ const LocationsListTable = () => {
             }}
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}
-            onSort={handleSort}
         />
     )
 }

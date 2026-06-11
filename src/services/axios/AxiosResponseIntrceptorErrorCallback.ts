@@ -3,12 +3,19 @@ import { useCompaniesStore } from '@/store/companies/CompaniesStore'
 import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { captureEvent } from '@/services/TelemetryService'
-import type { AxiosError } from 'axios'
+import endpointConfig from '@/configs/endpoint.config'
+import type { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 
 const UNAUTHORIZED_CODES = [401, 419, 440]
 const FORBIDDEN_CODES = [403]
 
 let isRedirecting = false
+let refreshPromise: Promise<string> | null = null
+
+type RetriableRequestConfig = AxiosRequestConfig & {
+    _retry?: boolean
+    _skipAuthRefresh?: boolean
+}
 
 function onAuthPath(pathname: string) {
     return pathname.startsWith('/auth')
@@ -46,10 +53,45 @@ const emptyUser = {
     permissions: [],
 }
 
-const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
+function withBearerPrefix(token: string, tokenType?: string) {
+    if (/^bearer\s+/i.test(token)) return token
+    return `${tokenType || 'Bearer'} ${token}`.trim()
+}
+
+async function refreshAccessToken(client: AxiosInstance) {
+    const { refreshToken, setToken } = useToken()
+    if (!refreshToken) throw new Error('No refresh token available.')
+
+    if (!refreshPromise) {
+        refreshPromise = client
+            .post<{
+                access_token: string
+                token_type?: string
+            }>(endpointConfig.refreshAccessToken, { refresh_token: refreshToken }, {
+                _skipAuthRefresh: true,
+            } as RetriableRequestConfig)
+            .then(({ data }) => {
+                const token = withBearerPrefix(data.access_token, data.token_type)
+                setToken(token)
+                return token
+            })
+            .finally(() => {
+                refreshPromise = null
+            })
+    }
+
+    return refreshPromise
+}
+
+const AxiosResponseIntrceptorErrorCallback = async (error: AxiosError, client: AxiosInstance) => {
     const status = error.response?.status
     const pathname = getPathname(error.config?.url)
     const requestId = error.config?.headers?.['x-request-id']
+    const requestConfig = error.config as RetriableRequestConfig | undefined
+
+    if (status === 401 && requestConfig?._skipAuthRefresh) {
+        return Promise.reject(error)
+    }
 
     if (!status || status === 429 || status >= 500) {
         captureEvent(
@@ -62,6 +104,18 @@ const AxiosResponseIntrceptorErrorCallback = (error: AxiosError) => {
             },
             'error',
         )
+    }
+
+    if (status === 401 && requestConfig && !requestConfig._retry && !onAuthPath(pathname)) {
+        requestConfig._retry = true
+        try {
+            const token = await refreshAccessToken(client)
+            requestConfig.headers = {
+                ...requestConfig.headers,
+                Authorization: token,
+            }
+            return client(requestConfig)
+        } catch {}
     }
 
     if (status && UNAUTHORIZED_CODES.includes(status)) {

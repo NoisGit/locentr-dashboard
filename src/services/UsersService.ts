@@ -8,7 +8,8 @@ export type TableQueries = {
   pageIndex: number
   pageSize: number
   query?: string
-  sort?: { key?: string; order?: 'asc' | 'desc' }
+    role?: UserRole
+    companyId?: number | string | null
 }
 
 export type UserRow = {
@@ -25,6 +26,7 @@ export type UserRow = {
   last_name?: string
   plan_id?: number | null
   company_id?: number | null
+    created_at?: string | null
 }
 
 export type GetUsersListResponse = {
@@ -37,7 +39,7 @@ export type UserCreateRequest = {
   full_name: string
   email: string
   password: string
-  role: UserRole | string
+    role: CreatableUserRole
   plan_id?: number | null
   status?: boolean
 }
@@ -45,7 +47,7 @@ export type UserCreateRequest = {
 export type UserUpdateRequest = Partial<{
   full_name: string
   email: string
-  role: UserRole | string
+    role: CreatableUserRole
   status: boolean
 }>
 
@@ -78,6 +80,7 @@ type UserLike = {
   avatar_url?: string
   photoURL?: string
   photo_url?: string
+    created_at?: string | null
 }
 
 type Dict = Record<string, unknown>
@@ -138,6 +141,7 @@ function adaptUserRow(user: UserLike): UserRow {
     plan_id: user.plan_id,
     company_id: user.company_id,
     avatar: user.avatar ?? user.avatar_url ?? user.photoURL ?? user.photo_url ?? '',
+        created_at: user.created_at,
   }
 }
 
@@ -166,15 +170,15 @@ async function req<T>(cfg: ReqConfig): Promise<T> {
 
 export async function apiGetUsersList<
   T = GetUsersListResponse,
-  Q extends TableQueries = TableQueries
+    Q extends TableQueries = TableQueries,
 >(params: Q): Promise<T> {
   const queryParams: Record<string, unknown> = {}
 
   if (params.pageIndex != null) queryParams.page = params.pageIndex
   if (params.pageSize != null) queryParams.size = params.pageSize
   if (params.query != null) queryParams.search = params.query
-  if (params.sort?.key) queryParams.sort_by = params.sort.key
-  if (params.sort?.order) queryParams.sort_order = params.sort.order
+    if (params.role) queryParams.role = params.role
+    if (params.companyId) queryParams.company_id = params.companyId
 
   const data = await req<unknown>({ url: BASE_COLLECTION, method: 'get', params: queryParams })
   const { items, total } = extractListPayload(data)
@@ -184,7 +188,7 @@ export async function apiGetUsersList<
 }
 
 export async function apiCreateUser(payload: UserCreateRequest) {
-  if (payload.role === 'SUPERADMIN') {
+    if ((payload as { role?: string }).role === 'SUPERADMIN') {
     throw new Error('SUPERADMIN no puede crearse desde el panel.')
   }
   return req<UserRow>({ url: BASE_COLLECTION, method: 'post', data: payload })
@@ -194,30 +198,14 @@ export async function apiGetUserById(id: string | number) {
   const cleanId = String(id).trim().replace(/\/+$/, '')
   const url = `${BASE_ITEM}/${encodeURIComponent(cleanId)}`
 
-  try {
-    return await req<unknown>({ url, method: 'get' })
-  } catch (error) {
-    try {
-      return await req<unknown>({ url: `${url}/`, method: 'get' })
-    } catch {
-      const data = await req<unknown>({
-        url: BASE_COLLECTION,
-        method: 'get',
-        params: { page: 1, size: 50, search: String(cleanId) },
-      })
-      const { items } = extractListPayload(data)
-      const found =
-        (items as UserLike[]).find((item) => String(item.id ?? item._id) === cleanId) ??
-        (items as UserLike[]).find((item) => String(item.user_id ?? item.uid) === cleanId) ??
-        null
-
-      if (!found) throw error
-      return found
-    }
-  }
+    return req<UserRow>({ url, method: 'get' })
 }
 
 export async function apiUpdateUser(id: string | number, patch: UserUpdateRequest) {
+    if ((patch as { role?: string }).role === 'SUPERADMIN') {
+        throw new Error('SUPERADMIN no puede asignarse desde el panel.')
+    }
+
   const cleanId = String(id).replace(/\/+$/, '')
   const url = `${BASE_ITEM}/${encodeURIComponent(cleanId)}`
 

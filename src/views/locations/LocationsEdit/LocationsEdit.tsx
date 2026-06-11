@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
+import EmptyState from '@/components/shared/EmptyState'
 import LocationsForm, { type LocationFormSchema } from '../LocationsForm/LocationsForm'
 import { apiGetLocationById, apiUpdateLocation } from '@/services/LocationsService'
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const LocationsEdit = () => {
     const { id } = useParams()
@@ -12,17 +14,20 @@ const LocationsEdit = () => {
     const locationId = useMemo(() => (id ? String(id).replace(/\/+$/, '') : ''), [id])
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const { data, isLoading, mutate } = useSWR(
+    const { data, error, isLoading, mutate } = useSWR(
         locationId ? ['locations:detail', locationId] : null,
         ([, currentId]) => apiGetLocationById(currentId as string),
         { revalidateOnFocus: false },
     )
 
-    const defaultValues = useMemo((): Partial<LocationFormSchema> => ({
+    const defaultValues = useMemo(
+        (): Partial<LocationFormSchema> => ({
         name: data?.name || '',
         address: data?.address || '',
         country: data?.country || '',
-    }), [data])
+        }),
+        [data],
+    )
 
     const formKey = useMemo(
         () => `location-${locationId}-${data?.name ?? 'empty'}`,
@@ -39,21 +44,21 @@ const LocationsEdit = () => {
                 address: values.address.trim(),
                 country: values.country?.trim() || null,
             })
-            toast.push(<Notification type="success">Edificio actualizado correctamente.</Notification>, {
+            toast.push(
+                <Notification type="success">Edificio actualizado correctamente.</Notification>,
+                {
                 placement: 'top-center',
-            })
+                },
+            )
             await mutate()
             navigate('/buildings')
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string; detail?: string } } }
-            const message =
-                err?.response?.data?.message ||
-                err?.response?.data?.detail ||
-                'No se pudo actualizar el edificio.'
-
-            toast.push(<Notification type="danger">{message}</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No se pudo actualizar el edificio.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
         } finally {
             setIsSubmitting(false)
         }
@@ -63,7 +68,16 @@ const LocationsEdit = () => {
         navigate('/buildings')
     }
 
-    if (!isLoading && !data) return null
+    if (!isLoading && error) {
+        return (
+            <EmptyState
+                title="No fue posible cargar el edificio"
+                description={getApiErrorMessage(error, 'Revisa la conexión e intenta nuevamente.')}
+                actionLabel="Volver a edificios"
+                onAction={() => navigate('/buildings')}
+            />
+        )
+    }
 
     return (
         <LocationsForm

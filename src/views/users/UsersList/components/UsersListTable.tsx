@@ -5,10 +5,17 @@ import Tooltip from '@/components/ui/Tooltip'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil } from 'react-icons/tb'
 import useUsersList from '../hooks/useUsersList'
-import type { ColumnDef, OnSortParam } from '@/components/shared/DataTable'
+import type { ColumnDef } from '@/components/shared/DataTable'
 import type { UserRow } from '@/services/UsersService'
 import { useAuth } from '@/auth'
-import { Permission, RBAC } from '@/utils/rbac'
+import { Permission, RBAC, Role } from '@/utils/rbac'
+
+const roleLabels: Record<string, string> = {
+    SUPERADMIN: 'Superadministrador',
+    ADMIN: 'Administrador',
+    OPERATOR: 'Operador',
+    CLIENT: 'Cliente',
+}
 
 const NameColumn = ({ row }: { row: UserRow }) => {
     return (
@@ -39,13 +46,7 @@ const UsersListTable = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const canEdit = RBAC.hasPermission(user, Permission.EDIT_USER)
-    const {
-        usersList,
-        usersListTotal,
-        tableData,
-        isLoading,
-        setTableData,
-    } = useUsersList()
+    const { usersList, usersListTotal, tableData, isLoading, setTableData } = useUsersList()
 
     const columns: ColumnDef<UserRow>[] = useMemo(
         () => [
@@ -62,18 +63,39 @@ const UsersListTable = () => {
             {
                 header: 'Rol',
                 accessorKey: 'role',
-                cell: (props) => <span>{props.row.original.role || 'Sin rol'}</span>,
+                cell: (props) => (
+                    <span>{roleLabels[String(props.row.original.role)] || 'Sin rol'}</span>
+                ),
+            },
+            {
+                header: 'Estado',
+                accessorKey: 'status',
+                cell: (props) => (
+                    <span>
+                        {props.row.original.is_active === false ||
+                        props.row.original.status === false
+                            ? 'Inactivo'
+                            : 'Activo'}
+                    </span>
+                ),
             },
             {
                 header: '',
                 id: 'action',
                 cell: (props) =>
-                    canEdit ? (
-                        <ActionColumn onEdit={() => navigate(`/users/${props.row.original.id}/edit`)} />
+                    canEdit &&
+                    !(
+                        RBAC.hasRole(user, Role.ADMIN) &&
+                        (props.row.original.role === Role.ADMIN ||
+                            props.row.original.role === Role.SUPERADMIN)
+                    ) ? (
+                        <ActionColumn
+                            onEdit={() => navigate(`/users/${props.row.original.id}/edit`)}
+                        />
                     ) : null,
             },
         ],
-        [canEdit, navigate],
+        [canEdit, navigate, user],
     )
 
     const handlePaginationChange = (page: number) => {
@@ -86,12 +108,6 @@ const UsersListTable = () => {
         const nextTableData = cloneDeep(tableData)
         nextTableData.pageSize = Number(value)
         nextTableData.pageIndex = 1
-        setTableData(nextTableData)
-    }
-
-    const handleSort = (sort: OnSortParam) => {
-        const nextTableData = cloneDeep(tableData)
-        nextTableData.sort = sort
         setTableData(nextTableData)
     }
 
@@ -108,7 +124,6 @@ const UsersListTable = () => {
             }}
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}
-            onSort={handleSort}
         />
     )
 }

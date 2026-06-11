@@ -179,9 +179,7 @@ export async function apiGetCompaniesPage(
     }
 }
 
-export async function apiListCompanies<T = Company[]>(
-    params: ListCompaniesParams = {},
-) {
+export async function apiListCompanies<T = Company[]>(params: ListCompaniesParams = {}) {
     const page = await apiGetCompaniesPage(params)
     return page.items as T
 }
@@ -242,7 +240,7 @@ export async function apiCreateUserAndAssignToCompany(
     companyId: string | number,
     data: CompanyUserCreateRequest,
 ) {
-    if (data.role === 'SUPERADMIN') {
+    if ((data as { role?: string }).role === 'SUPERADMIN') {
         throw new Error('SUPERADMIN no puede crearse desde el panel.')
     }
     return ApiService.fetchDataWithAxios<void, CompanyUserCreateRequest>({

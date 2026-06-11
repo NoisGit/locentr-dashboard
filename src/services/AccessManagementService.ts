@@ -1,4 +1,5 @@
 import ApiService from './ApiService'
+import { assertCsvUpload } from '@/utils/security/files'
 
 export const WHITELISTS_BASE = '/api/v1/whitelists'
 export const BLACKLISTS_BASE = '/api/v1/blacklists'
@@ -112,10 +113,7 @@ export async function apiGetWhitelist(params?: AccessListParams) {
     })
 }
 
-export async function apiCreateWhitelist(
-    data: WhitelistCreateRequest,
-    params?: AccessScopeParams,
-) {
+export async function apiCreateWhitelist(data: WhitelistCreateRequest, params?: AccessScopeParams) {
     return ApiService.fetchDataWithAxios<AccessListEntry, WhitelistCreateRequest>({
         url: `${WHITELISTS_BASE}/`,
         method: 'post',
@@ -125,6 +123,7 @@ export async function apiCreateWhitelist(
 }
 
 export async function apiBulkImportWhitelist(locationId: string | number, file: File) {
+    assertCsvUpload(file)
     const formData = new FormData()
     formData.append('file', file)
 
@@ -136,10 +135,7 @@ export async function apiBulkImportWhitelist(locationId: string | number, file: 
     })
 }
 
-export async function apiRevokeWhitelist(
-    idNumber: string | number,
-    params?: AccessScopeParams,
-) {
+export async function apiRevokeWhitelist(idNumber: string | number, params?: AccessScopeParams) {
     return ApiService.fetchDataWithAxios<void>({
         url: `${WHITELISTS_BASE}/${cleanId(idNumber)}`,
         method: 'delete',
@@ -155,10 +151,7 @@ export async function apiGetBlacklist(params?: AccessListParams) {
     })
 }
 
-export async function apiCreateBlacklist(
-    data: BlacklistCreateRequest,
-    params?: AccessScopeParams,
-) {
+export async function apiCreateBlacklist(data: BlacklistCreateRequest, params?: AccessScopeParams) {
     return ApiService.fetchDataWithAxios<AccessListEntry, BlacklistCreateRequest>({
         url: `${BLACKLISTS_BASE}/`,
         method: 'post',
@@ -168,6 +161,7 @@ export async function apiCreateBlacklist(
 }
 
 export async function apiBulkImportBlacklist(locationId: string | number, file: File) {
+    assertCsvUpload(file)
     const formData = new FormData()
     formData.append('file', file)
 
@@ -179,10 +173,7 @@ export async function apiBulkImportBlacklist(locationId: string | number, file: 
     })
 }
 
-export async function apiRemoveBlacklist(
-    idNumber: string | number,
-    params?: AccessScopeParams,
-) {
+export async function apiRemoveBlacklist(idNumber: string | number, params?: AccessScopeParams) {
     return ApiService.fetchDataWithAxios<void>({
         url: `${BLACKLISTS_BASE}/${cleanId(idNumber)}`,
         method: 'delete',

@@ -7,7 +7,7 @@ const locationsRoute: Routes = [
         key: 'locations.list',
         path: '/buildings',
         component: lazy(() => import('@/views/locations/LocationsList/LocationsList')),
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_LOCATIONS],
     },
     {
@@ -44,7 +44,7 @@ const locationsRoute: Routes = [
         key: 'locations.details',
         path: '/buildings/:id',
         component: lazy(() => import('@/views/locations/LocationsDetails/LocationsDetails')),
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_LOCATIONS],
         meta: { pageContainerType: 'contained' },
     },
@@ -52,7 +52,7 @@ const locationsRoute: Routes = [
         key: 'locations.legacyList',
         path: '/locations',
         component: lazy(() => import('@/views/locations/LocationsList/LocationsList')),
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_LOCATIONS],
     },
     {

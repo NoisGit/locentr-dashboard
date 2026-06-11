@@ -6,7 +6,9 @@ import {
 
 const getCurrentLocationId = () => {
     try {
-        return localStorage.getItem('current_location_id') || ''
+        const value = localStorage.getItem('current_location_id') || ''
+        const locationId = Number(value)
+        return Number.isInteger(locationId) && locationId > 0 ? String(locationId) : ''
     } catch {
         return ''
     }
@@ -17,8 +19,7 @@ const useLocationDashboard = () => {
 
     const { data, error, isLoading, mutate } = useSWR<DashboardStatsResponse>(
         locationId ? ['dashboard:location', locationId] : null,
-        ([, currentLocationId]) =>
-            apiGetLocationDashboardStats(String(currentLocationId)),
+        ([, currentLocationId]) => apiGetLocationDashboardStats(String(currentLocationId)),
         { revalidateOnFocus: false },
     )
 

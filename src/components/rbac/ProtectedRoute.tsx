@@ -88,7 +88,12 @@ const ProtectedRoute = ({
             isLoggingOut = sessionStorage.getItem('__isLoggingOut') === 'true'
         } catch { }
 
-        const currentPath = !isLoggingOut && location.pathname !== '/' ? `?${REDIRECT_URL_KEY}=${location.pathname}` : ''
+        const currentPath =
+            !isLoggingOut && location.pathname !== '/'
+                ? `?${REDIRECT_URL_KEY}=${encodeURIComponent(
+                      `${location.pathname}${location.search}${location.hash}`,
+                  )}`
+                : ''
         return <Navigate to={`${appConfig.unAuthenticatedEntryPath}${currentPath}`} replace />
     }
 

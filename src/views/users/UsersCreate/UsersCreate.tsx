@@ -5,10 +5,8 @@ import toast from '@/components/ui/toast'
 import UsersForm, { type UserFormSchema } from '../UsersForm/UsersForm'
 import { apiCreateUser } from '@/services/UsersService'
 import { apiCreateUserAndAssignToCompany } from '@/services/CompaniesService'
-import {
-    isVirtualCompanyId,
-    useCompaniesStore,
-} from '@/store/companies/CompaniesStore'
+import { isVirtualCompanyId, useCompaniesStore } from '@/store/companies/CompaniesStore'
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const UsersCreate = () => {
     const navigate = useNavigate()
@@ -16,6 +14,8 @@ const UsersCreate = () => {
     const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
 
     const handleFormSubmit = async (values: UserFormSchema) => {
+        if (!values.role) return
+
         try {
             setIsSubmitting(true)
             const username = values.username
@@ -36,10 +36,7 @@ const UsersCreate = () => {
                 selectedCompanyId !== null &&
                 !isVirtualCompanyId(selectedCompanyId)
             ) {
-                await apiCreateUserAndAssignToCompany(
-                    selectedCompanyId,
-                    payload,
-                )
+                await apiCreateUserAndAssignToCompany(selectedCompanyId, payload)
             } else {
                 await apiCreateUser(payload)
             }
@@ -48,15 +45,12 @@ const UsersCreate = () => {
             })
             navigate('/users')
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string; detail?: string } } }
-            const message =
-                err?.response?.data?.message ||
-                err?.response?.data?.detail ||
-                'No se pudo crear el usuario.'
-
-            toast.push(<Notification type="danger">{message}</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No se pudo crear el usuario.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
         } finally {
             setIsSubmitting(false)
         }

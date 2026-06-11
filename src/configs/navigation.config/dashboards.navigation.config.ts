@@ -56,7 +56,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.locations',
         icon: 'buildings',
         type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_LOCATIONS],
         meta: {
             description: {
@@ -73,7 +73,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.accessManagement',
         icon: 'access',
         type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.OPERATOR, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
         permissions: [Permission.VIEW_ACCESS_MANAGEMENT],
         meta: {
             description: {
@@ -107,7 +107,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.auditLog',
         icon: 'audit',
         type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN],
+        roles: [Role.SUPERADMIN],
         permissions: [Permission.VIEW_AUDIT_LOG],
         meta: {
             description: {
@@ -141,7 +141,7 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         translateKey: 'nav.tickets',
         icon: 'tickets',
         type: NAV_ITEM_TYPE_ITEM,
-        roles: [Role.SUPERADMIN, Role.ADMIN, Role.CLIENT],
+        roles: [Role.SUPERADMIN, Role.ADMIN],
         permissions: [Permission.VIEW_SUPPORT_TICKETS],
         meta: {
             description: {

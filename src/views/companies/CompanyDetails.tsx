@@ -5,16 +5,14 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Loading from '@/components/shared/Loading'
+import EmptyState from '@/components/shared/EmptyState'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import { TbArrowLeft, TbPencil, TbPower } from 'react-icons/tb'
-import {
-    apiDeactivateCompany,
-    apiGetCompanyById,
-    type Company,
-} from '@/services/CompaniesService'
+import { apiDeactivateCompany, apiGetCompanyById, type Company } from '@/services/CompaniesService'
 import { useAuth } from '@/auth'
 import { Permission, RBAC, Role } from '@/utils/rbac'
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const CompanyDetails = () => {
     const { id } = useParams()
@@ -25,7 +23,7 @@ const CompanyDetails = () => {
     const canEdit = RBAC.hasPermission(user, Permission.EDIT_COMPANY)
     const canDeactivate = RBAC.hasRole(user, Role.SUPERADMIN)
 
-    const { data, isLoading } = useSWR(
+    const { data, error, isLoading } = useSWR(
         companyId ? ['companies:detail', companyId] : null,
         ([, currentId]) => apiGetCompanyById<Company>(currentId as string),
         { revalidateOnFocus: false },
@@ -44,23 +42,34 @@ const CompanyDetails = () => {
             setIsDeactivating(true)
             await apiDeactivateCompany(companyId)
 
-            toast.push(<Notification type="success">Empresa desactivada correctamente.</Notification>, {
+            toast.push(
+                <Notification type="success">Empresa desactivada correctamente.</Notification>,
+                {
                 placement: 'top-center',
-            })
+                },
+            )
             navigate('/companies')
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string; detail?: string } } }
-            const message =
-                err?.response?.data?.message ||
-                err?.response?.data?.detail ||
-                'No fue posible desactivar la empresa.'
-
-            toast.push(<Notification type="danger">{message}</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No fue posible desactivar la empresa.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
         } finally {
             setIsDeactivating(false)
         }
+    }
+
+    if (!isLoading && error) {
+        return (
+            <EmptyState
+                title="No fue posible cargar la empresa"
+                description={getApiErrorMessage(error, 'Revisa la conexión e intenta nuevamente.')}
+                actionLabel="Volver a empresas"
+                onAction={() => navigate('/companies')}
+            />
+        )
     }
 
     return (
@@ -120,7 +129,9 @@ const CompanyDetails = () => {
                             </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Estructura</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Estructura
+                            </div>
                             <div className="font-medium">
                                 {data?.parent_company_id
                                     ? 'Vinculada a una empresa principal'
@@ -128,19 +139,31 @@ const CompanyDetails = () => {
                             </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Actividad</div>
-                            <div className="font-medium">{data?.activity || 'Sin actividad informada'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Actividad
+                            </div>
+                            <div className="font-medium">
+                                {data?.activity || 'Sin actividad informada'}
+                            </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Identificación tributaria</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Identificación tributaria
+                            </div>
                             <div className="font-medium">{data?.id_number || 'No informada'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Tipo de documento</div>
-                            <div className="font-medium">{data?.type_document || 'No informado'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Tipo de documento
+                            </div>
+                            <div className="font-medium">
+                                {data?.type_document || 'No informado'}
+                            </div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Fecha de creación</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Fecha de creación
+                            </div>
                             <div className="font-medium">{data?.created_at || 'No informada'}</div>
                         </div>
                     </div>

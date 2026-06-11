@@ -8,15 +8,11 @@ import { useLocationsListStore } from '../store/locationsListStore'
 import type { TableQueries } from '@/@types/common'
 import type { LocationsFilter } from '../types'
 
-function buildParams(
-    tableData: TableQueries,
-    filterData: LocationsFilter,
-): LocationsTableQueries {
+function buildParams(tableData: TableQueries, filterData: LocationsFilter): LocationsTableQueries {
     return {
         pageIndex: Number(tableData.pageIndex ?? 1),
         pageSize: Number(tableData.pageSize ?? 10),
         query: String(filterData.query ?? tableData.query ?? ''),
-        sort: tableData.sort as LocationsTableQueries['sort'],
     }
 }
 

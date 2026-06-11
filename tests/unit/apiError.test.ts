@@ -14,4 +14,28 @@ describe('getApiErrorMessage', () => {
     it('uses a safe fallback for unknown values', () => {
         expect(getApiErrorMessage(null, 'No disponible')).toBe('No disponible')
     })
+
+    it('translates known backend messages', () => {
+        const error = {
+            response: {
+                status: 409,
+                data: { detail: 'Email is already in use.' },
+            },
+        }
+
+        expect(getApiErrorMessage(error, 'Error')).toBe('El correo ya está en uso.')
+    })
+
+    it('does not expose unknown English server messages', () => {
+        const error = {
+            response: {
+                status: 500,
+                data: { detail: 'Internal query execution failed' },
+            },
+        }
+
+        expect(getApiErrorMessage(error, 'Error')).toBe(
+            'El servicio no pudo completar la operación.',
+        )
+    })
 })

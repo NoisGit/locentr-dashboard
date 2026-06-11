@@ -3,8 +3,7 @@ import classNames from 'classnames'
 import useDebounce from '@/utils/hooks/useDebounce'
 import type { HTMLAttributes } from 'react'
 
-interface StickyFooterProps
-    extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+interface StickyFooterProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
     stickyClass?: string
     defaultClass?: string
     children?: ReactNode | ((isSticky: boolean) => ReactNode)
@@ -26,11 +25,6 @@ const StickyFooter = (props: StickyFooterProps) => {
         const cachedRef = ref.current
         const observer = new IntersectionObserver(
             ([e]) => {
-                console.log(
-                    'e.intersectionRatio < 1',
-                    e.intersectionRatio,
-                    e.intersectionRatio < 1,
-                )
                 if (!(e.intersectionRatio < 1)) {
                     window.scrollTo({
                         top: document.body.scrollHeight - 1,

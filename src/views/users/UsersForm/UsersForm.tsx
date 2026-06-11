@@ -10,7 +10,7 @@ import BottomStickyBar from '@/components/template/BottomStickyBar'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import { TbTrash } from 'react-icons/tb'
-import type { UserRole } from '@/services/UsersService'
+import type { CreatableUserRole } from '@/services/UsersService'
 import { useSessionUser } from '@/store/authStore'
 import { Role } from '@/utils/rbac/types'
 import {
@@ -26,7 +26,7 @@ export type UserFormSchema = {
     full_name: string
     email: string
     password?: string
-    role: UserRole | string
+    role: CreatableUserRole | ''
     status?: boolean
 }
 
@@ -69,9 +69,7 @@ const UsersForm = ({
     const currentRole = useSessionUser((state) => state.user.role)
     const roleOptions =
         currentRole === Role.ADMIN
-            ? allCreatableRoleOptions.filter(
-                  (option) => option.value !== Role.ADMIN,
-              )
+            ? allCreatableRoleOptions.filter((option) => option.value !== Role.ADMIN)
             : allCreatableRoleOptions
 
     const {
@@ -81,9 +79,7 @@ const UsersForm = ({
         watch,
         formState: { errors },
     } = useForm<UserFormSchema>({
-        resolver: zodResolver(
-            mode === 'create' ? createValidationSchema : baseValidationSchema,
-        ),
+        resolver: zodResolver(mode === 'create' ? createValidationSchema : baseValidationSchema),
         defaultValues: {
             username: '',
             full_name: '',
@@ -95,10 +91,9 @@ const UsersForm = ({
         },
     })
     const username = watch('username')
-    const loginEmail = username ? `${username}@locentr.com` : ''
+    const loginEmail = mode === 'create' && username ? `${username}@locentr.com` : ''
 
-    const finalSubmitLabel =
-        submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear usuario')
+    const finalSubmitLabel = submitLabel ?? (mode === 'edit' ? 'Guardar cambios' : 'Crear usuario')
 
     return (
         <Form
@@ -123,20 +118,18 @@ const UsersForm = ({
                                         autoComplete="off"
                                         placeholder="ej. javita"
                                         suffix="@locentr.com"
+                                        readOnly={mode === 'edit'}
                                         {...field}
                                         onChange={(event) => {
+                                            if (mode === 'edit') return
                                             const value = event.target.value
                                                 .toLowerCase()
                                                 .replace(/@locentr\.com$/i, '')
                                                 .replace(/\s+/g, '')
                                             field.onChange(value)
-                                            setValue(
-                                                'email',
-                                                value
-                                                    ? `${value}@locentr.com`
-                                                    : '',
-                                                { shouldValidate: true },
-                                            )
+                                            setValue('email', value ? `${value}@locentr.com` : '', {
+                                                shouldValidate: true,
+                                            })
                                         }}
                                     />
                                 )}
@@ -151,9 +144,7 @@ const UsersForm = ({
                             <Controller
                                 name="full_name"
                                 control={control}
-                                render={({ field }) => (
-                                    <Input autoComplete="off" {...field} />
-                                )}
+                                render={({ field }) => <Input autoComplete="off" {...field} />}
                             />
                         </FormItem>
 
@@ -167,8 +158,8 @@ const UsersForm = ({
                                 control={control}
                                 render={({ field }) => (
                                     <Input
-                                        readOnly
-                                        className="cursor-default"
+                                        readOnly={mode === 'create'}
+                                        className={mode === 'create' ? 'cursor-default' : undefined}
                                         placeholder="usuario@locentr.com"
                                         {...field}
                                         value={loginEmail || field.value}
@@ -190,19 +181,16 @@ const UsersForm = ({
                                         options={roleOptions}
                                         value={
                                             roleOptions.find(
-                                                (option) =>
-                                                    option.value ===
-                                                    field.value,
+                                                (option) => option.value === field.value,
                                             ) ?? null
                                         }
-                                        onChange={(option) =>
-                                            field.onChange(option?.value ?? '')
-                                        }
+                                        onChange={(option) => field.onChange(option?.value ?? '')}
                                     />
                                 )}
                             />
                         </FormItem>
 
+                        {mode === 'create' ? (
                         <FormItem
                             label="Contraseña"
                             invalid={!!errors.password}
@@ -215,11 +203,28 @@ const UsersForm = ({
                                     <Input
                                         autoComplete="new-password"
                                         type="password"
-                                        placeholder={
-                                            mode === 'edit' ? 'Opcional' : ''
-                                        }
                                         {...field}
                                     />
+                                )}
+                            />
+                        </FormItem>
+                        ) : null}
+
+                        <FormItem label="Estado">
+                            <Controller
+                                name="status"
+                                control={control}
+                                render={({ field }) => (
+                                    <select
+                                        className="input input-md h-11"
+                                        value={field.value === false ? 'false' : 'true'}
+                                        onChange={(event) =>
+                                            field.onChange(event.target.value === 'true')
+                                        }
+                                    >
+                                        <option value="true">Activo</option>
+                                        <option value="false">Suspendido</option>
+                                    </select>
                                 )}
                             />
                         </FormItem>
@@ -240,11 +245,7 @@ const UsersForm = ({
                         >
                             Descartar
                         </Button>
-                        <Button
-                            variant="solid"
-                            type="submit"
-                            loading={!!submitting}
-                        >
+                        <Button variant="solid" type="submit" loading={!!submitting}>
                             {finalSubmitLabel}
                         </Button>
                     </div>

@@ -4,6 +4,7 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import LocationsForm, { type LocationFormSchema } from '../LocationsForm/LocationsForm'
 import { apiCreateLocation } from '@/services/LocationsService'
+import { getApiErrorMessage } from '@/utils/apiError'
 
 const LocationsCreate = () => {
     const navigate = useNavigate()
@@ -22,15 +23,12 @@ const LocationsCreate = () => {
             })
             navigate('/buildings')
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string; detail?: string } } }
-            const message =
-                err?.response?.data?.message ||
-                err?.response?.data?.detail ||
-                'No se pudo crear el edificio.'
-
-            toast.push(<Notification type="danger">{message}</Notification>, {
-                placement: 'top-center',
-            })
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No se pudo crear el edificio.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
         } finally {
             setIsSubmitting(false)
         }
