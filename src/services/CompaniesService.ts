@@ -159,14 +159,15 @@ function mapToCompany(value: unknown): Company | null {
 export async function apiGetCompaniesPage(
     params: ListCompaniesParams = {},
 ): Promise<CompaniesPage> {
-    const { pageIndex = 1, pageSize = 200 } = params
+    const { pageIndex = 1, pageSize = 100 } = params
+    const safePageSize = Math.min(Math.max(pageSize, 1), 100)
 
     const response = await ApiService.fetchDataWithAxios<unknown>({
         url: COMPANIES_COLLECTION,
         method: 'get',
         params: {
             page: pageIndex,
-            size: pageSize,
+            size: safePageSize,
         },
     })
 
