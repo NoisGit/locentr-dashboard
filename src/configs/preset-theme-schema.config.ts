@@ -60,17 +60,17 @@ const greenTheme: ThemeVariables = {
 
 const purpleTheme: ThemeVariables = {
     light: {
-        primary: '#8C62FF',
-        primaryDeep: '#704acc',
-        primaryMild: '#a784ff',
-        primarySubtle: '#8C62FF1a',
+        primary: '#7C3AED',
+        primaryDeep: '#5B21B6',
+        primaryMild: '#8B5CF6',
+        primarySubtle: '#7C3AED18',
         neutral: '#ffffff',
     },
     dark: {
-        primary: '#8C62FF',
-        primaryDeep: '#704acc',
-        primaryMild: '#a784ff',
-        primarySubtle: '#8C62FF1a',
+        primary: '#A78BFA',
+        primaryDeep: '#8B5CF6',
+        primaryMild: '#C4B5FD',
+        primarySubtle: '#A78BFA20',
         neutral: '#ffffff',
     },
 }

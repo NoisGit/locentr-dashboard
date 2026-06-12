@@ -190,13 +190,13 @@ const Landing = () => {
     )
 
     return (
-        <main ref={root} className="min-h-screen overflow-hidden bg-[#07100d] text-[#eef8f2]">
-            <div className="landing-orb-a pointer-events-none absolute left-[-10rem] top-28 h-96 w-96 rounded-full bg-emerald-500/15 blur-[100px] will-change-transform" />
-            <div className="landing-orb-b pointer-events-none absolute right-[-8rem] top-[32rem] h-96 w-96 rounded-full bg-lime-300/10 blur-[110px] will-change-transform" />
+        <main ref={root} className="min-h-screen overflow-hidden bg-[#090816] text-[#f5f3ff]">
+            <div className="landing-orb-a pointer-events-none absolute left-[-10rem] top-28 h-96 w-96 rounded-full bg-violet-600/20 blur-[100px] will-change-transform" />
+            <div className="landing-orb-b pointer-events-none absolute right-[-8rem] top-[32rem] h-96 w-96 rounded-full bg-fuchsia-500/10 blur-[110px] will-change-transform" />
 
             <nav className="landing-nav relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-8">
                 <Link className="flex items-center gap-3" to="/">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#9cff57] text-lg font-black text-[#07100d]">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#8b5cf6] text-lg font-black text-white">
                         L
                     </span>
                     <span className="text-xl font-bold tracking-tight">locentr</span>
@@ -214,7 +214,7 @@ const Landing = () => {
                         Ingresar
                     </Link>
                     <Link
-                        className="rounded-xl bg-[#9cff57] px-4 py-2.5 text-sm font-bold text-[#07100d] transition hover:bg-[#b6ff82]"
+                        className="rounded-xl bg-[#8b5cf6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#a78bfa]"
                         to="/start-trial"
                     >
                         Probar gratis
@@ -224,13 +224,13 @@ const Landing = () => {
 
             <section className="relative mx-auto grid min-h-[820px] max-w-7xl items-center gap-16 px-5 pb-24 pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:pt-10">
                 <div className="landing-hero-copy relative z-10">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-[#9cff57]/25 bg-[#9cff57]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#b6ff82]">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#c4b5fd]">
                         <TbSparkles />
                         Operaciones empresariales, en orden
                     </div>
                     <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
                         Todo lo que ocurre en tus sedes,{' '}
-                        <span className="text-[#9cff57]">bajo control.</span>
+                        <span className="text-[#a78bfa]">bajo control.</span>
                     </h1>
                     <p className="mt-7 max-w-xl text-lg leading-8 text-white/60">
                         Locentr reúne empresas, accesos, equipos, documentos, auditoría, novedades y
@@ -238,7 +238,7 @@ const Landing = () => {
                     </p>
                     <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                         <Link
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#9cff57] px-6 py-3.5 font-bold text-[#07100d] transition hover:bg-[#b6ff82]"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#8b5cf6] px-6 py-3.5 font-bold text-white transition hover:bg-[#a78bfa]"
                             to="/start-trial"
                         >
                             Comenzar 14 días gratis
@@ -252,18 +252,18 @@ const Landing = () => {
                         </Link>
                     </div>
                     <p className="mt-4 flex items-center gap-2 text-sm text-white/45">
-                        <TbCircleCheckFilled className="text-[#9cff57]" />
+                        <TbCircleCheckFilled className="text-[#a78bfa]" />
                         Sin tarjeta. Configuración inicial incluida.
                     </p>
                 </div>
 
                 <div className="landing-dashboard relative z-10 will-change-transform">
-                    <div className="absolute inset-10 rounded-full bg-[#9cff57]/15 blur-3xl" />
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0d1915]/95 p-3 shadow-[0_40px_120px_rgba(0,0,0,0.55)]">
+                    <div className="absolute inset-10 rounded-full bg-[#8b5cf6]/20 blur-3xl" />
+                    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#121024]/95 p-3 shadow-[0_40px_120px_rgba(0,0,0,0.55)]">
                         <div className="flex items-center gap-2 border-b border-white/8 px-3 py-3">
                             <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
                             <span className="h-2.5 w-2.5 rounded-full bg-amber-300/70" />
-                            <span className="h-2.5 w-2.5 rounded-full bg-[#9cff57]/70" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-[#8b5cf6]/80" />
                             <span className="ml-4 text-xs text-white/35">
                                 app.locentr.com/dashboard
                             </span>
@@ -271,7 +271,7 @@ const Landing = () => {
                         <div className="grid min-h-[500px] grid-cols-[80px_1fr] sm:grid-cols-[180px_1fr]">
                             <aside className="border-r border-white/8 p-3 sm:p-5">
                                 <div className="mb-8 flex items-center gap-2">
-                                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#9cff57] font-black text-[#07100d]">
+                                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#8b5cf6] font-black text-white">
                                         L
                                     </span>
                                     <span className="hidden font-bold sm:block">locentr</span>
@@ -289,7 +289,7 @@ const Landing = () => {
                                             key={item}
                                             className={`rounded-lg px-3 py-2.5 text-xs ${
                                                 index === 0
-                                                    ? 'bg-[#9cff57]/15 font-semibold text-[#b6ff82]'
+                                                    ? 'bg-[#8b5cf6]/15 font-semibold text-[#c4b5fd]'
                                                     : 'text-white/35'
                                             }`}
                                         >
@@ -307,7 +307,7 @@ const Landing = () => {
                                         </p>
                                         <h3 className="mt-1 text-xl">Resumen operativo</h3>
                                     </div>
-                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#9cff57] to-emerald-700" />
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#a78bfa] to-indigo-700" />
                                 </div>
                                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                                     {[
@@ -321,7 +321,7 @@ const Landing = () => {
                                         >
                                             <p className="text-xl font-semibold">{value}</p>
                                             <p className="mt-1 text-xs text-white/35">{label}</p>
-                                            <p className="mt-3 text-xs text-[#9cff57]">{delta}</p>
+                                            <p className="mt-3 text-xs text-[#a78bfa]">{delta}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -335,7 +335,7 @@ const Landing = () => {
                                             {[42, 58, 48, 75, 62, 88, 72].map((height, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex-1 rounded-t-md bg-gradient-to-t from-emerald-900 to-[#9cff57]"
+                                                    className="flex-1 rounded-t-md bg-gradient-to-t from-indigo-950 to-[#8b5cf6]"
                                                     style={{
                                                         height: `${height}%`,
                                                         opacity: 0.55 + index * 0.06,
@@ -346,7 +346,7 @@ const Landing = () => {
                                     </div>
                                     <div className="rounded-2xl border border-white/8 bg-white/[0.035] p-4">
                                         <p className="text-xs">Estado de sedes</p>
-                                        <div className="mx-auto mt-5 grid h-24 w-24 place-items-center rounded-full border-[10px] border-[#9cff57] border-r-white/10">
+                                        <div className="mx-auto mt-5 grid h-24 w-24 place-items-center rounded-full border-[10px] border-[#8b5cf6] border-r-white/10">
                                             <span className="text-lg font-bold">94%</span>
                                         </div>
                                         <p className="mt-4 text-center text-xs text-white/35">
@@ -364,7 +364,7 @@ const Landing = () => {
                 <div className="mx-auto grid max-w-7xl gap-8 px-5 py-9 sm:grid-cols-3 lg:px-8">
                     {metrics.map(([value, label]) => (
                         <div key={label} className="text-center">
-                            <p className="text-2xl font-semibold text-[#9cff57]">{value}</p>
+                            <p className="text-2xl font-semibold text-[#a78bfa]">{value}</p>
                             <p className="mt-1 text-sm text-white/45">{label}</p>
                         </div>
                     ))}
@@ -373,7 +373,7 @@ const Landing = () => {
 
             <section id="producto" className="mx-auto max-w-7xl px-5 py-28 lg:px-8">
                 <div className="landing-reveal max-w-3xl">
-                    <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#9cff57]">
+                    <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#a78bfa]">
                         Una sola fuente de verdad
                     </p>
                     <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
@@ -388,9 +388,9 @@ const Landing = () => {
                     {features.map(({ icon: Icon, title, text }) => (
                         <article
                             key={title}
-                            className="landing-feature group rounded-[1.6rem] border border-white/8 bg-white/[0.035] p-6 transition hover:-translate-y-1 hover:border-[#9cff57]/35 hover:bg-[#9cff57]/[0.055]"
+                            className="landing-feature group rounded-[1.6rem] border border-white/8 bg-white/[0.035] p-6 transition hover:-translate-y-1 hover:border-[#8b5cf6]/40 hover:bg-[#8b5cf6]/[0.065]"
                         >
-                            <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#9cff57]/12 text-xl text-[#9cff57]">
+                            <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#8b5cf6]/15 text-xl text-[#c4b5fd]">
                                 <Icon />
                             </div>
                             <h3 className="mt-6 text-xl">{title}</h3>
@@ -401,10 +401,10 @@ const Landing = () => {
             </section>
 
             <section id="seguridad" className="landing-reveal mx-auto max-w-7xl px-5 pb-28 lg:px-8">
-                <div className="overflow-hidden rounded-[2rem] border border-[#9cff57]/20 bg-gradient-to-br from-[#12221b] to-[#09130f] p-8 sm:p-12">
+                <div className="overflow-hidden rounded-[2rem] border border-[#8b5cf6]/25 bg-gradient-to-br from-[#17132b] to-[#0c0a18] p-8 sm:p-12">
                     <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
                         <div>
-                            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#9cff57] text-2xl text-[#07100d]">
+                            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#8b5cf6] text-2xl text-white">
                                 <TbShieldCheck />
                             </div>
                             <h2 className="mt-7 text-4xl font-semibold tracking-[-0.04em]">
@@ -428,7 +428,7 @@ const Landing = () => {
                                     key={item}
                                     className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.035] px-4 py-3"
                                 >
-                                    <TbCheck className="shrink-0 text-lg text-[#9cff57]" />
+                                    <TbCheck className="shrink-0 text-lg text-[#a78bfa]" />
                                     <span className="text-sm text-white/70">{item}</span>
                                 </div>
                             ))}
@@ -440,7 +440,7 @@ const Landing = () => {
             <section id="planes" className="border-y border-white/8 bg-white/[0.018] py-28">
                 <div className="mx-auto max-w-7xl px-5 lg:px-8">
                     <div className="landing-reveal text-center">
-                        <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#9cff57]">
+                        <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#a78bfa]">
                             Planes transparentes
                         </p>
                         <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
@@ -453,12 +453,12 @@ const Landing = () => {
                                 key={plan.code}
                                 className={`landing-feature relative rounded-[1.7rem] border p-7 ${
                                     index === 1
-                                        ? 'border-[#9cff57]/60 bg-[#9cff57]/[0.075]'
+                                        ? 'border-[#8b5cf6]/60 bg-[#8b5cf6]/[0.09]'
                                         : 'border-white/8 bg-white/[0.03]'
                                 }`}
                             >
                                 {index === 1 ? (
-                                    <span className="absolute right-5 top-5 rounded-full bg-[#9cff57] px-3 py-1 text-xs font-bold text-[#07100d]">
+                                    <span className="absolute right-5 top-5 rounded-full bg-[#8b5cf6] px-3 py-1 text-xs font-bold text-white">
                                         Recomendado
                                     </span>
                                 ) : null}
@@ -475,19 +475,19 @@ const Landing = () => {
                                 </p>
                                 <ul className="mt-7 space-y-3 text-sm text-white/65">
                                     <li className="flex gap-2">
-                                        <TbCheck className="text-[#9cff57]" />
+                                        <TbCheck className="text-[#a78bfa]" />
                                         {plan.qty_locations} ubicaciones
                                     </li>
                                     <li className="flex gap-2">
-                                        <TbCheck className="text-[#9cff57]" />
+                                        <TbCheck className="text-[#a78bfa]" />
                                         {plan.qty_admins} administradores
                                     </li>
                                     <li className="flex gap-2">
-                                        <TbCheck className="text-[#9cff57]" />
+                                        <TbCheck className="text-[#a78bfa]" />
                                         {plan.qty_operators} operadores
                                     </li>
                                     <li className="flex gap-2">
-                                        <TbCheck className="text-[#9cff57]" />
+                                        <TbCheck className="text-[#a78bfa]" />
                                         {plan.qty_daily_reads.toLocaleString('es-CL')} accesos
                                         diarios
                                     </li>
@@ -495,7 +495,7 @@ const Landing = () => {
                                 <Link
                                     className={`mt-8 block rounded-xl px-5 py-3 text-center text-sm font-bold ${
                                         index === 1
-                                            ? 'bg-[#9cff57] text-[#07100d]'
+                                            ? 'bg-[#8b5cf6] text-white'
                                             : 'border border-white/12 bg-white/5 text-white'
                                     }`}
                                     to="/start-trial"
@@ -509,17 +509,17 @@ const Landing = () => {
             </section>
 
             <section className="landing-reveal mx-auto max-w-7xl px-5 py-28 lg:px-8">
-                <div className="rounded-[2rem] bg-[#9cff57] px-7 py-14 text-center text-[#07100d] sm:px-12">
+                <div className="rounded-[2rem] bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] px-7 py-14 text-center text-white sm:px-12">
                     <TbLock className="mx-auto text-3xl" />
                     <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">
                         Tu operación merece algo mejor que planillas dispersas.
                     </h2>
-                    <p className="mx-auto mt-5 max-w-2xl text-[#17301f]/75">
+                    <p className="mx-auto mt-5 max-w-2xl text-violet-100/80">
                         Crea tu empresa, invita al equipo y empieza a registrar la operación hoy. No
                         necesitas tarjeta.
                     </p>
                     <Link
-                        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#07100d] px-6 py-3.5 font-bold text-white"
+                        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#090816] px-6 py-3.5 font-bold text-white"
                         to="/start-trial"
                     >
                         Crear mi espacio
@@ -533,13 +533,13 @@ const Landing = () => {
                     <div>
                         <p className="text-lg font-bold">locentr</p>
                         <p className="mt-1 text-sm text-white/35">
-                            Diseñado y desarrollado por Boris Alvia.
+                            Diseñado y desarrollado por Boris Alvial.
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <a
-                            aria-label="GitHub de Boris Alvia"
-                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#9cff57]/50 hover:text-[#9cff57]"
+                            aria-label="GitHub de Boris Alvial"
+                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#8b5cf6]/60 hover:text-[#c4b5fd]"
                             href="https://github.com/NoisGit"
                             rel="noreferrer"
                             target="_blank"
@@ -547,8 +547,8 @@ const Landing = () => {
                             <TbBrandGithub />
                         </a>
                         <a
-                            aria-label="LinkedIn de Boris Alvia"
-                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#9cff57]/50 hover:text-[#9cff57]"
+                            aria-label="LinkedIn de Boris Alvial"
+                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#8b5cf6]/60 hover:text-[#c4b5fd]"
                             href="https://www.linkedin.com/in/borisalvialv/"
                             rel="noreferrer"
                             target="_blank"
@@ -557,7 +557,7 @@ const Landing = () => {
                         </a>
                         <a
                             aria-label="Instagram de Nois Deus"
-                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#9cff57]/50 hover:text-[#9cff57]"
+                            className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/5 text-xl transition hover:border-[#8b5cf6]/60 hover:text-[#c4b5fd]"
                             href="https://www.instagram.com/nois.deus"
                             rel="noreferrer"
                             target="_blank"

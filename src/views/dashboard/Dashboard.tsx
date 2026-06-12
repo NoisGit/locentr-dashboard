@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
+import Chart from '@/components/shared/Chart'
 import Loading from '@/components/shared/Loading'
 import { useAuth } from '@/auth'
 import { useCompaniesStore } from '@/store/companies/CompaniesStore'
@@ -113,11 +114,11 @@ const Dashboard = () => {
     return (
         <Container>
             <div className="flex flex-col gap-8">
-                <section className="relative overflow-hidden rounded-[22px] bg-[#0b4f48] px-5 py-7 text-white shadow-[0_18px_45px_rgba(11,79,72,0.16)] sm:px-8 sm:py-8">
+                <section className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#4c1d95] via-[#5b21b6] to-[#312e81] px-5 py-7 text-white shadow-[0_18px_45px_rgba(76,29,149,0.22)] sm:px-8 sm:py-8">
                     <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full border-[42px] border-white/5" />
                     <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
                         <div className="max-w-2xl">
-                            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#9be4d7]">
+                            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-200">
                                 <TbBuildingCommunity className="text-base" />
                                 Centro de operaciones
                             </div>
@@ -130,7 +131,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                             <Button
-                                className="border-white bg-white text-[#0b4f48] hover:bg-[#edf8f5]"
+                                className="border-white bg-white text-violet-900 hover:bg-violet-50"
                                 variant="solid"
                                 onClick={() => navigate('/buildings')}
                             >
@@ -208,9 +209,9 @@ const Dashboard = () => {
                                 Información agregada de accesos, sin exponer identificadores personales.
                             </p>
                         </div>
-                        <div className="flex flex-col gap-8 border-y border-gray-200 py-6 dark:border-gray-800 lg:flex-row">
+                        <div className="grid gap-6 border-y border-gray-200 py-6 dark:border-gray-800 lg:grid-cols-[0.7fr_1.3fr]">
                             {genderTotal > 0 ? (
-                                <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-8 dark:lg:border-gray-800">
+                                <div className="lg:border-r lg:border-gray-200 lg:pr-8 dark:lg:border-gray-800">
                                     <div className="mb-4 flex items-end justify-between gap-3">
                                         <div>
                                             <h5>Distribución registrada</h5>
@@ -227,7 +228,7 @@ const Dashboard = () => {
                                             }}
                                         />
                                         <div
-                                            className="bg-[#8bb8b1]"
+                                            className="bg-indigo-300 dark:bg-indigo-500"
                                             style={{
                                                 width: `${((genderDistribution?.male ?? 0) / genderTotal) * 100}%`,
                                             }}
@@ -247,31 +248,58 @@ const Dashboard = () => {
                             ) : null}
 
                             {monthlyEntries.length > 0 ? (
-                                <div className="min-w-0 flex-1">
-                                    <h5>Ingresos por mes</h5>
-                                    <div className="mt-4 flex flex-col gap-3">
-                                        {monthlyEntries.slice(-6).map((item) => (
-                                            <div
-                                                key={item.month}
-                                                className="grid grid-cols-[72px_1fr_40px] items-center gap-3 text-sm"
-                                            >
-                                                <span className="truncate text-gray-500 dark:text-gray-400">
-                                                    {item.month}
-                                                </span>
-                                                <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                                                    <div
-                                                        className="h-full rounded-full bg-primary"
-                                                        style={{
-                                                            width: `${(item.count / maxMonthlyEntries) * 100}%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                                <strong className="text-right">
-                                                    {item.count}
-                                                </strong>
-                                            </div>
-                                        ))}
+                                <div className="min-w-0">
+                                    <div className="flex items-end justify-between gap-3">
+                                        <div>
+                                            <h5>Tendencia de accesos</h5>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                Volumen mensual del año en curso.
+                                            </p>
+                                        </div>
+                                        <span className="rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary">
+                                            Máximo {maxMonthlyEntries}
+                                        </span>
                                     </div>
+                                    <Chart
+                                        className="mt-2"
+                                        height={245}
+                                        type="area"
+                                        xAxis={monthlyEntries.slice(-6).map((item) => item.month)}
+                                        series={[
+                                            {
+                                                name: 'Accesos',
+                                                data: monthlyEntries
+                                                    .slice(-6)
+                                                    .map((item) => item.count),
+                                            },
+                                        ]}
+                                        customOptions={{
+                                            chart: {
+                                                toolbar: { show: false },
+                                                zoom: { enabled: false },
+                                            },
+                                            colors: ['#7C3AED'],
+                                            dataLabels: { enabled: false },
+                                            fill: {
+                                                type: 'gradient',
+                                                gradient: {
+                                                    opacityFrom: 0.42,
+                                                    opacityTo: 0.04,
+                                                    stops: [0, 90, 100],
+                                                },
+                                            },
+                                            grid: {
+                                                borderColor: 'rgba(148, 163, 184, 0.16)',
+                                                strokeDashArray: 4,
+                                            },
+                                            stroke: { curve: 'smooth', width: 3 },
+                                            tooltip: { theme: 'dark' },
+                                            yaxis: {
+                                                min: 0,
+                                                forceNiceScale: true,
+                                            },
+                                        }}
+                                    />
                                 </div>
                             ) : null}
                         </div>

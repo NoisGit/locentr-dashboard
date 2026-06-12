@@ -5,43 +5,43 @@
 @layer theme {
 	:root {
 		--neutral: #ffffff;
-		--primary: #147d6f;
-		--primary-deep: #0b6258;
-		--primary-mild: #219889;
-		--primary-subtle: #147d6f16;
+		--primary: #7c3aed;
+		--primary-deep: #5b21b6;
+		--primary-mild: #8b5cf6;
+		--primary-subtle: #7c3aed18;
 		--error: #ff6a55;
 		--error-subtle: #ff6a551a;
 		--success: #10b981;
 		--success-subtle: #05eb7624;
-		--info: #287b9c;
-		--info-subtle: #287b9c1a;
+		--info: #4f46e5;
+		--info-subtle: #4f46e51a;
 		--warning: #f59e0b;
 		--warning-subtle: #ffd40045;
-		--gray-50: #f7f9f8;
-		--gray-100: #eef2f0;
-		--gray-200: #dfe7e3;
-		--gray-300: #c7d2cd;
-		--gray-400: #91a09a;
-		--gray-500: #66756f;
-		--gray-600: #4a5954;
-		--gray-700: #35423e;
-		--gray-800: #202c29;
-		--gray-900: #14201d;
-		--gray-950: #091310;
+		--gray-50: #faf9ff;
+		--gray-100: #f4f2fa;
+		--gray-200: #e7e3f0;
+		--gray-300: #d4cede;
+		--gray-400: #9c94aa;
+		--gray-500: #71697f;
+		--gray-600: #574f64;
+		--gray-700: #403948;
+		--gray-800: #29242f;
+		--gray-900: #19151f;
+		--gray-950: #0d0a12;
 	}
 
 	.dark {
 		--neutral: #ffffff;
-		--primary: #38b9a5;
-		--primary-deep: #239985;
-		--primary-mild: #61cbb9;
-		--primary-subtle: #38b9a51f;
+		--primary: #a78bfa;
+		--primary-deep: #8b5cf6;
+		--primary-mild: #c4b5fd;
+		--primary-subtle: #a78bfa20;
 		--error: #ff6a55;
 		--error-subtle: #ff6a551a; 
 		--success: #10b981;
 		--success-subtle: #05eb7624;
-		--info: #56a9c8;
-		--info-subtle: #56a9c81f;
+		--info: #818cf8;
+		--info-subtle: #818cf81f;
 		--warning: #f59e0b;
 		--warning-subtle: #ffd40045;
 		--gray-50: #fafafa;
@@ -51,10 +51,10 @@
 		--gray-400: #a3a3a3;
 		--gray-500: #737373;
 		--gray-600: #525252;
-		--gray-700: #404040;
-		--gray-800: #262626;
-		--gray-900: #171717;
-		--gray-950: #0a0a0a;
+		--gray-700: #3f3a49;
+		--gray-800: #292531;
+		--gray-900: #19161f;
+		--gray-950: #0d0a12;
 	}
 }
 
