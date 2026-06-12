@@ -1,0 +1,69 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import Notification from '@/components/ui/Notification'
+import toast from '@/components/ui/toast'
+import UsersForm, { type UserFormSchema } from '../UsersForm/UsersForm'
+import { apiCreateUser } from '@/services/UsersService'
+import { apiCreateUserAndAssignToCompany } from '@/services/CompaniesService'
+import { isVirtualCompanyId, useCompaniesStore } from '@/store/companies/CompaniesStore'
+import { getApiErrorMessage } from '@/utils/apiError'
+
+const UsersCreate = () => {
+    const navigate = useNavigate()
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
+
+    const handleFormSubmit = async (values: UserFormSchema) => {
+        if (!values.role) return
+
+        try {
+            setIsSubmitting(true)
+            const username = values.username
+                .trim()
+                .toLowerCase()
+                .replace(/@locentr\.com$/i, '')
+            const payload = {
+                username,
+                full_name: values.full_name.trim(),
+                email: `${username}@locentr.com`,
+                password: values.password?.trim() || '',
+                role: values.role,
+                status: values.status ?? true,
+            }
+
+            if (
+                selectedCompanyId !== undefined &&
+                selectedCompanyId !== null &&
+                !isVirtualCompanyId(selectedCompanyId)
+            ) {
+                await apiCreateUserAndAssignToCompany(selectedCompanyId, payload)
+            } else {
+                await apiCreateUser(payload)
+            }
+            toast.push(<Notification type="success">Usuario creado correctamente.</Notification>, {
+                placement: 'top-center',
+            })
+            navigate('/users')
+        } catch (error: unknown) {
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(error, 'No se pudo crear el usuario.')}
+                </Notification>,
+                { placement: 'top-center' },
+            )
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    return (
+        <UsersForm
+            mode="create"
+            submitting={isSubmitting}
+            onFormSubmit={handleFormSubmit}
+            onDiscard={() => navigate('/users')}
+        />
+    )
+}
+
+export default UsersCreate

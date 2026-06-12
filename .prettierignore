@@ -1,0 +1,9 @@
+build
+coverage
+node_modules
+playwright-report
+test-results
+
+src/assets/styles
+src/index.css
+package-lock.json

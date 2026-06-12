@@ -1,0 +1,32 @@
+{
+    "nav": {
+        "dashboard": {
+            "dashboard": "Panel"
+        },
+        "companies": "Empresas",
+        "companiesDesc": "Empresas y subempresas",
+        "users": "Usuarios",
+        "usersDesc": "Gestión de usuarios y roles",
+        "locations": "Edificios",
+        "locationsDesc": "Gestión de edificios",
+        "accessManagement": "Control de accesos",
+        "accessManagementDesc": "Listas de acceso y registros",
+        "documents": "Documentos",
+        "documentsDesc": "Archivos de empresas y ubicaciones",
+        "notifications": "Notificaciones",
+        "notificationsDesc": "Alertas y comunicados",
+        "auditLog": "Auditoría",
+        "auditLogDesc": "Actividad de seguridad y sistema",
+        "logbook": "Libro de novedades",
+        "logbookDesc": "Novedades del edificio",
+        "tickets": "Tickets",
+        "ticketsDesc": "Soporte y solicitudes"
+    },
+    "auth": {
+        "signIn": "Iniciar sesión",
+        "forgotPassword": "Recuperar contraseña",
+        "resetPassword": "Restablecer contraseña",
+        "otpVerification": "Verificación de código",
+        "companySelect": "Seleccionar empresa"
+    }
+}
