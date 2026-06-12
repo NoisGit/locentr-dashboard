@@ -101,6 +101,17 @@ const dashboardsNavigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'team',
+        path: '/settings/team',
+        title: 'Equipo y licencias',
+        translateKey: 'nav.team',
+        icon: 'team',
+        type: NAV_ITEM_TYPE_ITEM,
+        roles: [Role.SUPERADMIN, Role.ADMIN],
+        permissions: [Permission.VIEW_SETTINGS],
+        subMenu: [],
+    },
+    {
         key: 'billing',
         path: '/settings/billing',
         title: 'Plan y facturación',

@@ -6,28 +6,48 @@ import { apiGetAccessLogs, type AccessLog } from '@/services/AccessManagementSer
 import { apiGetLocationsList } from '@/services/LocationsService'
 import { getErrorMessage, getItems, getTotal } from '../utils'
 import EmptyState from '@/components/shared/EmptyState'
+import { useSessionUser } from '@/store/authStore'
+import { isVirtualCompanyId, useCompaniesStore } from '@/store/companies/CompaniesStore'
 import type { ColumnDef } from '@/components/shared/DataTable'
 
 const AccessLogsSection = () => {
+    const userCompanyId = useSessionUser((state) => state.user.company_id)
+    const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
+    const companyId =
+        selectedCompanyId !== undefined &&
+        selectedCompanyId !== null &&
+        !isVirtualCompanyId(selectedCompanyId)
+            ? selectedCompanyId
+            : (userCompanyId ?? undefined)
     const [locationId, setLocationId] = useState('')
     const [search, setSearch] = useState('')
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize, setPageSize] = useState(10)
 
     const { data: locationsData, isLoading: locationsLoading } = useSWR(
-        'access-logs:buildings',
-        () => apiGetLocationsList({ pageIndex: 1, pageSize: 200 }),
+        companyId ? ['access-logs:buildings', companyId] : null,
+        () => apiGetLocationsList({ pageIndex: 1, pageSize: 100, companyId }),
         { revalidateOnFocus: false },
     )
-    const locations = locationsData?.list ?? []
+    const locations = useMemo(() => locationsData?.list ?? [], [locationsData?.list])
 
     useEffect(() => {
-        if (locationsLoading || locationId) return
+        if (locationsLoading) return
 
         const suggestedId = localStorage.getItem('current_location_id') || ''
-        if (locations.some((location) => String(location.id) === suggestedId)) {
-            setLocationId(suggestedId)
-    }
+        const suggestedLocation = locations.find(
+            (location) => String(location.id) === suggestedId,
+        )
+        const nextLocationId = suggestedLocation
+            ? String(suggestedLocation.id)
+            : locations[0]
+              ? String(locations[0].id)
+              : ''
+
+        if (nextLocationId !== locationId) {
+            setLocationId(nextLocationId)
+            setPageIndex(1)
+        }
     }, [locationId, locations, locationsLoading])
 
     const { data, error, isLoading, mutate } = useSWR(
@@ -111,11 +131,11 @@ const AccessLogsSection = () => {
                         ))}
                     </select>
                 </label>
-            <EmptyState
-                compact
+                <EmptyState
+                    compact
                     title="Selecciona un edificio"
                     description="Elige una ubicación autorizada para consultar sus movimientos."
-            />
+                />
             </div>
         )
     }
@@ -132,13 +152,13 @@ const AccessLogsSection = () => {
                             setLocationId(event.target.value)
                             setPageIndex(1)
                         }}
-                >
+                    >
                         <option value="">Selecciona un edificio</option>
                         {locations.map((location) => (
                             <option key={location.id} value={String(location.id)}>
                                 {location.name || 'Edificio sin nombre'}
                             </option>
-            ))}
+                        ))}
                     </select>
                 </label>
                 <label className="flex flex-col gap-1 text-sm font-semibold">

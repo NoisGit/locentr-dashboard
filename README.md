@@ -3,19 +3,15 @@
 Locentr Dashboard is a React + TypeScript frontend for a portfolio SaaS operations platform.
 
 Locentr is centered around companies, subcompanies, locations, access management, documents, support
-tickets and audit logs.
+tickets, audit logs, subscription billing and team administration.
 
 ## Project Status
 
 This repository contains the active Locentr enterprise frontend.
 
-Current goals:
-
-- Keep the frontend aligned with `locentr-api`.
-- Remove obsolete template and demo modules.
-- Use real API services instead of mocks.
-- Keep routing, navigation and permissions coherent with backend roles.
-- Prepare a professional SaaS dashboard suitable for a developer portfolio.
+It includes a public GSAP landing page, authentication, a tenant-aware operations dashboard,
+14-day trial and plan flows, billing history, communication preferences, team invitations and
+seat visibility.
 
 ## Product Direction
 
@@ -72,6 +68,7 @@ explicitly changed later.
 | Language         | TypeScript      |
 | Build Tool       | Vite            |
 | Styling          | Tailwind CSS    |
+| Motion           | GSAP + ScrollTrigger |
 | State Management | Zustand         |
 | Data Fetching    | SWR             |
 | HTTP Client      | Axios           |
@@ -156,6 +153,9 @@ Frontend route protection improves UX, but backend authorization remains the sou
 | Audit Log         | `/audit`     | `AuditLogService`         | `/api/v1/audit-log`                                               |
 | Support Tickets   | `/tickets`   | `SupportTicketsService`   | `/api/v1/support-tickets`                                         |
 | Location Logbook  | `/logbook`   | `LocationLogbookService`  | `/api/v1/location-logbook`                                        |
+| Team & licenses   | `/settings/team` | `TeamsService`         | `/api/v1/teams`                                                   |
+| Plan & billing    | `/settings/billing` | `LifecycleService`, `SubscriptionsService` | `/api/v1/lifecycle`, `/api/v1/subscriptions` |
+| Public landing    | `/`          | GSAP + React              | Public plan catalogue                                             |
 
 The building detail includes an operator-only police access panel. It generates the backend-provided
 public path, converts it to the complete `/api/v1` URL and renders it as a QR code. The current API
@@ -168,9 +168,6 @@ messages and limits independently.
 Operational requests include an `x-request-id`. The frontend reports sanitized failures and Web
 Vitals through `TelemetryService`, while `AppErrorBoundary` provides a controlled recovery screen
 for unexpected render failures.
-
-Notifications remain disabled in routing and navigation until `locentr-api#27` registers the router
-and its OpenAPI methods match the frontend contract.
 
 ## Removed or Postponed Concepts
 
@@ -195,9 +192,6 @@ If any of these return later, they need a new architecture decision and API cont
 - `SUPERADMIN` is provisioned outside the dashboard and never appears in user creation.
 - Mocks are not a product data source.
 
-The remaining production and portfolio work is prioritized in
-[`PORTFOLIO_READINESS.md`](./PORTFOLIO_READINESS.md).
-
 Legacy aliases remain temporarily available:
 
 ```text
@@ -207,12 +201,22 @@ Legacy aliases remain temporarily available:
 /support-tickets
 ```
 
+## Portfolio Demo
+
+Start `locentr-api` on port `8000`, then run:
+
+```bash
+npm install
+npm run dev
+```
+
+The frontend expects the API at `http://127.0.0.1:8000` unless `VITE_API_BASE_URL` overrides it.
+The portfolio seed is owned by the API repository and intentionally keeps its password outside Git.
+
 ## Repository Workflow
 
-```text
-feature branches → develop → main → deploy
-```
+`main` is the release branch. Feature branches are short-lived and deleted after merge.
 
 ## Author
 
-Developed by NoisGit.
+Developed by [NoisGit](https://github.com/NoisGit).

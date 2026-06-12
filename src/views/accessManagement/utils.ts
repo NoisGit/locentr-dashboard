@@ -28,7 +28,7 @@ export function buildScopeParams(scope: ScopeType, locationId: string, companyId
         params.location_id = normalizedLocationId
     }
 
-    if (scope === 'company' && Number.isInteger(normalizedCompanyId) && normalizedCompanyId > 0) {
+    if (Number.isInteger(normalizedCompanyId) && normalizedCompanyId > 0) {
         params.company_id = normalizedCompanyId
     }
 

@@ -9,6 +9,7 @@ import {
     TbShieldLock,
     TbUsersGroup,
     TbCreditCard,
+    TbUserPlus,
 } from 'react-icons/tb'
 import type { JSX } from 'react'
 
@@ -25,6 +26,7 @@ const navigationIcon: NavigationIcons = {
     tickets: <TbHelpHexagon />,
     logbook: <TbNotebook />,
     billing: <TbCreditCard />,
+    team: <TbUserPlus />,
 }
 
 export default navigationIcon

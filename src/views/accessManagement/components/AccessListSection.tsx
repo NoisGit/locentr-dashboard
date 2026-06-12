@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import DataTable from '@/components/shared/DataTable'
 import Notification from '@/components/ui/Notification'
@@ -23,6 +23,8 @@ import { buildScopeParams, getErrorMessage, getItems, getTotal, isScopeReady } f
 import type { ListType, ScopeType } from '../types'
 import { normalizeUserInput } from '@/utils/security/input'
 import { validateCsvUpload } from '@/utils/security/files'
+import { isVirtualCompanyId, useCompaniesStore } from '@/store/companies/CompaniesStore'
+import { useSessionUser } from '@/store/authStore'
 import type { ColumnDef } from '@/components/shared/DataTable'
 
 type AccessListSectionProps = {
@@ -32,9 +34,17 @@ type AccessListSectionProps = {
 }
 
 const AccessListSection = ({ type, canCreate, canRemove }: AccessListSectionProps) => {
+    const userCompanyId = useSessionUser((state) => state.user.company_id)
+    const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
+    const activeCompanyId =
+        selectedCompanyId !== undefined &&
+        selectedCompanyId !== null &&
+        !isVirtualCompanyId(selectedCompanyId)
+            ? String(selectedCompanyId)
+            : String(userCompanyId || '')
     const [scope, setScope] = useState<ScopeType>('location')
     const [locationId, setLocationId] = useState('')
-    const [companyId, setCompanyId] = useState('')
+    const [companyId, setCompanyId] = useState(activeCompanyId)
     const [search, setSearch] = useState('')
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize, setPageSize] = useState(10)
@@ -44,6 +54,12 @@ const AccessListSection = ({ type, canCreate, canRemove }: AccessListSectionProp
     const [vehiclePlate, setVehiclePlate] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isImporting, setIsImporting] = useState(false)
+
+    useEffect(() => {
+        setCompanyId(activeCompanyId)
+        setLocationId('')
+        setPageIndex(1)
+    }, [activeCompanyId])
 
     const scopeParams = useMemo(
         () => buildScopeParams(scope, locationId, companyId),

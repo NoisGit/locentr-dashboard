@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { apiGetCompaniesPage, filterCompaniesForUser } from '@/services/CompaniesService'
 import { apiGetLocationsList } from '@/services/LocationsService'
@@ -36,15 +36,16 @@ const ScopeControls = ({
     )
     const companies = filterCompaniesForUser(companiesPage?.items ?? [], role, userCompanyId)
     const { data: locationsData, isLoading: locationsLoading } = useSWR(
-        'access-scope:buildings',
+        companyId ? ['access-scope:buildings', companyId] : null,
         () =>
             apiGetLocationsList({
                 pageIndex: 1,
-                pageSize: 200,
+                pageSize: 100,
+                companyId,
             }),
         { revalidateOnFocus: false },
     )
-    const locations = locationsData?.list ?? []
+    const locations = useMemo(() => locationsData?.list ?? [], [locationsData?.list])
 
     useEffect(() => {
         if (!locationsLoading && !locationId) {
@@ -52,6 +53,10 @@ const ScopeControls = ({
             if (locations.some((location) => String(location.id) === suggestedId)) {
                 setLocationId(suggestedId)
                 return
+            }
+
+            if (locations[0]) {
+                setLocationId(String(locations[0].id))
             }
         }
 

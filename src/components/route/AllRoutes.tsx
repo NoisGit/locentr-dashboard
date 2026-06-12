@@ -29,9 +29,7 @@ function isAuthRoute(path: string) {
 const AllRoutes = (props: AllRoutesProps) => {
     const { user } = useAuth()
     const authRoutes = publicRoutes.filter((route) => isAuthRoute(route.path))
-    const standalonePublicRoutes = publicRoutes.filter(
-        (route) => !isAuthRoute(route.path),
-    )
+    const standalonePublicRoutes = publicRoutes.filter((route) => !isAuthRoute(route.path))
 
     return (
         <Routes>
@@ -69,9 +67,7 @@ const AllRoutes = (props: AllRoutesProps) => {
                 <Route path="*" element={<Navigate replace to="sign-in" />} />
             </Route>
 
-            <Route path="/" element={<ProtectedRoute />}>
-                <Route index element={<Navigate replace to={ENTRY_PATH} />} />
-
+            <Route element={<ProtectedRoute />}>
                 {protectedRoutes.map((route) => (
                     <Route
                         key={route.key}

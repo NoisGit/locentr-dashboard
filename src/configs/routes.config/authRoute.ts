@@ -3,6 +3,21 @@ import type { Routes } from '@/@types/routes'
 
 const authRoute: Routes = [
     {
+        key: 'landing',
+        path: '/',
+        component: lazy(() => import('@/views/landing')),
+    },
+    {
+        key: 'acceptInvitation',
+        path: '/accept-invitation',
+        component: lazy(() => import('@/views/auth/AcceptInvitation')),
+    },
+    {
+        key: 'verifyEmail',
+        path: '/verify-email',
+        component: lazy(() => import('@/views/auth/VerifyEmail')),
+    },
+    {
         key: 'pricing',
         path: '/pricing',
         component: lazy(() => import('@/views/pricing')),
@@ -30,9 +45,7 @@ const authRoute: Routes = [
     {
         key: 'companySelect',
         path: '/auth/company-select',
-        component: lazy(
-            () => import('@/views/auth/CompanySelect/CompanySelect'),
-        ),
+        component: lazy(() => import('@/views/auth/CompanySelect/CompanySelect')),
     },
 ]
 
