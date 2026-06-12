@@ -13,6 +13,12 @@ It includes a public GSAP landing page, authentication, a tenant-aware operation
 14-day trial and plan flows, billing history, communication preferences, team invitations and
 seat visibility.
 
+## Product Preview
+
+![Locentr public landing page](docs/images/locentr-landing.jpg)
+
+![Locentr operations dashboard](docs/images/locentr-dashboard.jpg)
+
 ## Product Direction
 
 Locentr is a multi-company, multi-location operations dashboard.
