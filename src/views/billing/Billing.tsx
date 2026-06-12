@@ -25,6 +25,7 @@ import {
     apiUpdateCommunicationPreferences,
 } from '@/services/LifecycleService'
 import { getApiErrorMessage } from '@/utils/apiError'
+import useAutoSelectRootCompany from '@/utils/hooks/useAutoSelectRootCompany'
 
 const statusCopy = {
     TRIALING: {
@@ -77,6 +78,11 @@ const Billing = () => {
         lifecycleKey ? ['billing:preferences', lifecycleKey] : null,
         () => apiGetCommunicationPreferences(lifecycleKey),
     )
+    const companyOptions = useMemo(
+        () => (companiesPage?.items ?? []).filter((company) => !company.parent_company_id),
+        [companiesPage],
+    )
+    useAutoSelectRootCompany(companyOptions, isSuperAdmin)
 
     const daysRemaining = useMemo(() => {
         if (!subscription) return 0
@@ -217,7 +223,7 @@ const Billing = () => {
                                 className="rounded-md border border-gray-300 bg-transparent px-3 py-2 dark:border-gray-600"
                                 value={companyId}
                                 onChange={(event) => {
-                                    const selected = (companiesPage?.items ?? []).find(
+                                    const selected = companyOptions.find(
                                         (company) => String(company.id) === event.target.value,
                                     )
                                     if (selected) {
@@ -229,13 +235,11 @@ const Billing = () => {
                                 }}
                             >
                                 <option value="">Seleccionar empresa</option>
-                                {(companiesPage?.items ?? [])
-                                    .filter((company) => !company.parent_company_id)
-                                    .map((company) => (
-                                        <option key={company.id} value={company.id}>
-                                            {company.name}
-                                        </option>
-                                    ))}
+                                {companyOptions.map((company) => (
+                                    <option key={company.id} value={company.id}>
+                                        {company.name}
+                                    </option>
+                                ))}
                             </select>
                         </label>
                     </AdaptiveCard>

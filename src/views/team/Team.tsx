@@ -22,6 +22,7 @@ import {
     type InvitationStatus,
 } from '@/services/TeamsService'
 import { getApiErrorMessage } from '@/utils/apiError'
+import useAutoSelectRootCompany from '@/utils/hooks/useAutoSelectRootCompany'
 import type { FormEvent } from 'react'
 
 const statusLabel: Record<InvitationStatus, string> = {
@@ -125,6 +126,7 @@ const Team = () => {
         () => (companiesPage?.items ?? []).filter((company) => !company.parent_company_id),
         [companiesPage],
     )
+    useAutoSelectRootCompany(companyOptions, isSuperAdmin)
 
     const notify = (message: string, type: 'success' | 'danger' = 'success') => {
         toast.push(<Notification type={type}>{message}</Notification>, {

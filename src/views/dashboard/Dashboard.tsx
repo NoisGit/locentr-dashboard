@@ -216,7 +216,8 @@ const Dashboard = () => {
                                         <div>
                                             <h5>Distribución registrada</h5>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                Sobre {genderTotal} ingresos con dato informado.
+                                                {genderTotal.toLocaleString('es-CL')}% de registros
+                                                con dato informado.
                                             </p>
                                         </div>
                                     </div>
@@ -236,11 +237,11 @@ const Dashboard = () => {
                                     </div>
                                     <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-sm">
                                         <span>
-                                            <strong>{genderDistribution?.female ?? 0}</strong>{' '}
+                                            <strong>{genderDistribution?.female ?? 0}%</strong>{' '}
                                             mujeres
                                         </span>
                                         <span>
-                                            <strong>{genderDistribution?.male ?? 0}</strong>{' '}
+                                            <strong>{genderDistribution?.male ?? 0}%</strong>{' '}
                                             hombres
                                         </span>
                                     </div>
