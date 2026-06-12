@@ -19,10 +19,8 @@ test-results
 .env.*
 !.env.example
 
-Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+# Editor directories and files
+.vscode/
 .idea
 .DS_Store
 *.suo
