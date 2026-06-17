@@ -24,6 +24,42 @@ export default defineConfig(() => {
     },
     build: {
       outDir: 'build',
+      chunkSizeWarningLimit: 650,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+
+            if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom)[\\/]/.test(id)) {
+              return 'react-vendor'
+            }
+
+            if (/[\\/]node_modules[\\/](apexcharts|react-apexcharts)[\\/]/.test(id)) {
+              return 'charts-vendor'
+            }
+
+            if (/[\\/]node_modules[\\/](gsap|@gsap|framer-motion)[\\/]/.test(id)) {
+              return 'motion-vendor'
+            }
+
+            if (
+              /[\\/]node_modules[\\/](@floating-ui|react-select|react-modal|simplebar-core|simplebar-react)[\\/]/.test(id)
+            ) {
+              return 'ui-vendor'
+            }
+
+            if (/[\\/]node_modules[\\/](@tanstack|react-hook-form|@hookform|zod)[\\/]/.test(id)) {
+              return 'forms-vendor'
+            }
+
+            if (/[\\/]node_modules[\\/](swr|axios|zustand)[\\/]/.test(id)) {
+              return 'data-vendor'
+            }
+
+            return undefined
+          },
+        },
+      },
     },
   }
 })
