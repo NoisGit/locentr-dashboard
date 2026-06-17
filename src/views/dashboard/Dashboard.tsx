@@ -1,6 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import useSWR from 'swr'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
@@ -11,17 +10,12 @@ import {
 } from '@/store/companies/CompaniesStore'
 import { RBAC, Permission } from '@/utils/rbac'
 import { Role } from '@/utils/rbac/types'
-import { apiGetSubscription } from '@/services/SubscriptionsService'
-import { apiGetSeatUsage } from '@/services/TeamsService'
 import useLocationDashboard from './hooks/useLocationDashboard'
+import OnboardingChecklist from './components/OnboardingChecklist'
 import {
     TbArrowRight,
     TbBuildingCommunity,
     TbBuildingSkyscraper,
-    TbCheck,
-    TbChecklist,
-    TbCircle,
-    TbCreditCard,
     TbFileDescription,
     TbHelpCircle,
     TbHistory,
@@ -41,13 +35,6 @@ type OperationalArea = {
     path: string
     permission: Permission
     icon: ReactNode
-}
-
-type OnboardingChecklistProps = {
-    companyId?: string | number
-    locationsCount: number
-    accessRulesCount: number
-    accessLogsCount: number
 }
 
 const operationalAreas: OperationalArea[] = [
@@ -102,121 +89,6 @@ const operationalAreas: OperationalArea[] = [
     },
 ]
 
-const OnboardingChecklist = ({
-    companyId,
-    locationsCount,
-    accessRulesCount,
-    accessLogsCount,
-}: OnboardingChecklistProps) => {
-    const navigate = useNavigate()
-    const { data: subscription } = useSWR(
-        companyId ? ['onboarding:subscription', companyId] : null,
-        () => apiGetSubscription(companyId),
-        { revalidateOnFocus: false },
-    )
-    const { data: seats } = useSWR(
-        companyId ? ['onboarding:seats', companyId] : null,
-        () => apiGetSeatUsage(companyId),
-        { revalidateOnFocus: false },
-    )
-    const peopleConfigured =
-        (seats?.admins_used ?? 0) +
-            (seats?.operators_used ?? 0) +
-            (seats?.pending_admins ?? 0) +
-            (seats?.pending_operators ?? 0) >
-        1
-    const steps = [
-        {
-            title: 'Empresa principal activa',
-            description: 'Selecciona o completa la empresa operativa.',
-            done: Boolean(companyId),
-            action: '/companies',
-        },
-        {
-            title: 'Primer edificio creado',
-            description: 'Carga la primera sede real de operación.',
-            done: locationsCount > 0,
-            action: '/buildings/create',
-        },
-        {
-            title: 'Primer usuario invitado',
-            description: 'Suma un administrador u operador al equipo.',
-            done: peopleConfigured,
-            action: '/settings/team',
-        },
-        {
-            title: 'Accesos configurados',
-            description: 'Agrega una autorización o restricción inicial.',
-            done: accessRulesCount > 0,
-            action: '/access',
-        },
-        {
-            title: 'Primera operación registrada',
-            description: 'Confirma que existen movimientos reales.',
-            done: accessLogsCount > 0,
-            action: '/access',
-        },
-        {
-            title: 'Plan y trial revisados',
-            description: 'Verifica estado comercial y límites del plan.',
-            done: Boolean(subscription?.status),
-            action: '/settings/billing',
-        },
-    ]
-    const completed = steps.filter((step) => step.done).length
-
-    return (
-        <section className="rounded-2xl border border-violet-100 bg-white p-5 shadow-sm dark:border-violet-900/40 dark:bg-gray-900">
-            <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                <div>
-                    <div className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                        <TbChecklist />
-                        Onboarding operativo
-                    </div>
-                    <h3 className="mb-1">Prepara tu primera operación real</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Estado derivado de datos del backend. No se completa por hacer clic.
-                    </p>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary-subtle px-3 py-1 text-sm font-semibold text-primary">
-                    <TbCreditCard />
-                    {completed}/{steps.length}
-                </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {steps.map((step) => (
-                    <button
-                        key={step.title}
-                        type="button"
-                        className="group flex min-h-[112px] items-start gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-primary/40 hover:bg-primary/[.03] focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-gray-800 dark:hover:bg-white/[.03]"
-                        onClick={() => navigate(step.action)}
-                    >
-                        <span
-                            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                                step.done
-                                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
-                                    : 'bg-gray-100 text-gray-400 dark:bg-gray-800'
-                            }`}
-                            aria-hidden="true"
-                        >
-                            {step.done ? <TbCheck /> : <TbCircle />}
-                        </span>
-                        <span>
-                            <span className="block font-semibold text-gray-900 dark:text-gray-100">
-                                {step.title}
-                            </span>
-                            <span className="mt-1 block text-sm leading-5 text-gray-500 dark:text-gray-400">
-                                {step.description}
-                            </span>
-                        </span>
-                    </button>
-                ))}
-            </div>
-        </section>
-    )
-}
-
 const Dashboard = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
@@ -261,11 +133,11 @@ const Dashboard = () => {
     return (
         <Container>
             <div className="flex flex-col gap-8">
-                <section className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#4c1d95] via-[#5b21b6] to-[#312e81] px-5 py-7 text-white shadow-[0_18px_45px_rgba(76,29,149,0.22)] sm:px-8 sm:py-8">
+                <section className="relative overflow-hidden rounded-[22px] bg-[#193a63] px-5 py-7 text-white shadow-[0_18px_45px_rgba(8,16,24,0.18)] sm:px-8 sm:py-8">
                     <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full border-[42px] border-white/5" />
                     <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
                         <div className="max-w-2xl">
-                            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-200">
+                            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-blue-100">
                                 <TbBuildingCommunity className="text-base" />
                                 Centro de operaciones
                             </div>
@@ -278,7 +150,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                             <Button
-                                className="border-white bg-white text-violet-900 hover:bg-violet-50"
+                                className="border-white bg-white text-[#193a63] hover:bg-blue-50"
                                 variant="solid"
                                 onClick={() => navigate('/buildings')}
                             >
@@ -448,15 +320,10 @@ const Dashboard = () => {
                                                     toolbar: { show: false },
                                                     zoom: { enabled: false },
                                                 },
-                                                colors: ['#7C3AED'],
+                                                colors: ['#2F5F9F'],
                                                 dataLabels: { enabled: false },
                                                 fill: {
-                                                    type: 'gradient',
-                                                    gradient: {
-                                                        opacityFrom: 0.42,
-                                                        opacityTo: 0.04,
-                                                        stops: [0, 90, 100],
-                                                    },
+                                                    opacity: 0.16,
                                                 },
                                                 grid: {
                                                     borderColor: 'rgba(148, 163, 184, 0.16)',

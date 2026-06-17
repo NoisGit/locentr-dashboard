@@ -16,8 +16,21 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html'],
-            include: ['src/utils/**/*.ts', 'src/services/LocationLogbookService.ts'],
-            exclude: ['src/utils/hooks/**'],
+            include: [
+                'src/components/route/AuthorityGuard.tsx',
+                'src/services/axios/*.ts',
+                'src/store/authStore.ts',
+                'src/store/companies/CompaniesStore.ts',
+                'src/utils/apiError.ts',
+                'src/utils/rbac/**/*.ts',
+                'src/utils/security/files.ts',
+                'src/utils/validation/schemas.ts',
+                'src/views/billing/subscriptionStatus.ts',
+                'src/views/dashboard/onboardingModel.ts',
+            ],
+            thresholds: {
+                statements: 70,
+            },
         },
     },
 })

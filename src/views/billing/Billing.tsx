@@ -26,25 +26,10 @@ import {
 } from '@/services/LifecycleService'
 import { getApiErrorMessage } from '@/utils/apiError'
 import useAutoSelectRootCompany from '@/utils/hooks/useAutoSelectRootCompany'
-
-const statusCopy = {
-    TRIALING: {
-        label: 'Prueba activa',
-        className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200',
-    },
-    ACTIVE: {
-        label: 'Activa',
-        className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
-    },
-    PAST_DUE: {
-        label: 'Pago pendiente',
-        className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
-    },
-    CANCELED: {
-        label: 'Cancelada',
-        className: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200',
-    },
-}
+import {
+    getSubscriptionPresentation,
+    getTrialDaysRemaining,
+} from './subscriptionStatus'
 
 const formatMoney = (amount: number, currency: string) =>
     new Intl.NumberFormat('es-CL', {
@@ -84,11 +69,11 @@ const Billing = () => {
     )
     useAutoSelectRootCompany(companyOptions, isSuperAdmin)
 
-    const daysRemaining = useMemo(() => {
-        if (!subscription) return 0
-        const difference = new Date(subscription.trial_ends_at).getTime() - Date.now()
-        return Math.max(0, Math.ceil(difference / 86_400_000))
-    }, [subscription])
+    const subscriptionState = getSubscriptionPresentation(subscription)
+    const daysRemaining = useMemo(
+        () => getTrialDaysRemaining(subscription),
+        [subscription],
+    )
 
     const notifyError = (error: unknown, fallback: string) => {
         toast.push(
@@ -201,17 +186,24 @@ const Billing = () => {
                     </Notification>
                 ) : null}
 
-                {subscription?.status === 'PAST_DUE' ? (
+                {subscriptionState.key === 'payment_pending' ? (
                     <Notification type="warning">
                         Hay un pago pendiente. Actualiza el medio de pago para evitar la suspensión
                         de la operación.
                     </Notification>
                 ) : null}
 
-                {subscription?.status === 'CANCELED' ? (
+                {subscriptionState.key === 'subscription_canceled' ? (
                     <Notification type="danger">
                         La suscripción está cancelada. Los datos se conservan, pero debes elegir un
                         plan para reactivar el servicio.
+                    </Notification>
+                ) : null}
+
+                {subscriptionState.key === 'trial_ended' ? (
+                    <Notification type="warning">
+                        La prueba gratuita finalizó. Elige un plan o abre el portal de facturación
+                        para reactivar la operación.
                     </Notification>
                 ) : null}
 
@@ -250,11 +242,12 @@ const Billing = () => {
                         <div className="grid gap-4 md:grid-cols-3">
                             <Card>
                                 <p className="text-sm text-gray-500">Estado</p>
-                                <Tag
-                                    className={`mt-3 ${statusCopy[subscription.status].className}`}
-                                >
-                                    {statusCopy[subscription.status].label}
+                                <Tag className={`mt-3 ${subscriptionState.className}`}>
+                                    {subscriptionState.label}
                                 </Tag>
+                                <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                                    {subscriptionState.description}
+                                </p>
                             </Card>
                             <Card>
                                 <p className="text-sm text-gray-500">Plan</p>

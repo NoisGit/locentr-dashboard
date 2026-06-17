@@ -12,6 +12,7 @@
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:real": "bash scripts/run-real-e2e.sh",
     "prettier": "npx prettier src --check",
     "prettier:fix": "npm run prettier -- --write",
     "lint": "npx eslint",
