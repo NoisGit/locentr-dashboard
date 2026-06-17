@@ -38,4 +38,19 @@ describe('getApiErrorMessage', () => {
             'El servicio no pudo completar la operación.',
         )
     })
+
+    it.each([
+        [401, 'Tu sesión no es válida. Inicia sesión nuevamente.'],
+        [403, 'No tienes permisos para realizar esta acción.'],
+        [429, 'Se realizaron demasiadas solicitudes. Intenta más tarde.'],
+    ])('uses controlled copy for status %s', (status, message) => {
+        const error = {
+            response: {
+                status,
+                data: { detail: 'Backend detail should not leak' },
+            },
+        }
+
+        expect(getApiErrorMessage(error, 'Error')).toBe(message)
+    })
 })

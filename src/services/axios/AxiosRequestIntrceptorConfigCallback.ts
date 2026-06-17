@@ -104,7 +104,7 @@ export default function AxiosRequestIntrceptorConfigCallback<T = unknown>(
     if (stored) {
         const value = stored.trim()
         const hasBearer = /^bearer\s/i.test(value)
-        const headerValue = hasBearer ? value : `${TOKEN_TYPE} ${value}`
+        const headerValue = hasBearer ? value : `${TOKEN_TYPE.trim()} ${value}`
         config.headers = config.headers ?? {}
         ;(config.headers as Record<string, unknown>)[REQUEST_HEADER_AUTH_KEY] =
             headerValue

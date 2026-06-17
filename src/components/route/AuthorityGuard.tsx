@@ -1,6 +1,5 @@
 import { PropsWithChildren } from 'react'
-import { Navigate } from 'react-router-dom'
-import { DASHBOARDS_PREFIX_PATH } from '@/constants/route.constant'
+import AccessDenied from '@/views/others/AccessDenied'
 import { RBAC } from '@/utils/rbac/rbacCore'
 import type { Role, Permission } from '@/utils/rbac/types'
 
@@ -29,7 +28,7 @@ const AuthorityGuard = ({
         RBAC.isSuperAdmin(userAuthority) || (hasRequiredRole && hasRequiredPermissions)
 
     if (!allowed) {
-        return <Navigate to={DASHBOARDS_PREFIX_PATH} replace />
+        return <AccessDenied />
     }
 
     return <>{children}</>

@@ -135,8 +135,14 @@ const Team = () => {
     }
 
     const copyLink = async (url: string) => {
-        await navigator.clipboard.writeText(url)
-        notify('Enlace de invitación copiado.')
+        if (!navigator.clipboard?.writeText) return false
+
+        try {
+            await navigator.clipboard.writeText(url)
+            return true
+        } catch {
+            return false
+        }
     }
 
     const refresh = async () => {
@@ -154,7 +160,12 @@ const Team = () => {
                 username: form.username,
                 role: form.role,
             })
-            await copyLink(invitation.invitation_url)
+            const copied = await copyLink(invitation.invitation_url)
+            notify(
+                copied
+                    ? 'Invitación creada. Enlace copiado.'
+                    : 'Invitación creada. Copia el enlace desde la lista.',
+            )
             setForm({
                 email: '',
                 fullName: '',
@@ -172,7 +183,12 @@ const Team = () => {
     const resend = async (invitationId: number) => {
         try {
             const invitation = await apiResendInvitation(invitationId)
-            await copyLink(invitation.invitation_url)
+            const copied = await copyLink(invitation.invitation_url)
+            notify(
+                copied
+                    ? 'Enlace de invitación copiado.'
+                    : 'Invitación reenviada. No fue posible copiar el enlace.',
+            )
             await refresh()
         } catch (error) {
             notify(getApiErrorMessage(error, 'No se pudo reenviar la invitación.'), 'danger')
