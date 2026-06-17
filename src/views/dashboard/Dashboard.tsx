@@ -1,17 +1,27 @@
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import useSWR from 'swr'
 import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
-import Chart from '@/components/shared/Chart'
 import Loading from '@/components/shared/Loading'
 import { useAuth } from '@/auth'
-import { useCompaniesStore } from '@/store/companies/CompaniesStore'
+import {
+    isVirtualCompanyId,
+    useCompaniesStore,
+} from '@/store/companies/CompaniesStore'
 import { RBAC, Permission } from '@/utils/rbac'
+import { Role } from '@/utils/rbac/types'
+import { apiGetSubscription } from '@/services/SubscriptionsService'
+import { apiGetSeatUsage } from '@/services/TeamsService'
 import useLocationDashboard from './hooks/useLocationDashboard'
 import {
     TbArrowRight,
     TbBuildingCommunity,
     TbBuildingSkyscraper,
+    TbCheck,
+    TbChecklist,
+    TbCircle,
+    TbCreditCard,
     TbFileDescription,
     TbHelpCircle,
     TbHistory,
@@ -23,12 +33,21 @@ import {
 } from 'react-icons/tb'
 import type { ReactNode } from 'react'
 
+const Chart = lazy(() => import('@/components/shared/Chart'))
+
 type OperationalArea = {
     title: string
     description: string
     path: string
     permission: Permission
     icon: ReactNode
+}
+
+type OnboardingChecklistProps = {
+    companyId?: string | number
+    locationsCount: number
+    accessRulesCount: number
+    accessLogsCount: number
 }
 
 const operationalAreas: OperationalArea[] = [
@@ -83,12 +102,135 @@ const operationalAreas: OperationalArea[] = [
     },
 ]
 
+const OnboardingChecklist = ({
+    companyId,
+    locationsCount,
+    accessRulesCount,
+    accessLogsCount,
+}: OnboardingChecklistProps) => {
+    const navigate = useNavigate()
+    const { data: subscription } = useSWR(
+        companyId ? ['onboarding:subscription', companyId] : null,
+        () => apiGetSubscription(companyId),
+        { revalidateOnFocus: false },
+    )
+    const { data: seats } = useSWR(
+        companyId ? ['onboarding:seats', companyId] : null,
+        () => apiGetSeatUsage(companyId),
+        { revalidateOnFocus: false },
+    )
+    const peopleConfigured =
+        (seats?.admins_used ?? 0) +
+            (seats?.operators_used ?? 0) +
+            (seats?.pending_admins ?? 0) +
+            (seats?.pending_operators ?? 0) >
+        1
+    const steps = [
+        {
+            title: 'Empresa principal activa',
+            description: 'Selecciona o completa la empresa operativa.',
+            done: Boolean(companyId),
+            action: '/companies',
+        },
+        {
+            title: 'Primer edificio creado',
+            description: 'Carga la primera sede real de operación.',
+            done: locationsCount > 0,
+            action: '/buildings/create',
+        },
+        {
+            title: 'Primer usuario invitado',
+            description: 'Suma un administrador u operador al equipo.',
+            done: peopleConfigured,
+            action: '/settings/team',
+        },
+        {
+            title: 'Accesos configurados',
+            description: 'Agrega una autorización o restricción inicial.',
+            done: accessRulesCount > 0,
+            action: '/access',
+        },
+        {
+            title: 'Primera operación registrada',
+            description: 'Confirma que existen movimientos reales.',
+            done: accessLogsCount > 0,
+            action: '/access',
+        },
+        {
+            title: 'Plan y trial revisados',
+            description: 'Verifica estado comercial y límites del plan.',
+            done: Boolean(subscription?.status),
+            action: '/settings/billing',
+        },
+    ]
+    const completed = steps.filter((step) => step.done).length
+
+    return (
+        <section className="rounded-2xl border border-violet-100 bg-white p-5 shadow-sm dark:border-violet-900/40 dark:bg-gray-900">
+            <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                    <div className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                        <TbChecklist />
+                        Onboarding operativo
+                    </div>
+                    <h3 className="mb-1">Prepara tu primera operación real</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Estado derivado de datos del backend. No se completa por hacer clic.
+                    </p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary-subtle px-3 py-1 text-sm font-semibold text-primary">
+                    <TbCreditCard />
+                    {completed}/{steps.length}
+                </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {steps.map((step) => (
+                    <button
+                        key={step.title}
+                        type="button"
+                        className="group flex min-h-[112px] items-start gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-primary/40 hover:bg-primary/[.03] focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-gray-800 dark:hover:bg-white/[.03]"
+                        onClick={() => navigate(step.action)}
+                    >
+                        <span
+                            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                                step.done
+                                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
+                                    : 'bg-gray-100 text-gray-400 dark:bg-gray-800'
+                            }`}
+                            aria-hidden="true"
+                        >
+                            {step.done ? <TbCheck /> : <TbCircle />}
+                        </span>
+                        <span>
+                            <span className="block font-semibold text-gray-900 dark:text-gray-100">
+                                {step.title}
+                            </span>
+                            <span className="mt-1 block text-sm leading-5 text-gray-500 dark:text-gray-400">
+                                {step.description}
+                            </span>
+                        </span>
+                    </button>
+                ))}
+            </div>
+        </section>
+    )
+}
+
 const Dashboard = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const selectedCompany = useCompaniesStore((state) => state.selectedName)
-    const { data, error, isLoading, locationId, mutate } =
+    const selectedCompanyId = useCompaniesStore((state) => state.selectedId)
+    const { data, error, isLoading, locationId, locations, mutate } =
         useLocationDashboard()
+    const companyId =
+        selectedCompanyId !== undefined &&
+        selectedCompanyId !== null &&
+        !isVirtualCompanyId(selectedCompanyId)
+            ? selectedCompanyId
+            : (user.company_id ?? undefined)
+    const canSeeOnboarding = RBAC.hasAnyRole(user, [Role.SUPERADMIN, Role.ADMIN])
 
     const visibleAreas = useMemo(
         () =>
@@ -110,6 +252,11 @@ const Dashboard = () => {
         ...monthlyEntries.map((item) => item.count),
     )
     const recentEntries = data?.recent_entries ?? []
+    const accessRulesCount =
+        (kpis?.whitelist?.total ?? 0) + (kpis?.blacklist?.total ?? 0)
+    const activeLocation = locations.find(
+        (location) => String(location.id) === String(locationId),
+    )
 
     return (
         <Container>
@@ -142,9 +289,24 @@ const Dashboard = () => {
                                     Empresa: <strong className="text-white">{selectedCompany}</strong>
                                 </span>
                             )}
+                            {activeLocation?.name ? (
+                                <span className="text-sm text-white/75">
+                                    Edificio activo:{' '}
+                                    <strong className="text-white">{activeLocation.name}</strong>
+                                </span>
+                            ) : null}
                         </div>
                     </div>
                 </section>
+
+                {canSeeOnboarding ? (
+                    <OnboardingChecklist
+                        companyId={companyId}
+                        locationsCount={locations.length}
+                        accessRulesCount={accessRulesCount}
+                        accessLogsCount={kpis?.historical_total ?? 0}
+                    />
+                ) : null}
 
                 {locationId ? (
                     <section>
@@ -261,46 +423,54 @@ const Dashboard = () => {
                                             Máximo {maxMonthlyEntries}
                                         </span>
                                     </div>
-                                    <Chart
-                                        className="mt-2"
-                                        height={245}
-                                        type="area"
-                                        xAxis={monthlyEntries.slice(-6).map((item) => item.month)}
-                                        series={[
-                                            {
-                                                name: 'Accesos',
-                                                data: monthlyEntries
-                                                    .slice(-6)
-                                                    .map((item) => item.count),
-                                            },
-                                        ]}
-                                        customOptions={{
-                                            chart: {
-                                                toolbar: { show: false },
-                                                zoom: { enabled: false },
-                                            },
-                                            colors: ['#7C3AED'],
-                                            dataLabels: { enabled: false },
-                                            fill: {
-                                                type: 'gradient',
-                                                gradient: {
-                                                    opacityFrom: 0.42,
-                                                    opacityTo: 0.04,
-                                                    stops: [0, 90, 100],
+                                    <Suspense
+                                        fallback={
+                                            <div className="mt-4 h-[245px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
+                                        }
+                                    >
+                                        <Chart
+                                            className="mt-2"
+                                            height={245}
+                                            type="area"
+                                            xAxis={monthlyEntries
+                                                .slice(-6)
+                                                .map((item) => item.month)}
+                                            series={[
+                                                {
+                                                    name: 'Accesos',
+                                                    data: monthlyEntries
+                                                        .slice(-6)
+                                                        .map((item) => item.count),
                                                 },
-                                            },
-                                            grid: {
-                                                borderColor: 'rgba(148, 163, 184, 0.16)',
-                                                strokeDashArray: 4,
-                                            },
-                                            stroke: { curve: 'smooth', width: 3 },
-                                            tooltip: { theme: 'dark' },
-                                            yaxis: {
-                                                min: 0,
-                                                forceNiceScale: true,
-                                            },
-                                        }}
-                                    />
+                                            ]}
+                                            customOptions={{
+                                                chart: {
+                                                    toolbar: { show: false },
+                                                    zoom: { enabled: false },
+                                                },
+                                                colors: ['#7C3AED'],
+                                                dataLabels: { enabled: false },
+                                                fill: {
+                                                    type: 'gradient',
+                                                    gradient: {
+                                                        opacityFrom: 0.42,
+                                                        opacityTo: 0.04,
+                                                        stops: [0, 90, 100],
+                                                    },
+                                                },
+                                                grid: {
+                                                    borderColor: 'rgba(148, 163, 184, 0.16)',
+                                                    strokeDashArray: 4,
+                                                },
+                                                stroke: { curve: 'smooth', width: 3 },
+                                                tooltip: { theme: 'dark' },
+                                                yaxis: {
+                                                    min: 0,
+                                                    forceNiceScale: true,
+                                                },
+                                            }}
+                                        />
+                                    </Suspense>
                                 </div>
                             ) : null}
                         </div>

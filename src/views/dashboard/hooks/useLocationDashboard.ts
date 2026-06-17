@@ -81,6 +81,7 @@ const useLocationDashboard = () => {
         error: locationsError || dashboardError,
         isLoading: locationsLoading || dashboardLoading,
         locationId,
+        locations,
         mutate,
     }
 }
