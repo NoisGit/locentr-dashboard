@@ -1,13 +1,13 @@
-export const COLOR_1 = '#2a85ff'
-export const COLOR_2 = '#7cbc7d'
-export const COLOR_3 = '#ff6a55'
-export const COLOR_4 = '#8C62FF'
-export const COLOR_5 = '#fbc13e'
-export const COLOR_6 = '#00C7BE'
-export const COLOR_7 = '#FE964A'
-export const COLOR_8 = '#febb7b'
-export const COLOR_9 = '#7cd2fa'
-export const COLOR_10 = '#bee9d3'
+export const COLOR_1 = '#2F5F9F'
+export const COLOR_2 = '#193A63'
+export const COLOR_3 = '#4F7FBD'
+export const COLOR_4 = '#B56A2B'
+export const COLOR_5 = '#8A6F3E'
+export const COLOR_6 = '#2F7D65'
+export const COLOR_7 = '#B94735'
+export const COLOR_8 = '#6B7280'
+export const COLOR_9 = '#A36A5A'
+export const COLOR_10 = '#5E6A75'
 
 export const COLORS = [
     COLOR_1,

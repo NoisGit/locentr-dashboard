@@ -32,13 +32,8 @@ export const apexLineChartDefaultOption: ApexOptions = {
 export const apexAreaChartDefaultOption = {
     ...apexLineChartDefaultOption,
     fill: {
-        type: 'gradient',
-        gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.3,
-            opacityTo: 0.6,
-            stops: [0, 70, 100],
-        },
+        type: 'solid',
+        opacity: 0.16,
     },
 }
 

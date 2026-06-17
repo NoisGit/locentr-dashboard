@@ -14,7 +14,7 @@ export type ThemeConfig = {
 }
 
 export const themeConfig: ThemeConfig = {
-    themeSchema: 'purple',
+    themeSchema: 'locentr',
     direction: THEME_ENUM.DIR_LTR,
     mode: THEME_ENUM.MODE_LIGHT,
     panelExpand: false,

@@ -92,8 +92,26 @@ const orangeTheme: ThemeVariables = {
     },
 }
 
+const locentrTheme: ThemeVariables = {
+    light: {
+        primary: '#2F5F9F',
+        primaryDeep: '#193A63',
+        primaryMild: '#4F7FBD',
+        primarySubtle: '#2F5F9F18',
+        neutral: '#FFFFFF',
+    },
+    dark: {
+        primary: '#7FA7E6',
+        primaryDeep: '#4F7FBD',
+        primaryMild: '#A8C3EE',
+        primarySubtle: '#7FA7E620',
+        neutral: '#FFFFFF',
+    },
+}
+
 const presetThemeSchemaConfig: Record<string, ThemeVariables> = {
     default: defaultTheme,
+    locentr: locentrTheme,
     dark: darkTheme,
     green: greenTheme,
     purple: purpleTheme,

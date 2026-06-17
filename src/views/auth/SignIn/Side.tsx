@@ -10,8 +10,8 @@ const Side = ({ children }: { children?: ReactNode }) => {
         : { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }
 
     return (
-        <div className="min-h-screen bg-[#f4f1fb] p-3 sm:p-5 lg:p-6 dark:bg-gray-950">
-            <div className="mx-auto grid min-h-[calc(100vh-24px)] max-w-[1600px] overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_70px_rgba(49,28,93,0.14)] sm:min-h-[calc(100vh-40px)] lg:min-h-[calc(100vh-48px)] lg:grid-cols-[minmax(440px,0.88fr)_minmax(520px,1.12fr)] dark:border-gray-800 dark:bg-gray-900">
+        <div className="min-h-screen bg-[#f3f0ea] p-3 sm:p-5 lg:p-6 dark:bg-gray-950">
+            <div className="mx-auto grid min-h-[calc(100vh-24px)] max-w-[1600px] overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_70px_rgba(8,16,24,0.12)] sm:min-h-[calc(100vh-40px)] lg:min-h-[calc(100vh-48px)] lg:grid-cols-[minmax(440px,0.88fr)_minmax(520px,1.12fr)] dark:border-gray-800 dark:bg-gray-900">
                 <div className="flex items-center justify-center px-6 py-12 sm:px-12 lg:px-16">
                     <motion.div
                         className="w-full max-w-[430px]"
@@ -35,7 +35,7 @@ const Side = ({ children }: { children?: ReactNode }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ ...transition, duration: reduceMotion ? 0 : 1.2 }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1b1037]/95 via-[#4c1d95]/30 to-transparent" />
+                    <div className="absolute inset-0 bg-[#081018]/78" />
                     <motion.div
                         className="absolute right-10 top-10 flex gap-3"
                         initial={{ opacity: 0, y: reduceMotion ? 0 : -18 }}
@@ -43,11 +43,11 @@ const Side = ({ children }: { children?: ReactNode }) => {
                         transition={{ ...transition, delay: reduceMotion ? 0 : 0.35 }}
                     >
                         <div className="flex items-center gap-2 rounded-full border border-white/20 bg-[#1b1037]/55 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md">
-                            <TbShieldCheck className="text-base text-[#c4b5fd]" />
+                            <TbShieldCheck className="text-base text-[#a8c3ee]" />
                             Permisos por rol
                         </div>
                         <div className="flex items-center gap-2 rounded-full border border-white/20 bg-[#1b1037]/55 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md">
-                            <TbLock className="text-base text-[#c4b5fd]" />
+                            <TbLock className="text-base text-[#a8c3ee]" />
                             Sesión temporal
                         </div>
                     </motion.div>
@@ -58,7 +58,7 @@ const Side = ({ children }: { children?: ReactNode }) => {
                         transition={{ ...transition, delay: reduceMotion ? 0 : 0.2 }}
                     >
                         <div className="max-w-xl border-l border-white/35 pl-7 text-white">
-                            <span className="mb-4 inline-flex text-xs font-semibold uppercase tracking-[0.16em] text-[#c4b5fd]">
+                            <span className="mb-4 inline-flex text-xs font-semibold uppercase tracking-[0.16em] text-[#a8c3ee]">
                                 Operación centralizada
                             </span>
                             <h1 className="mb-4 text-3xl font-semibold leading-tight text-white xl:text-4xl">
