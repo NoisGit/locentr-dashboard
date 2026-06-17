@@ -135,6 +135,17 @@ headers or tokens.
 VS Code Live Server is configured to serve `build/` only, so `npm run build` must be run before
 using it.
 
+## Frontend Security
+
+- Route protection improves UX; backend authorization remains the source of truth.
+- Session data is kept in `sessionStorage` to reduce persistence on shared devices.
+- Inputs are normalized, length-limited and stripped of control characters before submit.
+- API failures are normalized through `src/utils/apiError.ts` and do not expose raw internals.
+- Operational requests include `x-request-id` for API correlation.
+- Telemetry sanitizes passwords, tokens and authorization headers before emitting events.
+- External links use `noopener` and `noreferrer`.
+- Production deploys should enforce CSP, frame protection, MIME sniffing protection and a restrictive permissions policy.
+
 ## Roles
 
 ```text
