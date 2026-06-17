@@ -124,6 +124,36 @@ async function mockLocentrApi(page: Page) {
             })
         }
 
+        if (path === '/api/v1/subscriptions/plans') {
+            return json(route, [
+                {
+                    code: 'growth',
+                    name: 'Growth',
+                    description: 'Operación multi-sede',
+                    monthly_price_cents: 99000,
+                    qty_locations: 10,
+                    qty_admins: 3,
+                    qty_operators: 30,
+                    qty_daily_reads: 1500,
+                    qty_storage_bytes: 1073741824,
+                    checkout_available: false,
+                },
+            ])
+        }
+
+        if (path === '/api/v1/lifecycle/invoices') {
+            return json(route, [])
+        }
+
+        if (path === '/api/v1/lifecycle/preferences') {
+            return json(route, {
+                company_id: 10,
+                billing_emails: true,
+                product_emails: true,
+                updated_at: '2026-06-17T00:00:00',
+            })
+        }
+
         if (path === '/api/v1/teams/seats') {
             return json(route, {
                 admins_used: 1,
@@ -346,6 +376,9 @@ test.describe('authenticated responsive matrix', () => {
             { path: '/access', heading: 'Control de accesos' },
             { path: '/documents', heading: 'Documentos' },
             { path: '/settings/team', heading: 'Equipo y licencias' },
+            { path: '/settings/billing', heading: 'Plan y facturación' },
+            { path: '/users/create', heading: 'Crear usuario' },
+            { path: '/buildings/create', heading: 'Crear edificio' },
         ]
 
         for (const viewport of viewports) {
