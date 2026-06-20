@@ -22,6 +22,7 @@ import {
     TbUsersGroup,
 } from 'react-icons/tb'
 import { apiListPlans } from '@/services/SubscriptionsService'
+import locentrIcon from '@/assets/locentr-icon.svg'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -174,11 +175,9 @@ const Landing = () => {
 
     return (
         <main ref={root} className="min-h-screen overflow-hidden bg-[#081018] text-[#f8fafc]">
-            <nav className="landing-nav relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-8">
+            <nav className="landing-nav relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
                 <Link className="flex items-center gap-3" to="/">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#2f5f9f] text-lg font-black text-white">
-                        L
-                    </span>
+                    <img className="h-10 w-10" src={locentrIcon} alt="Locentr" />
                     <span className="text-xl font-bold tracking-tight">locentr</span>
                 </Link>
                 <div className="hidden items-center gap-7 text-sm text-white/65 md:flex">
@@ -202,21 +201,21 @@ const Landing = () => {
                 </div>
             </nav>
 
-            <section className="relative mx-auto grid min-h-[820px] max-w-7xl items-center gap-16 px-5 pb-24 pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:pt-10">
+            <section className="relative mx-auto grid min-h-[610px] max-w-7xl items-center gap-10 px-5 pb-12 pt-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:pt-4">
                 <div className="landing-hero-copy relative z-10">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[#7fa7e6]/25 bg-[#7fa7e6]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#a8c3ee]">
                         <TbSparkles />
                         Operaciones empresariales, en orden
                     </div>
-                    <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-[#f8fafc] sm:text-6xl lg:text-7xl">
+                    <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-[#f8fafc] sm:text-6xl lg:text-7xl">
                         Todo lo que ocurre en tus sedes,{' '}
                         <span className="text-[#a8c3ee]">bajo control.</span>
                     </h1>
-                    <p className="mt-7 max-w-xl text-lg leading-8 text-white/60">
+                    <p className="mt-6 max-w-xl text-lg leading-8 text-white/60">
                         Locentr reúne empresas, accesos, equipos, documentos, auditoría, novedades y
                         soporte en una plataforma SaaS diseñada para operar con claridad.
                     </p>
-                    <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                         <Link
                             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2f5f9f] px-6 py-3.5 font-bold text-white transition hover:bg-[#4f7fbd]"
                             to="/start-trial"
@@ -238,21 +237,19 @@ const Landing = () => {
                 </div>
 
                 <div className="landing-dashboard relative z-10 will-change-transform">
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#111a22] p-3 shadow-[0_28px_80px_rgba(0,0,0,0.38)]">
+                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#152130] p-3 shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
                         <div className="flex items-center gap-2 border-b border-white/8 px-3 py-3">
                             <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
                             <span className="h-2.5 w-2.5 rounded-full bg-amber-300/70" />
                             <span className="h-2.5 w-2.5 rounded-full bg-[#7fa7e6]/80" />
-                            <span className="ml-4 text-xs text-white/35">
+                            <span className="ml-4 text-xs text-white/50">
                                 app.locentr.com/dashboard
                             </span>
                         </div>
-                        <div className="grid min-h-[500px] grid-cols-[80px_1fr] sm:grid-cols-[180px_1fr]">
+                        <div className="grid min-h-[410px] grid-cols-[80px_1fr] sm:grid-cols-[172px_1fr]">
                             <aside className="border-r border-white/8 p-3 sm:p-5">
-                                <div className="mb-8 flex items-center gap-2">
-                                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#2f5f9f] font-black text-white">
-                                        L
-                                    </span>
+                                <div className="mb-6 flex items-center gap-2">
+                                    <img className="h-8 w-8" src={locentrIcon} alt="" />
                                     <span className="hidden font-bold sm:block">locentr</span>
                                 </div>
                                 <div className="space-y-2">
@@ -269,7 +266,7 @@ const Landing = () => {
                                             className={`rounded-lg px-3 py-2.5 text-xs ${
                                                 index === 0
                                                     ? 'bg-[#7fa7e6]/15 font-semibold text-[#a8c3ee]'
-                                                    : 'text-white/35'
+                                                    : 'text-white/52'
                                             }`}
                                         >
                                             <span className="hidden sm:block">{item}</span>
@@ -278,17 +275,19 @@ const Landing = () => {
                                     ))}
                                 </div>
                             </aside>
-                            <div className="p-4 sm:p-6">
+                            <div className="p-4 sm:p-5">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs text-white/40">
+                                        <p className="text-xs text-white/55">
                                             Viernes, 12 de junio
                                         </p>
-                                        <h3 className="mt-1 text-xl">Resumen operativo</h3>
+                                        <h3 className="mt-1 text-xl text-white">
+                                            Resumen operativo
+                                        </h3>
                                     </div>
                                     <div className="h-9 w-9 rounded-full bg-[#2f5f9f]" />
                                 </div>
-                                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                                <div className="mt-5 grid gap-3 sm:grid-cols-3">
                                     {[
                                         ['1.248', 'Accesos hoy', '+12%'],
                                         ['18', 'Sedes activas', '100%'],
@@ -296,25 +295,25 @@ const Landing = () => {
                                     ].map(([value, label, delta]) => (
                                         <div
                                             key={label}
-                                            className="rounded-2xl border border-white/8 bg-white/[0.035] p-4"
+                                            className="rounded-2xl border border-white/10 bg-white/[0.06] p-4"
                                         >
                                             <p className="text-xl font-semibold">{value}</p>
-                                            <p className="mt-1 text-xs text-white/35">{label}</p>
+                                            <p className="mt-1 text-xs text-white/55">{label}</p>
                                             <p className="mt-3 text-xs text-[#a8c3ee]">{delta}</p>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="mt-3 grid gap-3 lg:grid-cols-[1.5fr_1fr]">
-                                    <div className="rounded-2xl border border-white/8 bg-white/[0.035] p-4">
+                                    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                                         <div className="flex items-center justify-between text-xs">
                                             <span>Actividad semanal</span>
-                                            <span className="text-white/35">Últimos 7 días</span>
+                                            <span className="text-white/55">Últimos 7 días</span>
                                         </div>
-                                        <div className="mt-8 flex h-36 items-end gap-2">
+                                        <div className="mt-7 flex h-28 items-end gap-2">
                                             {[42, 58, 48, 75, 62, 88, 72].map((height, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex-1 rounded-t-md bg-[#4f7fbd]"
+                                                    className="flex-1 rounded-t-md bg-[#6e98d4]"
                                                     style={{
                                                         height: `${height}%`,
                                                         opacity: 0.55 + index * 0.06,
@@ -323,12 +322,12 @@ const Landing = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="rounded-2xl border border-white/8 bg-white/[0.035] p-4">
+                                    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                                         <p className="text-xs">Estado de sedes</p>
                                         <div className="mx-auto mt-5 grid h-24 w-24 place-items-center rounded-full border-[10px] border-[#7fa7e6] border-r-white/10">
                                             <span className="text-lg font-bold">94%</span>
                                         </div>
-                                        <p className="mt-4 text-center text-xs text-white/35">
+                                        <p className="mt-4 text-center text-xs text-white/55">
                                             Operación saludable
                                         </p>
                                     </div>
@@ -340,7 +339,7 @@ const Landing = () => {
             </section>
 
             <section className="landing-reveal border-y border-white/8 bg-white/[0.025]">
-                <div className="mx-auto grid max-w-7xl gap-8 px-5 py-9 sm:grid-cols-3 lg:px-8">
+                <div className="mx-auto grid max-w-7xl gap-8 px-5 py-7 sm:grid-cols-3 lg:px-8">
                     {metrics.map(([value, label]) => (
                         <div key={label} className="text-center">
                             <p className="text-2xl font-semibold text-[#a8c3ee]">{value}</p>
@@ -350,12 +349,12 @@ const Landing = () => {
                 </div>
             </section>
 
-            <section id="producto" className="mx-auto max-w-7xl px-5 py-28 lg:px-8">
-                <div className="landing-reveal max-w-3xl">
+            <section id="producto" className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+                <div className="max-w-3xl">
                     <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#a8c3ee]">
                         Una sola fuente de verdad
                     </p>
-                    <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                    <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[#f8fafc] sm:text-5xl">
                         La operación completa, sin saltar entre sistemas.
                     </h2>
                     <p className="mt-5 text-lg leading-8 text-white/50">
@@ -363,7 +362,7 @@ const Landing = () => {
                         contexto para decidir.
                     </p>
                 </div>
-                <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {features.map(({ icon: Icon, title, text }) => (
                         <article
                             key={title}
@@ -379,7 +378,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            <section id="seguridad" className="landing-reveal mx-auto max-w-7xl px-5 pb-28 lg:px-8">
+            <section id="seguridad" className="landing-reveal mx-auto max-w-7xl px-5 pb-20 lg:px-8">
                 <div className="overflow-hidden rounded-[2rem] border border-[#7fa7e6]/25 bg-[#111a22] p-8 sm:p-12">
                     <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
                         <div>
@@ -416,7 +415,7 @@ const Landing = () => {
                 </div>
             </section>
 
-            <section id="planes" className="border-y border-white/8 bg-white/[0.018] py-28">
+            <section id="planes" className="border-y border-white/8 bg-white/[0.018] py-20">
                 <div className="mx-auto max-w-7xl px-5 lg:px-8">
                     <div className="landing-reveal text-center">
                         <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#a8c3ee]">
@@ -426,7 +425,7 @@ const Landing = () => {
                             Empieza pequeño. Escala sin rehacerlo todo.
                         </h2>
                     </div>
-                    <div className="mt-14 grid gap-5 lg:grid-cols-3">
+                    <div className="mt-10 grid gap-5 lg:grid-cols-3">
                         {plans.slice(0, 3).map((plan, index) => (
                             <article
                                 key={plan.code}
@@ -487,8 +486,8 @@ const Landing = () => {
                 </div>
             </section>
 
-            <section className="landing-reveal mx-auto max-w-7xl px-5 py-28 lg:px-8">
-                <div className="rounded-[2rem] border border-[#7fa7e6]/25 bg-[#193a63] px-7 py-14 text-center text-white sm:px-12">
+            <section className="landing-reveal mx-auto max-w-7xl px-5 py-20 lg:px-8">
+                <div className="rounded-[2rem] border border-[#7fa7e6]/25 bg-[#193a63] px-7 py-12 text-center text-white sm:px-12">
                     <TbLock className="mx-auto text-3xl" />
                     <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">
                         Tu operación merece algo mejor que planillas dispersas.

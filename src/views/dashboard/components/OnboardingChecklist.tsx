@@ -41,7 +41,7 @@ const OnboardingChecklist = ({
     accessLogsCount,
 }: OnboardingChecklistProps) => {
     const navigate = useNavigate()
-    const [expanded, setExpanded] = useState(true)
+    const [expanded, setExpanded] = useState<boolean | null>(null)
     const [dismissed, setDismissed] = useState(() => readDismissed(companyId))
     const { data: subscription } = useSWR(
         companyId ? ['onboarding:subscription', companyId] : null,
@@ -73,6 +73,7 @@ const OnboardingChecklist = ({
         ],
     )
     const subscriptionState = getSubscriptionPresentation(subscription)
+    const isExpanded = expanded ?? !summary.isComplete
 
     if (summary.isComplete && dismissed) return null
 
@@ -124,16 +125,23 @@ const OnboardingChecklist = ({
                         />
                     ) : null}
                     <Button
-                        aria-label={expanded ? 'Colapsar onboarding' : 'Expandir onboarding'}
-                        icon={expanded ? <TbChevronUp /> : <TbChevronDown />}
+                        aria-label={isExpanded ? 'Colapsar onboarding' : 'Expandir onboarding'}
+                        icon={isExpanded ? <TbChevronUp /> : <TbChevronDown />}
                         size="xs"
                         variant="plain"
-                        onClick={() => setExpanded((current) => !current)}
+                        onClick={() => setExpanded(!isExpanded)}
                     />
                 </div>
             </div>
 
-            {expanded ? (
+            {!isExpanded && summary.isComplete ? (
+                <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                    Operación inicial completa. Puedes descartar este bloque o expandirlo para
+                    revisar la evidencia de cada paso.
+                </p>
+            ) : null}
+
+            {isExpanded ? (
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {summary.steps.map((step) => (
                         <button

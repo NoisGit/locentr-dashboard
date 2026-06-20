@@ -294,6 +294,35 @@ async function signInAsAdmin(page: Page) {
     await expect(page.getByRole('heading', { name: /Hola, Boris Alvial/i })).toBeVisible()
 }
 
+async function seedAuthenticatedSession(page: Page) {
+    await page.addInitScript(
+        ({ user, currentCompany }) => {
+            sessionStorage.setItem('token', 'Bearer test-access-token')
+            sessionStorage.setItem('refresh_token', 'test-refresh-token')
+            sessionStorage.setItem(
+                'sessionUser',
+                JSON.stringify({
+                    state: {
+                        session: { signedIn: true },
+                        user: {
+                            ...user,
+                            avatar: '',
+                            userName: user.username,
+                            permissions: [],
+                        },
+                    },
+                    version: 0,
+                }),
+            )
+            localStorage.setItem('current_company', JSON.stringify(currentCompany))
+        },
+        {
+            user: adminUser,
+            currentCompany: { id: company.id, name: company.name },
+        },
+    )
+}
+
 async function expectNoHorizontalPageOverflow(page: Page) {
     const overflow = await page.evaluate(() => {
         const root = document.documentElement
@@ -301,6 +330,17 @@ async function expectNoHorizontalPageOverflow(page: Page) {
     })
 
     expect(overflow).toBeLessThanOrEqual(2)
+}
+
+async function gotoResponsiveView(
+    page: Page,
+    path: string,
+    heading: string | RegExp,
+) {
+    await page.goto(path, { waitUntil: 'domcontentloaded' })
+    await expect(page).toHaveURL(new RegExp(`${path.replace('/', '\\/')}(?:$|[?#])`))
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible()
+    await expectNoHorizontalPageOverflow(page)
 }
 
 test('authenticated SaaS navigation, mutation and logout protection', async ({ page }) => {
@@ -358,37 +398,36 @@ test('authenticated SaaS navigation, mutation and logout protection', async ({ p
 test.describe('authenticated responsive matrix', () => {
     test.skip(({ isMobile }) => isMobile, 'covered by the explicit viewport matrix')
 
-    test('main SaaS views avoid horizontal page overflow', async ({ page }) => {
-        await mockLocentrApi(page)
-        await signInAsAdmin(page)
+    const viewports = [
+        { name: 'mobile', width: 390, height: 844 },
+        { name: 'tablet', width: 768, height: 1024 },
+        { name: 'laptop', width: 1366, height: 768 },
+        { name: 'desktop', width: 1920, height: 1080 },
+    ]
+    const views = [
+        { path: '/dashboard', heading: /Hola, Boris Alvial/i },
+        { path: '/companies', heading: 'Empresas' },
+        { path: '/users', heading: 'Usuarios' },
+        { path: '/buildings', heading: 'Edificios' },
+        { path: '/access', heading: 'Control de accesos' },
+        { path: '/documents', heading: 'Documentos' },
+        { path: '/settings/team', heading: 'Equipo y licencias' },
+        { path: '/settings/billing', heading: 'Plan y facturación' },
+        { path: '/users/create', heading: 'Crear usuario' },
+        { path: '/buildings/create', heading: 'Crear edificio' },
+    ]
 
-        const viewports = [
-            { width: 390, height: 844 },
-            { width: 768, height: 1024 },
-            { width: 1366, height: 768 },
-            { width: 1920, height: 1080 },
-        ]
-        const views = [
-            { path: '/dashboard', heading: /Hola, Boris Alvial/i },
-            { path: '/companies', heading: 'Empresas' },
-            { path: '/users', heading: 'Usuarios' },
-            { path: '/buildings', heading: 'Edificios' },
-            { path: '/access', heading: 'Control de accesos' },
-            { path: '/documents', heading: 'Documentos' },
-            { path: '/settings/team', heading: 'Equipo y licencias' },
-            { path: '/settings/billing', heading: 'Plan y facturación' },
-            { path: '/users/create', heading: 'Crear usuario' },
-            { path: '/buildings/create', heading: 'Crear edificio' },
-        ]
+    for (const view of views) {
+        test(`${view.path} avoids horizontal page overflow`, async ({ page }) => {
+            await mockLocentrApi(page)
+            await seedAuthenticatedSession(page)
 
-        for (const viewport of viewports) {
-            await page.setViewportSize(viewport)
-
-            for (const view of views) {
-                await page.goto(view.path)
-                await expect(page.getByRole('heading', { name: view.heading })).toBeVisible()
-                await expectNoHorizontalPageOverflow(page)
+            for (const viewport of viewports) {
+                await test.step(`${viewport.name} ${viewport.width}x${viewport.height}`, async () => {
+                    await page.setViewportSize(viewport)
+                    await gotoResponsiveView(page, view.path, view.heading)
+                })
             }
-        }
-    })
+        })
+    }
 })

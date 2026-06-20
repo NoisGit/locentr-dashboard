@@ -4,6 +4,8 @@ Locentr Dashboard is the React frontend for Locentr, a portfolio SaaS for multi-
 
 ## Preview
 
+Current 1920x1080 captures from the running project:
+
 ![Locentr landing page](docs/images/locentr-landing.png)
 
 ![Locentr dashboard](docs/images/locentr-dashboard.png)
