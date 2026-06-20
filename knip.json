@@ -1,0 +1,20 @@
+{
+  "$schema": "https://unpkg.com/knip/schema.json",
+  "exclude": [
+    "files",
+    "exports",
+    "types",
+    "nsExports",
+    "nsTypes",
+    "enumMembers",
+    "namespaceMembers",
+    "duplicates"
+  ],
+  "ignoreDependencies": [
+    "@typescript-eslint/eslint-plugin",
+    "eslint-config-prettier",
+    "eslint-plugin-react",
+    "eslint-plugin-react-hooks",
+    "react-number-format"
+  ]
+}

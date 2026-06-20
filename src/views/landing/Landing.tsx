@@ -208,7 +208,7 @@ const Landing = () => {
                         <TbSparkles />
                         Operaciones empresariales, en orden
                     </div>
-                    <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                    <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-[#f8fafc] sm:text-6xl lg:text-7xl">
                         Todo lo que ocurre en tus sedes,{' '}
                         <span className="text-[#a8c3ee]">bajo control.</span>
                     </h1>
